@@ -1,22 +1,34 @@
-# Builds the web app and deploys it to Firebase Hosting.
-# Pushes to master go live; pull requests get a temporary preview link.
-# Needs one repository secret: FIREBASE_SERVICE_ACCOUNT (see README, "Host on Firebase").
-name: Firebase Hosting
+# Test environment (event-management-system-test on Firebase Hosting):
+#   every push to master, plus a 7-day preview link for each pull request.
+# Live environment (event-management-system) is hosted by the owner:
+#   publishing a GitHub release attaches a ready-to-host package (event-management-system-web-<tag>.zip).
+# Secret needed: FIREBASE_SERVICE_ACCOUNT_TEST (see README, "Hosting").
+name: Build and deploy
 
 on:
   push:
     branches: [master]
   pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
 
-permissions:
-  contents: read
-  checks: write
-  pull-requests: write
+concurrency:
+  group: build-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  test:
+    name: Deploy to test
+    if: >-
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    environment: test
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,9 +37,53 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # Public web-app identifiers for the test project (not secrets).
+          NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyAGpSvPAgNRYLFZ30Ndxwxz3W9jBYXg240
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: event-management-system-test.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: event-management-system-test
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: event-management-system-test.firebasestorage.app
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "1089884311004"
+          NEXT_PUBLIC_FIREBASE_APP_ID: "1:1089884311004:web:87cd908855bcc565819319"
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: G-7HC46BN8V2
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          channelId: ${{ github.event_name == 'push' && 'live' || '' }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TEST }}
+          projectId: event-management-system-test
+          channelId: ${{ github.event_name == 'pull_request' && '' || 'live' }}
           expires: 7d
+
+  release-package:
+    name: Package for live (owner-hosted)
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          # The owner's live Firebase web-app config, stored as GitHub repository
+          # variables (Settings > Secrets and variables > Actions > Variables).
+          # If they are not set, the package is built without Firebase.
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.LIVE_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.LIVE_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.LIVE_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ vars.LIVE_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.LIVE_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.LIVE_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ vars.LIVE_FIREBASE_MEASUREMENT_ID }}
+      - name: Zip the site
+        run: |
+          cp HOSTING.md out/HOSTING.md
+          cd out && zip -qr "../event-management-system-web-${{ github.event.release.tag_name }}.zip" .
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "event-management-system-web-${{ github.event.release.tag_name }}.zip" --clobber
