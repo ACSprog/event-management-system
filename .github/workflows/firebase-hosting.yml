@@ -37,6 +37,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # Public web-app identifiers for the test project (not secrets).
+          NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyAGpSvPAgNRYLFZ30Ndxwxz3W9jBYXg240
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: event-management-system-test.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: event-management-system-test
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: event-management-system-test.firebasestorage.app
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "1089884311004"
+          NEXT_PUBLIC_FIREBASE_APP_ID: "1:1089884311004:web:87cd908855bcc565819319"
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: G-7HC46BN8V2
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
@@ -59,6 +68,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # The owner's live Firebase web-app config, stored as GitHub repository
+          # variables (Settings > Secrets and variables > Actions > Variables).
+          # If they are not set, the package is built without Firebase.
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.LIVE_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.LIVE_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.LIVE_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ vars.LIVE_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.LIVE_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.LIVE_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ vars.LIVE_FIREBASE_MEASUREMENT_ID }}
       - name: Zip the site
         run: |
           cp HOSTING.md out/HOSTING.md

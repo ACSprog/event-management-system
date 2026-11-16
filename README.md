@@ -36,6 +36,23 @@ project IDs are unique worldwide, so use the exact ID Firebase gives you in
 5. In GitHub: Settings > Secrets and variables > Actions > new secret
    `FIREBASE_SERVICE_ACCOUNT_TEST`, paste the JSON.
 
+**Firebase web config**
+
+The site reads its Firebase settings (used for Analytics now, sign-in and push
+later) from `NEXT_PUBLIC_FIREBASE_*` variables at build time; see `.env.example`.
+
+- Test: the values for `event-management-system-test` are in the workflow.
+- Live: the owner sends their Firebase web-app config, and we store it as GitHub
+  repository **variables** named `LIVE_FIREBASE_API_KEY`, `LIVE_FIREBASE_AUTH_DOMAIN`,
+  `LIVE_FIREBASE_PROJECT_ID`, `LIVE_FIREBASE_STORAGE_BUCKET`,
+  `LIVE_FIREBASE_MESSAGING_SENDER_ID`, `LIVE_FIREBASE_APP_ID` and
+  `LIVE_FIREBASE_MEASUREMENT_ID`. Release packages are built with them.
+- Locally, copy `.env.example` to `.env.local` and fill it in, or leave it empty
+  to run without Firebase.
+
+These values identify a project; they are not passwords. Restrict each API key
+to its own domains: Google Cloud console > APIs and Services > Credentials.
+
 **Handing a version to the owner for live**
 
 1. Check it on the test address.

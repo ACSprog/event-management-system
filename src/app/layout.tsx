@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui";
 import { DemoBar } from "@/components/layout/demo-bar";
+import { FirebaseAnalytics } from "@/components/firebase-analytics";
 import { brand } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <DemoBar />
           {children}
         </ToastProvider>
+        <FirebaseAnalytics />
       </body>
     </html>
   );
