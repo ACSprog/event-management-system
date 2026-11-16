@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Badge, Button, Card, PageHeader, Progress, SectionTitle, Table, useToast } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useOrgRole } from "@/components/layout/org-role";
 import { kwacha } from "@/lib/brand";
 
 const budget = [["Entertainment", 700_000, 640_000], ["Venue", 185_000, 185_000], ["Sound and lighting", 220_000, 185_000], ["Security", 110_000, 96_000], ["Marketing", 90_000, 35_000], ["Transport", 50_000, 42_000], ["Printing", 25_000, 18_400]] as const;
 
 export default function Expenses() {
   const toast = useToast();
+  const { can } = useOrgRole();
   const [rows, setRows] = useState(api.finance.expenses());
   return (
     <>
@@ -25,7 +27,7 @@ export default function Expenses() {
         { key: "date", label: "Date" }, { key: "vendor", label: "Vendor", render: (x) => <span className="font-semibold">{x.vendor}</span> }, { key: "category", label: "Category" },
         { key: "amount", label: "Amount", align: "right", render: (x) => kwacha(x.amount) },
         { key: "status", label: "Status", render: (x) => <Badge tone={x.status === "Paid" ? "green" : x.status === "Approved" ? "teal" : "gold"}>{x.status}</Badge> },
-        { key: "a", label: "", render: (x) => x.status === "Awaiting approval" ? <Button size="sm" onClick={() => { setRows(rows.map((r) => (r.id === x.id ? { ...r, status: "Approved" } : r))); toast("Expense approved"); }}>Approve</Button> : null },
+        { key: "a", label: "", render: (x) => x.status === "Awaiting approval" && can("payouts.approve") ? <Button size="sm" onClick={() => { setRows(rows.map((r) => (r.id === x.id ? { ...r, status: "Approved" } : r))); toast("Expense approved"); }}>Approve</Button> : null },
       ]} />
     </>
   );

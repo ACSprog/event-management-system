@@ -344,25 +344,10 @@ export const team = [
   { name: "Chanda Mulenga", email: "chanda@zedlive.example", role: "Event manager", status: "Active", mfa: true, lastActive: "12 min ago" },
   { name: "Precious Nyirenda", email: "precious@zedlive.example", role: "Finance officer", status: "Active", mfa: true, lastActive: "1 h ago" },
   { name: "Daliso Mbewe", email: "daliso@zedlive.example", role: "Marketing officer", status: "Active", mfa: false, lastActive: "Yesterday" },
-  { name: "Kelvin Sakala", email: "kelvin@zedlive.example", role: "Check-in officer", status: "Active", mfa: false, lastActive: "3 days ago" },
-  { name: "Mapalo Ngoma", email: "mapalo@zedlive.example", role: "Check-in officer", status: "Invited", mfa: false, lastActive: "—" },
+  { name: "Kelvin Sakala", email: "kelvin@zedlive.example", role: "Gate staff", status: "Active", mfa: false, lastActive: "3 days ago" },
+  { name: "Mapalo Ngoma", email: "mapalo@zedlive.example", role: "Gate staff", status: "Invited", mfa: false, lastActive: "—" },
 ];
 
-export const permissionMatrix = {
-  roles: ["Org admin", "Event manager", "Finance", "Marketing", "Check-in"],
-  rows: [
-    { area: "Create and edit events", v: [true, true, false, false, false] },
-    { area: "Publish events", v: [true, false, false, false, false] },
-    { area: "Ticket types and pricing", v: [true, true, false, false, false] },
-    { area: "View attendees", v: [true, true, false, true, true] },
-    { area: "Scan tickets", v: [true, true, false, false, true] },
-    { area: "Issue refunds", v: [true, false, true, false, false] },
-    { area: "View finances", v: [true, true, true, false, false] },
-    { area: "Approve payouts", v: [true, false, true, false, false] },
-    { area: "Send campaigns", v: [true, false, false, true, false] },
-    { area: "Manage team", v: [true, false, false, false, false] },
-  ],
-};
 
 export const plans = [
   { name: "Starter", price: 0, fee: "5% + K2 per paid ticket", orgs: 412, features: ["Unlimited free events", "Ticketing and QR check-in", "Email notifications", "1 team member"] },

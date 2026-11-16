@@ -61,19 +61,37 @@ to its own domains: Google Cloud console > APIs and Services > Credentials.
 
 Deploying test by hand: `npm i -g firebase-tools && firebase login && npm run build && firebase deploy --only hosting -P test`.
 
-## What's inside
+## Who uses it
 
-| Portal | Path | Screens |
+There are three kinds of user:
+
+| User | Where | What they do |
 |---|---|---|
-| Public site | `/` | Home, discovery with distance filter and map, event page, seat selection, checkout (MoMo, Airtel, Zamtel, card, bank), confirmation with QR tickets, organiser page, donation page, pricing, sign in, organisation registration |
-| Customer | `/account/` | Ticket wallet with transfer, orders and refunds, courses, verified review form, rewards and membership, notifications, location and alert preferences |
-| Organiser | `/org/` | Dashboard, AI planner, events, create-event wizard (event profiles), event management (overview, tickets, attendees, check-in, tasks, budget, staff), live check-in, venues and floor-plan editor, vendors and quote comparison, customers (CRM), reviews and responses, membership and loyalty, classrooms, reports, team and permissions, integrations, settings |
-| Finance | `/org/finance/` | Overview and P&L, transactions and refunds, budgets and expenses, payouts and settlements, fundraising and sponsors |
-| Marketing | `/org/marketing/` | Campaigns, discount codes, automations, referrals, campaign composer with preview |
-| Gate scanner | `/scan/` | Shift set-up, offline ticket download, scanning (real camera where the browser supports it), valid / used / wrong gate / cancelled / fake results, name lookup, sync status |
-| Instructor | `/instructor/` | Today, classroom (lessons and Zoom, students, materials, assessments, certificates), grading, new course |
-| Vendor and venue | `/vendor/` | Dashboard, quote requests, venue calendar, services, contracts and invoices |
-| Super admin | `/admin/` | Platform overview, organisations (approve and suspend), plans, payments and fees, review moderation, support, notification templates, system health, audit and security |
+| **Super admin** (system owners) | `/admin/` | Approve and suspend organisers, plans and fees, payment providers, review moderation, support, system health, audit logs |
+| **Event organiser** | `/org/` | Everything to run events: events, classes, venues, vendors, audience, money, settings |
+| **Attendee** (public) | `/`, `/events/`, `/account/` | Find events nearby, buy tickets, wallet, transfers and refunds, reviews, alerts |
+
+Organisers invite their own people and give each a **team role**. The admin
+can change what every role is allowed to do (Settings > Team and roles).
+Roles and permissions are defined in `src/lib/roles.ts`.
+
+| Team role | Sees by default |
+|---|---|
+| Organisation admin | Everything |
+| Event manager | Events, classes, venues, vendors, customers and reviews. No money or settings |
+| Finance officer | Money (sales, refunds, expenses, payouts, reports) and read-only events |
+| Marketing officer | Customers, campaigns, reviews and read-only events |
+| Gate staff | Only the gate scanner, for the events and gates assigned to them |
+
+In the showcase, the "Preview as" menu at the top of the organiser workspace
+switches between roles. In production the role comes from the signed-in
+user's membership and is enforced by the API as well as the screens.
+
+The organiser workspace has five areas, each with tabs:
+**Home**, **Events** (events, classes, venues, vendors), **Audience** (customers,
+campaigns, reviews, membership), **Money** (overview, sales and refunds, budgets
+and expenses, payouts, donations and sponsors, reports) and **Settings** (team and
+roles, organisation, integrations). The gate scanner is at `/scan/`.
 
 ## How it connects to the backend later
 
@@ -98,6 +116,6 @@ Deploying test by hand: `npm i -g firebase-tools && firebase login && npm run bu
 
 ## Showcase only
 
-- The dark "View as" bar at the top switches between portals.
+- The dark "Switch view" bar at the top switches between the attendee site, the organiser workspace, the gate scanner and the super admin area.
   Remove `<DemoBar />` from `src/app/layout.tsx` for production.
 - Payments, Zoom, SMS and sign-in are simulated in the browser. Nothing is charged or sent.
