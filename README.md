@@ -13,51 +13,36 @@ npm run build      # static export to ./out (what the preview link serves)
 
 Node 20 or newer.
 
-## Host on Firebase
+## Hosting
 
-The app builds to plain static files (`out/`), which Firebase Hosting serves
-from its global CDN. There are two environments, each its own Firebase project:
+The app builds to plain static files (`out/`).
 
-| Environment | Firebase project | Address | Deploys when |
+| Environment | Hosted by | Where | Updated when |
 |---|---|---|---|
-| Test | `system-name-test` | `https://system-name-test.web.app` | Every push to `master`. Pull requests get a 7-day preview link here too. |
-| Live | `system-name` | `https://system-name.web.app` | A GitHub release is published, or you run the workflow by hand with target `live`. |
+| Test | Us, on Firebase Hosting | Firebase project `event-management-system-test`, `https://event-management-system-test.web.app` | Every push to `master`. Pull requests get a 7-day preview link. |
+| Live | The owner, on their own hosting | Owner's choice (their Firebase project, own server, any static host) | When a GitHub release is published, a ready-to-host package `event-management-system-web-<tag>.zip` is attached to the release. The owner downloads it and follows `HOSTING.md` inside. |
 
-`system-name` is a placeholder until the product name is chosen. Project IDs
-must be unique across all of Firebase, so if yours is taken Firebase adds a
-suffix (for example `system-name-4f2a1`). Use the exact IDs Firebase gives you.
+Firebase
+project IDs are unique worldwide, so use the exact ID Firebase gives you in
+`.firebaserc` and in the workflow's `projectId:` line.
 
-**One-time set-up**
+**One-time set-up for test**
 
-1. Create two Firebase projects at https://console.firebase.google.com:
-   one for test, one for live.
-2. Put their project IDs in `.firebaserc` and in
-   `.github/workflows/firebase-hosting.yml` (the two `projectId:` lines).
-3. In each project: Build > Hosting > Get started (click through; the config is already here).
-4. In each project's Google Cloud console: IAM > Service accounts > create one with
-   the roles **Firebase Hosting Admin** and **API Keys Viewer**, then Keys > Add key > JSON.
-5. In GitHub: Settings > Secrets and variables > Actions, add
-   - `FIREBASE_SERVICE_ACCOUNT_TEST`: the test project's JSON key
-   - `FIREBASE_SERVICE_ACCOUNT_LIVE`: the live project's JSON key
-6. Recommended: GitHub > Settings > Environments > `live` > Required reviewers,
-   so nobody can push to live without your approval.
+1. Create a Firebase project for test at https://console.firebase.google.com.
+2. Put its project ID in `.firebaserc` and `.github/workflows/firebase-hosting.yml`.
+3. In the project: Build > Hosting > Get started (click through; the config is already here).
+4. In its Google Cloud console: IAM > Service accounts > create one with the roles
+   **Firebase Hosting Admin** and **API Keys Viewer**, then Keys > Add key > JSON.
+5. In GitHub: Settings > Secrets and variables > Actions > new secret
+   `FIREBASE_SERVICE_ACCOUNT_TEST`, paste the JSON.
 
-**Releasing to live**
+**Handing a version to the owner for live**
 
-1. Check the change on the test address.
+1. Check it on the test address.
 2. GitHub > Releases > Draft a new release, tag it (for example `v0.2.0`), publish.
-3. The live deploy runs (and waits for approval if you set required reviewers).
+3. The release gets `event-management-system-web-v0.2.0.zip`. Send the owner the release link.
 
-**Deploying by hand**
-
-```bash
-npm i -g firebase-tools && firebase login
-npm run build
-firebase deploy --only hosting -P test   # or -P live
-```
-
-Custom domains go on the live project (for example `tickets.yourbrand.zm`),
-and optionally `test.yourbrand.zm` on the test project.
+Deploying test by hand: `npm i -g firebase-tools && firebase login && npm run build && firebase deploy --only hosting -P test`.
 
 ## What's inside
 

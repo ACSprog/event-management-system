@@ -1,7 +1,6 @@
 {
   "projects": {
-    "default": "system-name-test",
-    "test": "system-name-test",
-    "live": "system-name"
+    "default": "event-management-system-test",
+    "test": "event-management-system-test"
   }
 }
