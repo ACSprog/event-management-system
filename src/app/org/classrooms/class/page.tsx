@@ -13,7 +13,7 @@ export default function Classroom() {
   const students = api.events.attendees().slice(0, 14);
   return (
     <>
-      <PageHeader title="Digital Marketing Bootcamp" sub={<span className="flex flex-wrap items-center gap-2">Classroom code <span className="rounded bg-surface-2 px-2 py-0.5 font-mono text-ink">EMS-CLS-2026-00482</span> <button aria-label="Copy code" onClick={() => toast("Code copied")}><Copy size={13} /></button> 61 of 80 students</span>}
+      <PageHeader back={{ href: "/org/classrooms/", label: "Classes" }} title="Digital Marketing Bootcamp" sub={<span className="flex flex-wrap items-center gap-2">Classroom code <span className="rounded bg-surface-2 px-2 py-0.5 font-mono text-ink">EMS-CLS-2026-00482</span> <button aria-label="Copy code" onClick={() => toast("Code copied")}><Copy size={13} /></button> 61 of 80 students</span>}
         actions={<><Button variant="secondary" onClick={() => toast("Zoom meetings created for lessons 7 to 12")}><Video size={15} /> Create remaining Zoom meetings</Button><Button><Plus size={15} /> Add lesson</Button></>} />
       <Card className="mb-6 bg-surface-2 text-sm"><p>The classroom code identifies this class on receipts and certificates. It never lets anyone in by itself: each paid student gets a personal Zoom registration link, and a waiting room is on for every lesson.</p></Card>
       <Tabs tabs={["Lessons", "Students", "Materials", "Assessments", "Attendance", "Certificates"]} value={tab} onChange={setTab} />
@@ -26,7 +26,7 @@ export default function Classroom() {
       {tab === "Students" && <Table rows={students} columns={[
         { key: "name", label: "Student", render: (a) => <div className="flex items-center gap-2.5"><Avatar name={a.name} size={28} /><span className="font-semibold">{a.name}</span></div> },
         { key: "email", label: "Email" },
-        { key: "plan", label: "Access", render: (_, ) => <Badge tone="teal">Full course</Badge> },
+        { key: "plan", label: "Access", render: () => <Badge tone="teal">Full course</Badge> },
         { key: "z", label: "Zoom link", render: (a) => <Badge tone={a.id === "a3" ? "gold" : "green"}>{a.id === "a3" ? "Revoked" : "Issued"}</Badge> },
       ]} />}
       {tab === "Materials" && (

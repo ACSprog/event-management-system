@@ -18,18 +18,23 @@ export function PortalShell({
   workspaces,
   user,
   children,
+  headerSlot,
+  activeFor,
 }: {
   nav: NavGroup[];
   workspace: { name: string; sub: string };
   workspaces?: string[];
   user: { name: string; role: string };
   children: React.ReactNode;
+  headerSlot?: React.ReactNode;
+  /** Optional: decide which nav item is active for the current path. */
+  activeFor?: (path: string) => string | undefined;
 }) {
   const path = usePathname() ?? "";
   const [open, setOpen] = useState(false);
   const [switcher, setSwitcher] = useState(false);
   const all = nav.flatMap((g) => g.items);
-  const active = all
+  const active = activeFor?.(path) ?? all
     .filter((i) => path === i.href || (i.href.split("/").length > 3 && path.startsWith(i.href)))
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
@@ -108,7 +113,8 @@ export function PortalShell({
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
             <input placeholder="Search events, people, bookings" className="w-full rounded-lg border border-line bg-canvas py-1.5 pl-9 pr-3 text-sm focus:border-kafue focus:outline-none" />
           </label>
-          <button className="relative ml-auto rounded-lg p-2 hover:bg-surface-2" aria-label="Notifications, 3 unread">
+          {headerSlot && <div className="ml-auto">{headerSlot}</div>}
+          <button className={cx("relative rounded-lg p-2 hover:bg-surface-2", !headerSlot && "ml-auto")} aria-label="Notifications, 3 unread">
             <Bell size={18} />
             <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-hibiscus" />
           </button>

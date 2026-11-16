@@ -12,7 +12,7 @@ export default function NewCourse() {
   const [waiting, setWaiting] = useState(true);
   return (
     <>
-      <PageHeader title="New course" back={{ href: "/instructor/", label: "Today" }} />
+      <PageHeader title="New course" back={{ href: "/org/classrooms/", label: "Classes" }} />
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="space-y-4">
           <Field label="Course name"><Input placeholder="e.g. Excel for Beginners" /></Field>

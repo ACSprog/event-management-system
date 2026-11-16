@@ -46,8 +46,6 @@ export const api = {
     get: (id: string) => mock.getOrg(id),
     /** GET /v1/orgs/:orgId/team */
     team: () => mock.team,
-    /** GET /v1/orgs/:orgId/roles */
-    permissions: () => mock.permissionMatrix,
   },
   venues: {
     /** GET /v1/venues */

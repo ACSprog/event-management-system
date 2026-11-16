@@ -2,11 +2,13 @@
 
 import { Badge, Button, Card, PageHeader, SectionTitle, Stat, Table } from "@/components/ui";
 import { kwacha } from "@/lib/brand";
+import { useOrgRole } from "@/components/layout/org-role";
 
 export default function Payouts() {
+  const { can } = useOrgRole();
   return (
     <>
-      <PageHeader title="Payouts" sub="Money from ticket sales, less refunds and fees, paid to your MTN MoMo business wallet ending 0081." actions={<Button>Request payout</Button>} />
+      <PageHeader title="Payouts" sub="Money from ticket sales, less refunds and fees, paid to your MTN MoMo business wallet ending 0081." actions={can("payouts.approve") ? <Button>Request payout</Button> : undefined} />
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="Available now" value={kwacha(1_284_220)} />
         <Stat label="Held until after the event" value={kwacha(6_102_480)} hint="Lusaka Summer Jam, refund window open" />

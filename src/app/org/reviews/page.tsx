@@ -4,9 +4,11 @@ import { useState } from "react";
 import { BadgeCheck, Flag, Lock } from "lucide-react";
 import { Badge, Button, Card, PageHeader, Progress, SectionTitle, Stars, Stat, Textarea, useToast, Select } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useOrgRole } from "@/components/layout/org-role";
 
 export default function OrgReviews() {
   const toast = useToast();
+  const { can } = useOrgRole();
   const [reply, setReply] = useState<Record<string, string>>({});
   const reviews = api.reviews.forEvent();
   const themes = [{ t: "Parking and exit", n: 64, tone: "red" }, { t: "Sound quality", n: 211, tone: "green" }, { t: "Bar queues", n: 48, tone: "red" }, { t: "Quick entry", n: 173, tone: "green" }, { t: "Food ran out", n: 31, tone: "red" }, { t: "Friendly security", n: 92, tone: "green" }];
@@ -43,7 +45,7 @@ export default function OrgReviews() {
               <p className="mt-1 text-xs text-ink-3">{r.name}, {r.date}</p>
               {r.reply ? (
                 <div className="mt-3 rounded-lg bg-surface-2 p-3 text-sm"><p className="font-semibold">Your public reply</p><p className="text-ink-2">{r.reply}</p></div>
-              ) : (
+              ) : !can("reviews.reply") ? null : (
                 <div className="mt-3 space-y-2">
                   <Textarea rows={2} placeholder={r.visibility === "Public" ? "Reply publicly…" : "Reply privately to this attendee…"} value={reply[r.id] ?? ""} onChange={(e) => setReply({ ...reply, [r.id]: e.target.value })} />
                   <div className="flex justify-between">

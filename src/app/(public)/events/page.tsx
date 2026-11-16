@@ -22,6 +22,7 @@ export default function Discover() {
   const [freeOnly, setFreeOnly] = useState(false);
   const [view, setView] = useState<"grid" | "map">("grid");
   const [located, setLocated] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -72,7 +73,11 @@ export default function Discover() {
         ))}
       </div>
 
-      <div className="mt-4 grid gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-5">
+      <button onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} className="mt-4 flex w-full items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 text-sm font-semibold md:hidden">
+        <span className="flex items-center gap-2"><SlidersHorizontal size={15} /> Search and filters</span>
+        <span className="text-ink-3">{showFilters ? "Hide" : radius === 500 && when === "Any date" && maxPrice === "Any price" && !freeOnly && !q ? "None set" : "Active"}</span>
+      </button>
+      <div className={cx("mt-4 gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2 md:grid lg:grid-cols-5", showFilters ? "grid" : "hidden")}>
         <label className="lg:col-span-2">
           <span className="sr-only">Search</span>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by event, artist or town" className="w-full rounded-lg border border-line bg-canvas px-3 py-2.5 text-sm focus:border-kafue focus:outline-none" />

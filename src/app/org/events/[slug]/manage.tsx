@@ -5,12 +5,14 @@ import { Copy, Download, ExternalLink, Mail, Plus, ScanLine, Send, Undo2 } from 
 import { Avatar, Badge, Button, Card, Checkbox, Input, Modal, PageHeader, Progress, SectionTitle, Stat, Table, Tabs, useToast, Field, Select } from "@/components/ui";
 import { AreaTrend, Bars } from "@/components/ui/charts";
 import { api, capacity, gross, sold, statusTone } from "@/lib/api";
+import { useOrgRole } from "@/components/layout/org-role";
 import { compact, fmtDate, fmtTime, kwacha } from "@/lib/brand";
 
-const tabsList = ["Overview", "Tickets", "Attendees", "Check-in and gates", "Tasks", "Budget", "Staff"];
 
 export function EventManage({ slug }: { slug: string }) {
   const toast = useToast();
+  const { can } = useOrgRole();
+  const tabsList = ["Overview", "Tickets", "Attendees", "Check-in and gates", "Tasks", ...(can("money.view") ? ["Budget"] : []), ...(can("events.edit") ? ["Staff"] : [])];
   const e = api.events.bySlug(slug)!;
   const [tab, setTab] = useState("Overview");
   const [q, setQ] = useState("");
@@ -30,7 +32,7 @@ export function EventManage({ slug }: { slug: string }) {
         sub={<span className="flex flex-wrap items-center gap-2"><Badge tone={statusTone[e.status]}>{e.status}</Badge> {fmtDate(e.start, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}, {fmtTime(e.start)}, {venue.name}</span>}
         actions={<>
           <Button variant="secondary" href={`/events/${e.slug}/`}><ExternalLink size={15} /> View page</Button>
-          {e.status === "Pending approval" ? <Button onClick={() => toast("Event approved and published")}>Approve and publish</Button> : <Button href="/org/checkin/"><ScanLine size={15} /> Open check-in</Button>}
+          {e.status === "Pending approval" && can("events.publish") ? <Button onClick={() => toast("Event approved and published")}>Approve and publish</Button> : <Button href="/org/checkin/"><ScanLine size={15} /> Live check-in</Button>}
         </>}
       />
       <Tabs tabs={tabsList} value={tab} onChange={setTab} />
@@ -39,7 +41,7 @@ export function EventManage({ slug }: { slug: string }) {
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Stat label="Tickets sold" value={sold(e).toLocaleString()} hint={`of ${capacity(e).toLocaleString()} (${Math.round((sold(e) / capacity(e)) * 100)}%)`} />
-            <Stat label="Gross sales" value={kwacha(gross(e))} delta="+K412k" hint="this week" />
+            {can("money.view") ? <Stat label="Gross sales" value={kwacha(gross(e))} delta="+K412k" hint="this week" /> : <Stat label="Sold this week" value="1,648" />}
             <Stat label="Page views to buyers" value="6.8%" hint="41,200 views" />
             <Stat label="Refunds" value="38" hint={`${kwacha(9_500)} returned`} />
           </div>
@@ -66,7 +68,7 @@ export function EventManage({ slug }: { slug: string }) {
 
       {tab === "Tickets" && (
         <>
-          <div className="mb-4 flex justify-end gap-2"><Button variant="secondary" onClick={() => toast("50 complimentary tickets issued to the guest list")}>Issue complimentary</Button><Button><Plus size={15} /> Add ticket type</Button></div>
+          {can("tickets.manage") && <div className="mb-4 flex justify-end gap-2"><Button variant="secondary" onClick={() => toast("50 complimentary tickets issued to the guest list")}>Issue complimentary</Button><Button><Plus size={15} /> Add ticket type</Button></div>}
           <Table
             rows={e.tickets as unknown as Record<string, unknown>[]}
             columns={[
@@ -98,7 +100,7 @@ export function EventManage({ slug }: { slug: string }) {
               { key: "method", label: "Paid with" },
               { key: "paid", label: "Paid", align: "right", render: (a) => kwacha(a.paid) },
               { key: "checkedIn", label: "Checked in", render: (a) => (a.checkedIn ? <Badge tone="green">{fmtTime(a.checkedIn)}, {a.gate}</Badge> : <Badge>Not yet</Badge>) },
-              { key: "x", label: "", render: (a) => <Button size="sm" variant="ghost" onClick={() => setRefund(a.name)}><Undo2 size={14} /> Refund</Button> },
+              { key: "x", label: "", render: (a) => (can("refunds.issue") ? <Button size="sm" variant="ghost" onClick={() => setRefund(a.name)}><Undo2 size={14} /> Refund</Button> : null) },
             ]}
           />
         </>
@@ -146,7 +148,7 @@ export function EventManage({ slug }: { slug: string }) {
 
       {tab === "Staff" && (
         <Card>
-          <SectionTitle title="Staff and scanner access" sub="Check-in officers only see this event, and only the gates you assign." action={<Button size="sm"><Send size={14} /> Invite staff</Button>} />
+          <SectionTitle title="Staff and scanner access" sub="Gate staff only see the scanner, and only for this event and the gates you assign." action={<Button size="sm"><Send size={14} /> Invite staff</Button>} />
           <ul className="divide-y divide-line">
             {api.orgs.team().map((m, i) => (
               <li key={m.email} className="flex flex-wrap items-center gap-3 py-3">

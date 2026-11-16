@@ -12,7 +12,7 @@ export default function Grading() {
   const s = subs[sel];
   return (
     <>
-      <PageHeader title="Grading" sub="Bookkeeping for Small Business: Monthly cash book" />
+      <PageHeader back={{ href: "/org/classrooms/", label: "Classes" }} title="Grading" sub="Bookkeeping for Small Business: Monthly cash book" />
       <div className="grid gap-6 xl:grid-cols-[320px_1fr]">
         <Card pad={false}>
           <ul className="divide-y divide-line">
