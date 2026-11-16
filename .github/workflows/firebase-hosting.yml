@@ -1,22 +1,41 @@
-# Builds the web app and deploys it to Firebase Hosting.
-# Pushes to master go live; pull requests get a temporary preview link.
-# Needs one repository secret: FIREBASE_SERVICE_ACCOUNT (see README, "Host on Firebase").
+# Two environments:
+#   test  (system-name-test): every push to master, plus a preview link for each pull request
+#   live  (system-name):      when a GitHub release is published, or by hand from the Actions tab
+# Secrets: FIREBASE_SERVICE_ACCOUNT_TEST and FIREBASE_SERVICE_ACCOUNT_LIVE (see README, "Host on Firebase").
 name: Firebase Hosting
 
 on:
   push:
     branches: [master]
   pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Where to deploy
+        type: choice
+        options: [test, live]
+        default: test
 
 permissions:
   contents: read
   checks: write
   pull-requests: write
 
+concurrency:
+  group: hosting-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  test:
+    name: Deploy to test
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'test')
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    environment: test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,9 +44,36 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          NEXT_PUBLIC_APP_ENV: test
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          channelId: ${{ github.event_name == 'push' && 'live' || '' }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TEST }}
+          projectId: system-name-test
+          channelId: ${{ github.event_name == 'pull_request' && '' || 'live' }}
           expires: 7d
+
+  live:
+    name: Deploy to live
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'live')
+    runs-on: ubuntu-latest
+    environment: live
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_APP_ENV: live
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LIVE }}
+          projectId: system-name
+          channelId: live
