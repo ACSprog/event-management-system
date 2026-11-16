@@ -1,0 +1,126 @@
+@import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/public-sans";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Eventra design tokens
+  ink      #172033  text, navigation
+  canvas   #F3F5F8  page background
+  kafue    #0B7A75  primary actions (teal of the Kafue river)
+  marigold #F4A630  tickets, highlights
+  hibiscus #D62F45  errors, invalid scans
+  leaf     #1F9D55  success, valid scans
+*/
+:root {
+  --canvas: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --ink: #172033;
+  --ink-2: #4a5468;
+  --ink-3: #7b8496;
+  --line: #dde2ea;
+  --kafue: #0b7a75;
+  --kafue-ink: #075753;
+  --kafue-soft: #e0f1ef;
+  --marigold: #f4a630;
+  --marigold-soft: #fdf0d9;
+  --hibiscus: #d62f45;
+  --hibiscus-soft: #fbe4e7;
+  --leaf: #1f9d55;
+  --leaf-soft: #e1f4e8;
+}
+
+.dark {
+  --canvas: #0f1522;
+  --surface: #171f2f;
+  --surface-2: #1f2939;
+  --ink: #e8ecf3;
+  --ink-2: #b3bccb;
+  --ink-3: #8691a4;
+  --line: #2a3547;
+  --kafue: #2bb3aa;
+  --kafue-ink: #7fd8d1;
+  --kafue-soft: #12302f;
+  --marigold: #f6b54e;
+  --marigold-soft: #3a2c14;
+  --hibiscus: #f0576b;
+  --hibiscus-soft: #3a1820;
+  --leaf: #3cc274;
+  --leaf-soft: #133222;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-kafue: var(--kafue);
+  --color-kafue-ink: var(--kafue-ink);
+  --color-kafue-soft: var(--kafue-soft);
+  --color-marigold: var(--marigold);
+  --color-marigold-soft: var(--marigold-soft);
+  --color-hibiscus: var(--hibiscus);
+  --color-hibiscus-soft: var(--hibiscus-soft);
+  --color-leaf: var(--leaf);
+  --color-leaf-soft: var(--leaf-soft);
+  --font-display: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  --font-sans: "Public Sans Variable", system-ui, sans-serif;
+}
+
+html {
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--kafue);
+  outline-offset: 2px;
+}
+
+/* Ticket stub: perforated edge between the main body and the stub */
+.ticket {
+  --notch: 11px;
+  position: relative;
+  mask:
+    radial-gradient(circle var(--notch) at var(--stub, 72%) 0, #0000 98%, #000) top / 100% 51% no-repeat,
+    radial-gradient(circle var(--notch) at var(--stub, 72%) 100%, #0000 98%, #000) bottom / 100% 51% no-repeat;
+}
+.ticket-perf {
+  border-left: 2px dashed var(--line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(220px); }
+}
+.scan-line {
+  animation: scan-line 1.6s ease-in-out infinite alternate;
+}

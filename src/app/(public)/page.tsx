@@ -1,0 +1,156 @@
+import Link from "next/link";
+import { BadgeCheck, MapPin, Navigation, ShieldCheck, Smartphone, Zap } from "lucide-react";
+import { Poster } from "@/components/poster";
+import { EventCard } from "@/components/event-card";
+import { Button, Progress } from "@/components/ui";
+import { api, capacity, fromPrice, sold } from "@/lib/api";
+import { fmtDate, fmtTime, kwacha } from "@/lib/brand";
+
+const categories = ["Music", "Conference", "Church", "Sports", "Education", "Workshop", "Exhibition", "Charity", "Comedy"];
+
+export default function Home() {
+  const all = api.events.discover();
+  const featured = all[0];
+  const venue = api.venues.get(featured.venueId);
+  const nearby = all.filter((e) => e.distanceKm > 0 && e.distanceKm < 25);
+  const fast = all.filter((e) => sold(e) / capacity(e) > 0.6 && e.status !== "Sold out");
+  const orgs = api.orgs.list().filter((o) => o.verified).slice(0, 4);
+  const cause = api.fundraising.campaigns()[0];
+
+  return (
+    <>
+      {/* Hero: the next big night near you, presented as a ticket */}
+      <section className="border-b border-line bg-surface">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 lg:grid-cols-[1fr_1.15fr] lg:py-14">
+          <div className="flex flex-col justify-center">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-ink-2">
+              <Navigation size={14} className="text-kafue" /> Lusaka, within 25 km
+              <Link href="/account/preferences/" className="ml-1 text-kafue underline-offset-2 hover:underline">Change</Link>
+            </p>
+            <h1 className="font-display mt-3 text-5xl font-bold leading-[0.98] tracking-tight sm:text-6xl">What&rsquo;s on near you, and the fastest way in.</h1>
+            <p className="mt-5 max-w-md text-lg text-ink-2">Buy with mobile money in under a minute. Your QR ticket arrives by SMS, WhatsApp and email.</p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {categories.slice(0, 6).map((c) => (
+                <Link key={c} href={`/events/?category=${c}`} className="rounded-full border border-line px-4 py-2 text-sm font-medium hover:border-kafue hover:text-kafue">
+                  {c}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <Link href={`/events/${featured.slug}/`} className="group block" aria-label={`${featured.title}, get tickets`}>
+            <div className="ticket flex overflow-hidden rounded-2xl bg-ink shadow-[0_20px_50px_-20px_rgba(23,32,51,.45)]" style={{ ["--stub" as string]: "70%" }}>
+              <Poster event={featured} size="lg" className="min-h-[340px] w-[70%]" />
+              <div className="ticket-perf flex w-[30%] flex-col justify-between border-white/25 p-5 text-white">
+                <div>
+                  <p className="text-xs text-white/60">Admit one from</p>
+                  <p className="font-display text-3xl font-bold">{kwacha(fromPrice(featured))}</p>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <p className="font-semibold">{fmtDate(featured.start, { weekday: "long", day: "numeric", month: "long" })}</p>
+                  <p className="text-white/70">Gates {fmtTime(featured.start)}</p>
+                  <p className="text-white/70">{venue.name}</p>
+                </div>
+                <span className="rounded-lg bg-marigold py-2.5 text-center text-sm font-bold text-[#2a1a00] group-hover:brightness-95">Get tickets</span>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl space-y-14 px-4 pt-12">
+        <section>
+          <div className="mb-5 flex items-end justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Near you this month</h2>
+              <p className="flex items-center gap-1 text-sm text-ink-3"><MapPin size={13} /> Sorted by distance from Lusaka CBD</p>
+            </div>
+            <Link href="/events/?near=1" className="text-sm font-semibold text-kafue hover:underline">See map and all</Link>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {nearby.sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 4).map((e) => <EventCard key={e.id} e={e} />)}
+          </div>
+        </section>
+
+        <section className="grid gap-4 rounded-2xl bg-kafue px-6 py-7 text-white sm:grid-cols-3 dark:bg-kafue-soft">
+          {[
+            { icon: Smartphone, t: "Pay the way you already pay", b: "MTN MoMo, Airtel Money, Zamtel Kwacha or card. Approve on your phone and you're done." },
+            { icon: Zap, t: "Tickets that scan in a second", b: "Each QR code is signed, so gates check it instantly, even without signal." },
+            { icon: ShieldCheck, t: "Real tickets only", b: "Buy from verified organisers. Transfers go through the app, never through screenshots." },
+          ].map(({ icon: Icon, t, b }) => (
+            <div key={t} className="flex gap-3">
+              <Icon className="mt-0.5 shrink-0 text-marigold" size={22} />
+              <div>
+                <p className="font-semibold">{t}</p>
+                <p className="mt-1 text-sm text-white/80 dark:text-ink-2">{b}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <section>
+          <h2 className="mb-5 text-2xl font-semibold">Selling fast</h2>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {fast.slice(0, 4).map((e) => <EventCard key={e.id} e={e} />)}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="mb-5 text-2xl font-semibold">Browse by type</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {categories.slice(0, 10).map((c, i) => (
+              <Link key={c} href={`/events/?category=${c}`} className="overflow-hidden rounded-xl">
+                <Poster event={{ title: c, category: c as never, palette: (all[i % all.length]).palette, start: all[0].start, city: "" }} size="sm" className="aspect-[3/2]" />
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-8 lg:grid-cols-2">
+          <div>
+            <h2 className="mb-5 text-2xl font-semibold">Organisers to follow</h2>
+            <ul className="divide-y divide-line rounded-xl border border-line bg-surface">
+              {orgs.map((o) => (
+                <li key={o.id}>
+                  <Link href={`/organisers/${o.slug}/`} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-surface-2">
+                    <div>
+                      <p className="flex items-center gap-1.5 font-semibold">{o.name} {o.verified && <BadgeCheck size={16} className="text-kafue" aria-label="Verified" />}</p>
+                      <p className="text-sm text-ink-3">{o.type}, {o.city}</p>
+                    </div>
+                    <span className="text-sm text-ink-3">{o.followers.toLocaleString()} followers</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 className="mb-5 text-2xl font-semibold">Give to a cause</h2>
+            <Link href={`/fundraising/${cause.slug}/`} className="block overflow-hidden rounded-xl border border-line bg-surface">
+              <Poster event={{ title: cause.title, category: "Charity", palette: cause.palette, start: "2027-01-01", city: "Southern Province" }} className="aspect-[2/1]" />
+              <div className="p-5">
+                <p className="text-sm text-ink-3">{cause.org}</p>
+                <div className="mt-3 flex items-baseline justify-between">
+                  <p className="font-display text-2xl font-bold">{kwacha(cause.raised)}</p>
+                  <p className="text-sm text-ink-3">of {kwacha(cause.target)}</p>
+                </div>
+                <Progress value={(cause.raised / cause.target) * 100} tone="marigold" className="mt-2" />
+                <p className="mt-2 text-sm text-ink-3">{cause.donors} donors, {cause.daysLeft} days left</p>
+              </div>
+            </Link>
+          </div>
+        </section>
+
+        <section className="flex flex-col items-start justify-between gap-6 rounded-2xl border border-line bg-surface p-8 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="text-2xl font-semibold">Running an event?</h2>
+            <p className="mt-1 max-w-xl text-ink-2">Sell tickets, scan at the gate, pay vendors and see your profit in one place. Free events cost nothing.</p>
+          </div>
+          <div className="flex gap-2">
+            <Button href="/for-organisers/" variant="secondary">See pricing</Button>
+            <Button href="/register/organisation/">Start selling</Button>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}

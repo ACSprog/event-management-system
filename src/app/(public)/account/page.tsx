@@ -1,0 +1,53 @@
+"use client";
+
+import { useState } from "react";
+import { Send, UserPen } from "lucide-react";
+import { TicketCard } from "@/components/ticket-card";
+import { Button, Field, Input, Modal, PageHeader, Tabs, useToast } from "@/components/ui";
+import { api } from "@/lib/api";
+import { fmtDate } from "@/lib/brand";
+
+export default function MyTickets() {
+  const toast = useToast();
+  const [tab, setTab] = useState("Upcoming");
+  const [transfer, setTransfer] = useState<string | null>(null);
+  const [to, setTo] = useState("");
+  const [err, setErr] = useState("");
+  const tickets = api.me.tickets();
+  const past = api.me.pastTickets();
+  return (
+    <>
+      <PageHeader title="My tickets" sub="Show the QR code at the gate. It works without data once this page has loaded." />
+      <Tabs tabs={["Upcoming", "Past"]} value={tab} onChange={setTab} />
+      {tab === "Upcoming" ? (
+        <div className="grid gap-6 xl:grid-cols-2">
+          {tickets.map((t) => {
+            const e = api.events.bySlug(api.events.discover().find((x) => x.id === t.eventId)!.slug)!;
+            return (
+              <div key={t.id}>
+                <TicketCard e={e} t={t} venueName={api.venues.get(e.venueId).name} />
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => setTransfer(t.number)}><Send size={14} /> Transfer</Button>
+                  <Button size="sm" variant="ghost" onClick={() => toast("Name change request sent to the organiser")}><UserPen size={14} /> Change name</Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <ul className="divide-y divide-line rounded-xl border border-line bg-surface">
+          {past.map((p) => (
+            <li key={p.event} className="flex items-center justify-between gap-4 px-5 py-4">
+              <div><p className="font-semibold">{p.event}</p><p className="text-sm text-ink-3">{fmtDate(p.date, { day: "numeric", month: "long", year: "numeric" })}, {p.type}</p></div>
+              {p.reviewed ? <span className="text-sm text-ink-3">Reviewed</span> : <Button size="sm" href="/account/reviews/">Write a review</Button>}
+            </li>
+          ))}
+        </ul>
+      )}
+      <Modal open={!!transfer} onClose={() => setTransfer(null)} title="Transfer ticket" footer={<><Button variant="ghost" onClick={() => setTransfer(null)}>Cancel</Button><Button onClick={() => { if (to.replace(/\D/g, "").length < 10) { setErr("Enter their 10-digit mobile number."); return; } setTransfer(null); setTo(""); setErr(""); toast("Ticket transferred. Your old QR code no longer works."); }}>Transfer ticket</Button></>}>
+        <p className="text-sm text-ink-2">The new holder gets a fresh QR code by SMS. Your copy of <strong>{transfer}</strong> stops working immediately, so screenshots can&rsquo;t be reused.</p>
+        <div className="mt-4"><Field label="Their mobile number" error={err}><Input value={to} onChange={(e) => setTo(e.target.value)} inputMode="tel" placeholder="0971 234 567" /></Field></div>
+      </Modal>
+    </>
+  );
+}
