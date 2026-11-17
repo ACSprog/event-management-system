@@ -38,6 +38,12 @@ export const api = {
     incidents: () => mock.incidents,
     /** GET /v1/events/:id/checklist */
     checklist: () => mock.checklist,
+    /** GET /v1/events/:id/equipment */
+    equipment: () => mock.equipment,
+    /** GET /v1/events/:id/shifts */
+    shifts: () => mock.shifts,
+    /** GET /v1/events/:id/online-attendees */
+    onlineAttendees: () => mock.onlineAttendees,
   },
   orgs: {
     /** GET /v1/admin/organisations */
@@ -84,6 +90,12 @@ export const api = {
     rfqs: () => mock.rfqs,
     /** GET /v1/rfqs/:id/quotes */
     quotes: () => mock.quotes,
+    /** GET /v1/vendors/:id/services */
+    services: (name: string) => mock.vendorServices[name] ?? [],
+    /** GET /v1/orgs/:orgId/vendor-contracts */
+    contracts: () => mock.vendorContracts,
+    /** GET /v1/orgs/:orgId/vendor-invoices */
+    invoices: () => mock.vendorInvoices,
   },
   reviews: {
     /** GET /v1/events/:id/reviews */
@@ -130,6 +142,8 @@ export const api = {
   me: {
     /** GET /v1/me/tickets */
     tickets: () => mock.myTickets,
+    /** GET /v1/me/tickets/:number/history */
+    ticketHistory: (n: string) => mock.transferHistory[n] ?? [],
     /** GET /v1/me/tickets?past=true */
     pastTickets: () => mock.pastTickets,
     /** GET /v1/me/notifications */

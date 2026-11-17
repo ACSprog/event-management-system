@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Send, UserPen } from "lucide-react";
+import { History, Send, UserPen } from "lucide-react";
 import { TicketCard } from "@/components/ticket-card";
 import { Button, Field, Input, Modal, PageHeader, Tabs, useToast } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -11,6 +11,7 @@ export default function MyTickets() {
   const toast = useToast();
   const [tab, setTab] = useState("Upcoming");
   const [transfer, setTransfer] = useState<string | null>(null);
+  const [history, setHistory] = useState<string | null>(null);
   const [to, setTo] = useState("");
   const [err, setErr] = useState("");
   const tickets = api.me.tickets();
@@ -29,6 +30,7 @@ export default function MyTickets() {
                 <div className="mt-2 flex gap-2">
                   <Button size="sm" variant="ghost" onClick={() => setTransfer(t.number)}><Send size={14} /> Transfer</Button>
                   <Button size="sm" variant="ghost" onClick={() => toast("Name change request sent to the organiser")}><UserPen size={14} /> Change name</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setHistory(t.number)}><History size={14} /> History</Button>
                 </div>
               </div>
             );
@@ -44,6 +46,18 @@ export default function MyTickets() {
           ))}
         </ul>
       )}
+      <Modal open={!!history} onClose={() => setHistory(null)} title={`Ticket ${history ?? ""}`}>
+        <ol className="space-y-3 border-l-2 border-line pl-4 text-sm">
+          {(history ? api.me.ticketHistory(history) : []).map((h) => (
+            <li key={h.when} className="relative">
+              <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-kafue" />
+              <p className="text-xs text-ink-3">{h.when}</p>
+              <p>{h.what}</p>
+            </li>
+          ))}
+          {history && api.me.ticketHistory(history).length === 0 && <li className="text-ink-3">Bought in your name. No transfers or changes.</li>}
+        </ol>
+      </Modal>
       <Modal open={!!transfer} onClose={() => setTransfer(null)} title="Transfer ticket" footer={<><Button variant="ghost" onClick={() => setTransfer(null)}>Cancel</Button><Button onClick={() => { if (to.replace(/\D/g, "").length < 10) { setErr("Enter their 10-digit mobile number."); return; } setTransfer(null); setTo(""); setErr(""); toast("Ticket transferred. Your old QR code no longer works."); }}>Transfer ticket</Button></>}>
         <p className="text-sm text-ink-2">The new holder gets a fresh QR code by SMS. Your copy of <strong>{transfer}</strong> stops working immediately, so screenshots can&rsquo;t be reused.</p>
         <div className="mt-4"><Field label="Their mobile number" error={err}><Input value={to} onChange={(e) => setTo(e.target.value)} inputMode="tel" placeholder="0971 234 567" /></Field></div>

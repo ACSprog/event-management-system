@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Download, MessageCircle, Wallet } from "lucide-react";
 import { Button } from "@/components/ui";
 import { TicketCard } from "@/components/ticket-card";
+import { AddToCalendar } from "@/components/add-to-calendar";
 import { api } from "@/lib/api";
 import { kwacha } from "@/lib/brand";
 
@@ -39,6 +40,7 @@ export default function Success() {
         <Button variant="secondary"><Wallet size={16} /> Add to Apple Wallet</Button>
         <Button variant="secondary"><Download size={16} /> Download PDF</Button>
         <Button variant="secondary"><MessageCircle size={16} /> Send to WhatsApp</Button>
+        <AddToCalendar title={e.title} start={e.start} end={e.end} location={e.format === "Virtual" ? "Online" : venue.name} details={`Booking EVT-8K2Q9M`} />
       </div>
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         {tickets.map((t) => <TicketCard key={t.number} e={e} t={t} venueName={venue.name} />)}

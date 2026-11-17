@@ -16,12 +16,15 @@ export type Category =
 export type EventStatus =
   | "Draft"
   | "Pending approval"
+  | "Approved"
   | "Published"
   | "Registration open"
   | "Sold out"
+  | "Registration closed"
   | "In progress"
   | "Completed"
-  | "Cancelled";
+  | "Cancelled"
+  | "Archived";
 
 export interface TicketType {
   id: string;
@@ -32,6 +35,10 @@ export interface TicketType {
   sold: number;
   salesEnd: string;
   perOrderLimit: number;
+  salesStart?: string;
+  tax?: string;
+  refund?: string;
+  who?: string;
 }
 
 export interface EventItem {
@@ -109,7 +116,13 @@ export const venues: Venue[] = [
   { id: "v7", name: "Grace Chapel Main Sanctuary", city: "Lusaka", address: "Chalala, Lusaka", capacity: 4_000, lat: -15.4612, lng: 28.3304, facilities: ["Sound", "Parking", "Children's area"], rooms: [{ name: "Sanctuary", capacity: 4_000 }, { name: "Fellowship hall", capacity: 500 }], dayRate: 0, rating: 4.6 },
 ];
 
-const t = (id: string, name: string, price: number, capacity: number, sold: number, description = "", perOrderLimit = 6, salesEnd = "2026-12-12T18:00:00+02:00"): TicketType => ({ id, name, price, capacity, sold, description, perOrderLimit, salesEnd });
+const t = (id: string, name: string, price: number, capacity: number, sold: number, description = "", perOrderLimit = 6, salesEnd = "2026-12-12T18:00:00+02:00"): TicketType => ({
+  id, name, price, capacity, sold, description, perOrderLimit, salesEnd,
+  salesStart: "2026-09-01T09:00:00+02:00",
+  tax: price ? "VAT 16% included" : "None",
+  refund: /comp|free|invited/i.test(name) ? "No refunds" : "Until 7 days before",
+  who: /student/i.test(name) ? "Student ID at the gate" : /corporate|exhibitor/i.test(name) ? "Approval needed" : "Anyone",
+});
 
 export const events: EventItem[] = [
   {
@@ -180,13 +193,15 @@ export const events: EventItem[] = [
 ];
 
 export const statusTone: Record<string, "teal" | "gold" | "red" | "green" | "grey"> = {
-  Draft: "grey", "Pending approval": "gold", Published: "teal", "Registration open": "green", "Sold out": "red", "In progress": "teal", Completed: "grey", Cancelled: "red",
+  Draft: "grey", "Pending approval": "gold", Approved: "teal", "Registration closed": "gold", Archived: "grey", Published: "teal", "Registration open": "green", "Sold out": "red", "In progress": "teal", Completed: "grey", Cancelled: "red",
   Active: "green", Pending: "gold", Suspended: "red", Trial: "teal",
 };
 
 export const orgEventsExtra: EventItem[] = [
   { ...events[0], id: "e11", slug: "copperbelt-nights-kitwe", title: "Copperbelt Nights: Kitwe", status: "Draft", start: "2027-02-27T18:00:00+02:00", city: "Kitwe", tickets: events[0].tickets.map((x) => ({ ...x, sold: 0 })), rating: undefined, reviews: undefined },
   { ...events[0], id: "e12", slug: "zed-live-sessions-oct", title: "Zed Live Sessions: October", status: "Completed", start: "2026-10-24T19:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, capacity: 1200, sold: 1189 })), rating: 4.4, reviews: 233 },
+  { ...events[0], id: "e14", slug: "zed-live-sessions-december", title: "Zed Live Sessions: December", status: "Approved", start: "2026-12-19T19:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, capacity: 1200, sold: 0 })), rating: undefined, reviews: undefined },
+  { ...events[0], id: "e15", slug: "lusaka-july-fest-2025", title: "Lusaka July Fest 2025", status: "Archived", start: "2025-07-19T14:00:00+02:00", tickets: events[0].tickets.map((x) => ({ ...x, sold: Math.round(x.capacity * 0.9) })), rating: 4.1, reviews: 1011 },
   { ...events[0], id: "e13", slug: "new-year-countdown", title: "New Year's Eve Countdown", status: "Pending approval", start: "2026-12-31T20:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, sold: 0 })), rating: undefined, reviews: undefined },
 ];
 
@@ -567,3 +582,52 @@ export function fromPrice(e: EventItem) {
   const open = e.tickets.filter((t) => t.sold < t.capacity);
   return Math.min(...(open.length ? open : e.tickets).map((t) => t.price));
 }
+
+export const transferHistory: Record<string, { when: string; what: string }[]> = {
+  "TKT-000481-A": [{ when: "2026-11-14 10:42", what: "Bought by Chanda Mulenga (MTN MoMo, booking EVT-8K2Q9M)" }],
+  "TKT-000481-B": [
+    { when: "2026-11-14 10:42", what: "Bought by Chanda Mulenga (MTN MoMo, booking EVT-8K2Q9M)" },
+    { when: "2026-11-15 08:10", what: "Name changed from Guest 2 to Mwila Banda" },
+    { when: "2026-11-15 08:11", what: "Sent to Mwila Banda (0977 ••• 812). New QR code issued, old one cancelled" },
+  ],
+};
+
+export const equipment = [
+  { item: "Barrier fencing, 400 m", from: "Sound Kings Zambia", qty: "1 lot", status: "Booked", arrives: "11 Dec, 08:00" },
+  { item: "Generators, 250 kVA", from: "Sound Kings Zambia", qty: "2", status: "Booked", arrives: "11 Dec, 10:00" },
+  { item: "Scanner phones (charged) + power banks", from: "Own stock", qty: "24 + 24", status: "Ready", arrives: "12 Dec, 12:00" },
+  { item: "First aid tents", from: "Zambia Red Cross", qty: "3", status: "Requested", arrives: "12 Dec, 13:00" },
+  { item: "Portable toilets", from: "CleanSweep Services", qty: "60", status: "Quote accepted", arrives: "11 Dec, 14:00" },
+  { item: "Shuttle buses, 65 seats", from: "Mosi Transport", qty: "6", status: "Booked", arrives: "12 Dec, 14:30" },
+];
+
+export const shifts = [
+  { name: "Kelvin Sakala", role: "Gate staff", where: "Gate A", time: "15:00 to 21:00" },
+  { name: "Mapalo Ngoma", role: "Gate staff", where: "Gate B", time: "15:00 to 21:00" },
+  { name: "SecureForce team (60)", role: "Security", where: "All gates and arena", time: "13:00 to 02:00" },
+  { name: "Chanda Mulenga", role: "Event manager", where: "Control room", time: "10:00 to 02:00" },
+  { name: "Daliso Mbewe", role: "Marketing", where: "Media desk", time: "16:00 to 23:00" },
+  { name: "Precious Nyirenda", role: "Finance", where: "Cash office", time: "14:00 to 00:00" },
+];
+
+export const onlineAttendees = people.slice(0, 10).map((name, i) => ({
+  name, ticket: ["Virtual pass", "Delegate (hybrid)", "Virtual pass"][i % 3], joined: i % 4 === 3 ? null : `09:${String(2 + i * 3).padStart(2, "0")}`, watched: i % 4 === 3 ? 0 : 40 + ((i * 17) % 60), device: ["Phone", "Laptop", "Phone", "Tablet"][i % 4],
+}));
+
+export const vendorServices: Record<string, { s: string; price: number; unit: string }[]> = {
+  "Sound Kings Zambia": [{ s: "Sound package, up to 5,000 people", price: 45_000, unit: "per event" }, { s: "Stadium sound and lighting, 35,000 people", price: 205_000, unit: "per event" }, { s: "Generator 250 kVA", price: 6_800, unit: "per day" }],
+  "SecureForce Ltd": [{ s: "Guard, 12-hour shift", price: 800, unit: "per guard" }, { s: "Supervisor, 12-hour shift", price: 1_400, unit: "per person" }],
+  "Mama Joyce Catering": [{ s: "Three-course dinner", price: 350, unit: "per guest" }, { s: "Buffet lunch", price: 180, unit: "per guest" }],
+};
+
+export const vendorContracts = [
+  { id: "CT-ZL-118", vendor: "Sound Kings Zambia", event: "Lusaka Summer Jam", value: 205_000, signed: "2026-11-12", status: "Signed by both" },
+  { id: "CT-ZL-114", vendor: "SecureForce Ltd", event: "Lusaka Summer Jam", value: 96_000, signed: "2026-11-03", status: "Signed by both" },
+  { id: "CT-ZL-121", vendor: "Mosi Transport", event: "Lusaka Summer Jam", value: 42_000, signed: "—", status: "Waiting for vendor" },
+];
+
+export const vendorInvoices = [
+  { id: "SK-2290", vendor: "Sound Kings Zambia", amount: 102_500, due: "2026-11-30", status: "Approved", note: "50% deposit" },
+  { id: "SF-0871", vendor: "SecureForce Ltd", amount: 96_000, due: "2026-11-20", status: "Paid", note: "" },
+  { id: "PH-1182", vendor: "PrintHub Lusaka", amount: 18_400, due: "2026-11-25", status: "Awaiting approval", note: "Wristbands and posters" },
+];

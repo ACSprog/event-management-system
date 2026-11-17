@@ -6,6 +6,8 @@ import { api } from "@/lib/api";
 import { events, orgEventsExtra } from "@/lib/mock/data";
 import { fmtDate, fmtTime } from "@/lib/brand";
 import { ReviewsBlock } from "./reviews-block";
+import { AddToCalendar } from "@/components/add-to-calendar";
+import { WatchOnline } from "./watch-online";
 
 export function generateStaticParams() {
   return [...events, ...orgEventsExtra].map((e) => ({ slug: e.slug }));
@@ -29,7 +31,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               <h1 className="text-[34px] font-semibold leading-tight">{e.title}</h1>
               <p className="mt-1 text-lg text-ink-2">{e.subtitle}</p>
             </div>
-            <button className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium hover:bg-surface-2"><Share2 size={15} /> Share</button>
+            <div className="flex gap-2">
+              <AddToCalendar title={e.title} start={e.start} end={e.end} location={e.format === "Virtual" ? "Online" : `${venue.name}, ${venue.address}`} details={e.subtitle} />
+              <button className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium hover:bg-surface-2"><Share2 size={15} /> Share</button>
+            </div>
           </div>
 
           <dl className="mt-6 grid gap-4 rounded-xl border border-line bg-surface p-5 sm:grid-cols-3">
@@ -51,6 +56,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             <h2 className="text-xl font-semibold">About this event</h2>
             <p className="mt-3 max-w-[68ch] text-[16px] leading-relaxed text-ink-2">{e.description}</p>
           </section>
+
+          {e.format !== "Physical" && <WatchOnline format={e.format} start={e.start} />}
 
           {e.lineup && (
             <section className="mt-10">
