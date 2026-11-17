@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertOctagon, Camera, CheckCircle2, CloudOff, History, Keyboard, RefreshCw, ScanLine, ShieldAlert, Wifi, XCircle } from "lucide-react";
+import { AlertOctagon, Camera, CheckCircle2, CloudOff, History, Keyboard, RefreshCw, ScanLine, ShieldAlert, Siren, Wifi, XCircle } from "lucide-react";
 import { cx } from "@/components/ui";
 import { api } from "@/lib/api";
 
@@ -38,7 +38,11 @@ export default function Scanner() {
   const [count, setCount] = useState(1_412);
   const [result, setResult] = useState<Result | null>(null);
   const [log, setLog] = useState<(Result & { time: string })[]>([]);
-  const [panel, setPanel] = useState<"none" | "lookup" | "history">("none");
+  const [panel, setPanel] = useState<"none" | "lookup" | "history" | "incident">("none");
+  const [incident, setIncident] = useState({ type: "Duplicate or fake ticket", note: "" });
+  const [incidents, setIncidents] = useState<{ type: string; note: string; time: string }[]>([]);
+  const [incErr, setIncErr] = useState("");
+  const [flash, setFlash] = useState("");
   const [q, setQ] = useState("");
   const [cam, setCam] = useState<"off" | "on" | "unsupported">("off");
   const video = useRef<HTMLVideoElement>(null);
@@ -152,15 +156,36 @@ export default function Scanner() {
         <p className="mt-2 text-center text-xs text-white/40">Cycles through valid, used, wrong gate, cancelled and fake tickets</p>
       </div>
 
-      <nav className="mt-6 grid grid-cols-3 border-t border-white/10 text-xs">
-        {[{ k: "lookup", I: Keyboard, l: "Find by name" }, { k: "history", I: History, l: "Recent scans" }, { k: "sync", I: RefreshCw, l: "Sync now" }].map(({ k, I, l }) => (
-          <button key={k} onClick={() => (k === "sync" ? (setOnline(true), setPending(0)) : setPanel(panel === k ? "none" : (k as "lookup" | "history")))} className="flex flex-col items-center gap-1 py-3 text-white/70 hover:text-white"><I size={20} />{l}</button>
+      {flash && <p className="mx-auto mt-4 max-w-md rounded-xl bg-[#1F9D55]/20 px-4 py-2 text-center text-sm text-[#5fd394]" role="status">{flash}</p>}
+      <nav className="mt-6 grid grid-cols-4 border-t border-white/10 text-xs">
+        {[{ k: "lookup", I: Keyboard, l: "Find by name" }, { k: "history", I: History, l: "Recent scans" }, { k: "incident", I: Siren, l: "Report incident" }, { k: "sync", I: RefreshCw, l: "Sync now" }].map(({ k, I, l }) => (
+          <button key={k} onClick={() => (k === "sync" ? (setOnline(true), setPending(0)) : setPanel(panel === k ? "none" : (k as "lookup" | "history" | "incident")))} className={cx("flex flex-col items-center gap-1 py-3 hover:text-white", panel === k ? "text-marigold" : "text-white/70")}><I size={20} />{l}</button>
         ))}
       </nav>
 
       {panel !== "none" && (
         <div className="absolute inset-x-0 bottom-[60px] max-h-[60%] overflow-y-auto rounded-t-3xl bg-[#171f2f] p-5 shadow-2xl">
-          {panel === "lookup" ? (
+          {panel === "incident" ? (
+            <div className="space-y-3">
+              <p className="font-semibold">Report an incident at {gate}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {["Duplicate or fake ticket", "Medical", "Fight or threat", "Lost child", "Crowd crush risk", "Other"].map((t) => (
+                  <button key={t} onClick={() => setIncident({ ...incident, type: t })} className={cx("rounded-xl border-2 px-3 py-2 text-left text-sm", incident.type === t ? "border-marigold bg-marigold/10" : "border-white/15")}>{t}</button>
+                ))}
+              </div>
+              <textarea value={incident.note} onChange={(e) => setIncident({ ...incident, note: e.target.value })} rows={3} placeholder="What happened? Who was involved?" className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm focus:border-marigold focus:outline-none" />
+              {incErr && <p className="text-xs text-[#f0576b]">{incErr}</p>}
+              <button onClick={() => {
+                if (incident.note.trim().length < 5) return setIncErr("Add a short description.");
+                setIncidents([{ ...incident, time: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) }, ...incidents]);
+                setIncident({ type: "Duplicate or fake ticket", note: "" }); setIncErr(""); setPanel("none");
+                setFlash(online ? "Incident sent to the control room" : "Incident saved. It will be sent when the scanner is back online");
+                setTimeout(() => setFlash(""), 3500);
+              }} className="w-full rounded-xl bg-marigold py-3 font-bold text-[#2a1a00]">Send to control room</button>
+              {["Medical", "Fight or threat", "Lost child", "Crowd crush risk"].includes(incident.type) && <p className="text-xs text-white/60">For emergencies, also radio your supervisor straight away.</p>}
+              {incidents.length > 0 && <ul className="divide-y divide-white/10 text-sm">{incidents.map((x, n) => <li key={n} className="py-2"><span className="text-white/50">{x.time}</span> {x.type}: {x.note}</li>)}</ul>}
+            </div>
+          ) : panel === "lookup" ? (
             <>
               <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name, phone or booking reference" className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 focus:border-marigold focus:outline-none" />
               <ul className="mt-3 divide-y divide-white/10">

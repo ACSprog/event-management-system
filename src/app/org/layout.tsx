@@ -43,6 +43,7 @@ const sections: Section[] = [
     tabs: [
       { href: "/org/finance/", label: "Overview" },
       { href: "/org/finance/transactions/", label: "Sales and refunds" },
+      { href: "/org/finance/invoices/", label: "Invoices" },
       { href: "/org/finance/expenses/", label: "Budgets and expenses" },
       { href: "/org/finance/payouts/", label: "Payouts" },
       { href: "/org/fundraising/", label: "Donations and sponsors" },

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Plus, Sparkles, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Check, ChevronDown, ImagePlus, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { Poster } from "@/components/poster";
 import { Badge, Button, Card, Checkbox, cx, Field, Input, PageHeader, Select, Textarea, useToast } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -25,6 +25,12 @@ export default function NewEvent() {
   const [profile, setProfile] = useState("Concert or festival");
   const [f, setF] = useState({ title: "Copperbelt Nights: Kitwe", subtitle: "", description: "", format: "Physical", start: "2027-02-27T18:00", end: "2027-02-28T01:00", venue: "Garden Court Kitwe Ballroom", stream: "YouTube", recurring: "Does not repeat", visibility: "Public", approval: true, refund: "Refunds until 7 days before", terms: "" });
   const [tickets, setTickets] = useState([{ name: "Standard", price: 200, qty: 600 }, { name: "VIP", price: 600, qty: 150 }]);
+  const [moreFor, setMoreFor] = useState<number | null>(null);
+  const [gallery, setGallery] = useState<{ url: string; name: string }[]>([]);
+  const galleryInput = useRef<HTMLInputElement>(null);
+  const [sessions, setSessions] = useState<{ title: string; start: string; venue: string }[]>([]);
+  const [contact, setContact] = useState({ name: "Chanda Mulenga", phone: "0966 120 448", email: "events@zedlive.example", whatsapp: "0966 120 448" });
+  const [accent, setAccent] = useState("#172033");
   const [err, setErr] = useState("");
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const p = profiles[profile];
@@ -68,6 +74,21 @@ export default function NewEvent() {
             <Field label="Cover image" hint="JPG or PNG, at least 1600 × 800. We create a poster automatically if you skip this.">
               <div className="rounded-lg border-2 border-dashed border-line p-6 text-center text-sm text-ink-3">Drag an image here or <span className="font-semibold text-kafue">browse</span></div>
             </Field>
+            <div>
+              <p className="text-sm font-medium">Photo gallery <span className="font-normal text-ink-3">(optional, up to 12)</span></p>
+              <p className="mb-2 text-xs text-ink-3">Shown on the event page: past editions, the venue, performers.</p>
+              <div className="flex flex-wrap gap-2">
+                {gallery.map((g, i) => (
+                  <div key={g.url} className="relative h-20 w-28 overflow-hidden rounded-lg border border-line">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={g.url} alt={g.name} className="h-full w-full object-cover" />
+                    <button aria-label={`Remove ${g.name}`} onClick={() => { URL.revokeObjectURL(g.url); setGallery(gallery.filter((_, j) => j !== i)); }} className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white"><X size={12} /></button>
+                  </div>
+                ))}
+                {gallery.length < 12 && <button onClick={() => galleryInput.current?.click()} className="flex h-20 w-28 flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-line text-xs text-ink-3 hover:border-kafue"><ImagePlus size={18} /> Add photos</button>}
+                <input ref={galleryInput} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { const fs = [...(e.target.files ?? [])].filter((f) => f.type.startsWith("image/")); setGallery([...gallery, ...fs.map((f) => ({ url: URL.createObjectURL(f), name: f.name }))].slice(0, 12)); e.target.value = ""; }} />
+              </div>
+            </div>
           </>)}
           {step === 1 && (<>
             <Field label="Format">
@@ -87,6 +108,19 @@ export default function NewEvent() {
                 <p className="text-xs text-ink-3 sm:col-span-2">Public stream links can be copied and shared. Use Zoom with registration if you need each viewer to have their own link.</p>
               </div>
             )}
+            <div className="rounded-lg border border-line p-4">
+              <p className="text-sm font-medium">More sessions or venues</p>
+              <p className="text-xs text-ink-3">For multi-day events, separate activities (a workshop, an after-party) or a second venue.</p>
+              {sessions.map((x, i) => (
+                <div key={i} className="mt-3 grid items-end gap-3 sm:grid-cols-[1.3fr_1fr_1.3fr_auto]">
+                  <Field label="Session"><Input value={x.title} onChange={(e) => setSessions(sessions.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} /></Field>
+                  <Field label="Starts"><Input type="datetime-local" value={x.start} onChange={(e) => setSessions(sessions.map((y, j) => (j === i ? { ...y, start: e.target.value } : y)))} /></Field>
+                  <Field label="Venue"><Select value={x.venue} onChange={(e) => setSessions(sessions.map((y, j) => (j === i ? { ...y, venue: e.target.value } : y)))} options={["Same as main event", ...api.venues.list().map((v) => v.name)]} /></Field>
+                  <Button variant="ghost" aria-label="Remove session" onClick={() => setSessions(sessions.filter((_, j) => j !== i))}><Trash2 size={16} /></Button>
+                </div>
+              ))}
+              <Button size="sm" variant="secondary" className="mt-3" onClick={() => setSessions([...sessions, { title: sessions.length ? `Session ${sessions.length + 2}` : "After-party", start: f.end, venue: "Same as main event" }])}><Plus size={14} /> Add a session</Button>
+            </div>
           </>)}
           {step === 2 && (<>
             <div className="space-y-3">
@@ -95,7 +129,22 @@ export default function NewEvent() {
                   <Field label="Ticket name"><Input value={t.name} onChange={(e) => setTickets(tickets.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} /></Field>
                   <Field label="Price (K)"><Input inputMode="numeric" value={t.price} onChange={(e) => setTickets(tickets.map((x, j) => (j === i ? { ...x, price: Number(e.target.value.replace(/\D/g, "")) } : x)))} /></Field>
                   <Field label="Quantity"><Input inputMode="numeric" value={t.qty} onChange={(e) => setTickets(tickets.map((x, j) => (j === i ? { ...x, qty: Number(e.target.value.replace(/\D/g, "")) } : x)))} /></Field>
-                  <Button variant="ghost" aria-label="Remove ticket type" onClick={() => setTickets(tickets.filter((_, j) => j !== i))}><Trash2 size={16} /></Button>
+                  <div className="flex">
+                    <Button variant="ghost" aria-label={`More options for ${t.name}`} aria-expanded={moreFor === i} onClick={() => setMoreFor(moreFor === i ? null : i)}><ChevronDown size={16} className={cx("transition-transform", moreFor === i && "rotate-180")} /></Button>
+                    <Button variant="ghost" aria-label="Remove ticket type" onClick={() => setTickets(tickets.filter((_, j) => j !== i))}><Trash2 size={16} /></Button>
+                  </div>
+                  {moreFor === i && (
+                    <div className="grid gap-3 border-t border-line pt-3 sm:col-span-4 sm:grid-cols-3">
+                      <Field label="Description"><Input placeholder="What's included" /></Field>
+                      <Field label="Sales start"><Input type="datetime-local" defaultValue="2026-12-01T09:00" /></Field>
+                      <Field label="Sales end"><Input type="datetime-local" defaultValue="2027-02-27T12:00" /></Field>
+                      <Field label="Tax"><Select options={["VAT 16% included in price", "VAT 16% added at checkout", "No tax"]} /></Field>
+                      <Field label="Refunds"><Select options={["Use the event's policy", "Until 7 days before", "Until 48 hours before", "No refunds, transfers allowed", "No refunds or transfers"]} /></Field>
+                      <Field label="Who can buy"><Select options={["Anyone", "Members only", "With an invite code", "Students (ID at the gate)", "Approval needed"]} /></Field>
+                      <Field label="Max per order"><Input defaultValue="6" inputMode="numeric" /></Field>
+                      <Field label="Currency"><Select options={["ZMW (K)", "USD ($)"]} /></Field>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -110,7 +159,18 @@ export default function NewEvent() {
             {err && <p className="text-sm text-hibiscus">{err}</p>}
           </>)}
           {step === 3 && (<>
-            <Field label="Who can see it?"><Select value={f.visibility} onChange={set("visibility")} options={["Public, listed in discovery", "Unlisted, link only", "Private, invited guests only"]} /></Field>
+            <Field label="Who can see it?"><Select value={f.visibility} onChange={set("visibility")} options={["Public, listed in discovery", "Members only (Insider and Gold)", "Unlisted, link only", "Private, invited guests only"]} /></Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Contact name"><Input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} /></Field>
+              <Field label="Contact email"><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} /></Field>
+              <Field label="Phone"><Input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} inputMode="tel" /></Field>
+              <Field label="WhatsApp"><Input value={contact.whatsapp} onChange={(e) => setContact({ ...contact, whatsapp: e.target.value })} inputMode="tel" /></Field>
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-medium">Event page colour</p>
+              <div className="flex gap-2">{["#172033", "#0B7A75", "#5B2A86", "#D62F45", "#1F9D55", "#C77C3A"].map((c) => <button key={c} onClick={() => setAccent(c)} aria-label={`Use ${c}`} aria-pressed={accent === c} className={cx("h-9 w-9 rounded-full ring-offset-2 ring-offset-surface", accent === c && "ring-2 ring-kafue")} style={{ background: c }} />)}</div>
+              <p className="mt-1 text-xs text-ink-3">Used for the poster, buttons and headings on this event&rsquo;s page. Text contrast is checked automatically.</p>
+            </div>
             <Field label="Refund policy"><Select value={f.refund} onChange={set("refund")} options={["Refunds until 7 days before", "Refunds until 48 hours before", "No refunds, transfers allowed", "No refunds or transfers"]} /></Field>
             <Field label="Terms shown at checkout"><Textarea value={f.terms} onChange={set("terms")} placeholder="Age limits, prohibited items, recording policy…" /></Field>
             <Checkbox checked={f.approval} onChange={(v) => setF({ ...f, approval: v })} label="Send to a manager for approval before it goes live" />
@@ -118,7 +178,7 @@ export default function NewEvent() {
           {step === 4 && (
             <div className="space-y-4 text-sm">
               <dl className="grid gap-3 sm:grid-cols-2">
-                {[["Type", profile], ["Name", f.title], ["Format", f.format], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
+                {[["Type", profile], ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Contact", `${contact.name}, ${contact.phone}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
               </dl>
               <ul className="divide-y divide-line rounded-lg border border-line">{tickets.map((t) => <li key={t.name} className="flex justify-between px-4 py-2"><span>{t.name}, {t.qty}</span><span className="font-semibold">{t.price ? kwacha(t.price) : "Free"}</span></li>)}</ul>
               <p className="text-ink-3">Potential gross if all tickets sell: <strong className="text-ink">{kwacha(tickets.reduce((a, t) => a + t.price * t.qty, 0))}</strong></p>
@@ -133,7 +193,7 @@ export default function NewEvent() {
         <div className="space-y-3">
           <p className="text-sm font-semibold text-ink-3">Preview</p>
           <div className="overflow-hidden rounded-xl border border-line bg-surface">
-            <Poster event={{ title: f.title || "Your event", category: p.cat as never, palette: ["#172033", "#F4A630"], start: f.start + ":00+02:00", city: f.format === "Virtual" ? "Online" : "Kitwe" }} className="aspect-[4/3]" />
+            <Poster event={{ title: f.title || "Your event", category: p.cat as never, palette: [accent, "#F4A630"], start: f.start + ":00+02:00", city: f.format === "Virtual" ? "Online" : "Kitwe" }} className="aspect-[4/3]" />
             <div className="p-4 text-sm">
               <p className="font-semibold">{f.title}</p>
               <p className="text-ink-3">{f.format === "Virtual" ? "Online" : f.venue}</p>

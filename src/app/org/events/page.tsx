@@ -13,12 +13,18 @@ export default function OrgEvents() {
   const { can } = useOrgRole();
   const [tab, setTab] = useState("All");
   const all = api.events.forOrg();
-  const rows = all.filter((e) => tab === "All" || (tab === "Live and upcoming" ? !["Draft", "Completed", "Cancelled", "Pending approval"].includes(e.status) : tab === "Drafts" ? ["Draft", "Pending approval"].includes(e.status) : e.status === "Completed"));
+  const groups: Record<string, string[]> = {
+    "Live and upcoming": ["Approved", "Published", "Registration open", "Sold out", "Registration closed", "In progress"],
+    Drafts: ["Draft", "Pending approval"],
+    Past: ["Completed", "Cancelled"],
+    Archived: ["Archived"],
+  };
+  const rows = all.filter((e) => (tab === "All" ? e.status !== "Archived" : groups[tab].includes(e.status)));
   return (
     <>
       <PageHeader title="Events" sub={`${all.length} events in this workspace`} actions={can("events.edit") ? <Button href="/org/events/new/"><PlusCircle size={16} /> Create event</Button> : undefined} />
       <div className="mb-4 flex flex-wrap gap-2">
-        {["All", "Live and upcoming", "Drafts", "Past"].map((x) => (
+        {["All", "Live and upcoming", "Drafts", "Past", "Archived"].map((x) => (
           <button key={x} onClick={() => setTab(x)} aria-pressed={tab === x} className={cx("rounded-full border px-3.5 py-1.5 text-sm font-medium", tab === x ? "border-ink bg-ink text-canvas" : "border-line bg-surface")}>{x}</button>
         ))}
       </div>

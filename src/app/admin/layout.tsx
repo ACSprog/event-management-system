@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Building2, CreditCard, FileClock, Gauge, LifeBuoy, Mail, ShieldAlert, Layers } from "lucide-react";
+import { Activity, Building2, CreditCard, FileClock, Gauge, LifeBuoy, Mail, ShieldAlert, Layers, SlidersHorizontal } from "lucide-react";
 import { PortalShell, type NavGroup } from "@/components/layout/portal-shell";
 
 const nav: NavGroup[] = [
@@ -14,6 +14,7 @@ const nav: NavGroup[] = [
     { href: "/admin/payments/", label: "Payments and fees", icon: CreditCard },
     { href: "/admin/moderation/", label: "Review moderation", icon: ShieldAlert, badge: "2" },
     { href: "/admin/templates/", label: "Notification templates", icon: Mail },
+    { href: "/admin/settings/", label: "Platform settings", icon: SlidersHorizontal },
   ] },
   { label: "Operations", items: [
     { href: "/admin/health/", label: "System health", icon: Activity },

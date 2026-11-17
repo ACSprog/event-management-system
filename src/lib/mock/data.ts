@@ -16,12 +16,15 @@ export type Category =
 export type EventStatus =
   | "Draft"
   | "Pending approval"
+  | "Approved"
   | "Published"
   | "Registration open"
   | "Sold out"
+  | "Registration closed"
   | "In progress"
   | "Completed"
-  | "Cancelled";
+  | "Cancelled"
+  | "Archived";
 
 export interface TicketType {
   id: string;
@@ -32,6 +35,10 @@ export interface TicketType {
   sold: number;
   salesEnd: string;
   perOrderLimit: number;
+  salesStart?: string;
+  tax?: string;
+  refund?: string;
+  who?: string;
 }
 
 export interface EventItem {
@@ -109,7 +116,13 @@ export const venues: Venue[] = [
   { id: "v7", name: "Grace Chapel Main Sanctuary", city: "Lusaka", address: "Chalala, Lusaka", capacity: 4_000, lat: -15.4612, lng: 28.3304, facilities: ["Sound", "Parking", "Children's area"], rooms: [{ name: "Sanctuary", capacity: 4_000 }, { name: "Fellowship hall", capacity: 500 }], dayRate: 0, rating: 4.6 },
 ];
 
-const t = (id: string, name: string, price: number, capacity: number, sold: number, description = "", perOrderLimit = 6, salesEnd = "2026-12-12T18:00:00+02:00"): TicketType => ({ id, name, price, capacity, sold, description, perOrderLimit, salesEnd });
+const t = (id: string, name: string, price: number, capacity: number, sold: number, description = "", perOrderLimit = 6, salesEnd = "2026-12-12T18:00:00+02:00"): TicketType => ({
+  id, name, price, capacity, sold, description, perOrderLimit, salesEnd,
+  salesStart: "2026-09-01T09:00:00+02:00",
+  tax: price ? "VAT 16% included" : "None",
+  refund: /comp|free|invited/i.test(name) ? "No refunds" : "Until 7 days before",
+  who: /student/i.test(name) ? "Student ID at the gate" : /corporate|exhibitor/i.test(name) ? "Approval needed" : "Anyone",
+});
 
 export const events: EventItem[] = [
   {
@@ -180,13 +193,15 @@ export const events: EventItem[] = [
 ];
 
 export const statusTone: Record<string, "teal" | "gold" | "red" | "green" | "grey"> = {
-  Draft: "grey", "Pending approval": "gold", Published: "teal", "Registration open": "green", "Sold out": "red", "In progress": "teal", Completed: "grey", Cancelled: "red",
+  Draft: "grey", "Pending approval": "gold", Approved: "teal", "Registration closed": "gold", Archived: "grey", Published: "teal", "Registration open": "green", "Sold out": "red", "In progress": "teal", Completed: "grey", Cancelled: "red",
   Active: "green", Pending: "gold", Suspended: "red", Trial: "teal",
 };
 
 export const orgEventsExtra: EventItem[] = [
   { ...events[0], id: "e11", slug: "copperbelt-nights-kitwe", title: "Copperbelt Nights: Kitwe", status: "Draft", start: "2027-02-27T18:00:00+02:00", city: "Kitwe", tickets: events[0].tickets.map((x) => ({ ...x, sold: 0 })), rating: undefined, reviews: undefined },
   { ...events[0], id: "e12", slug: "zed-live-sessions-oct", title: "Zed Live Sessions: October", status: "Completed", start: "2026-10-24T19:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, capacity: 1200, sold: 1189 })), rating: 4.4, reviews: 233 },
+  { ...events[0], id: "e14", slug: "zed-live-sessions-december", title: "Zed Live Sessions: December", status: "Approved", start: "2026-12-19T19:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, capacity: 1200, sold: 0 })), rating: undefined, reviews: undefined },
+  { ...events[0], id: "e15", slug: "lusaka-july-fest-2025", title: "Lusaka July Fest 2025", status: "Archived", start: "2025-07-19T14:00:00+02:00", tickets: events[0].tickets.map((x) => ({ ...x, sold: Math.round(x.capacity * 0.9) })), rating: 4.1, reviews: 1011 },
   { ...events[0], id: "e13", slug: "new-year-countdown", title: "New Year's Eve Countdown", status: "Pending approval", start: "2026-12-31T20:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, sold: 0 })), rating: undefined, reviews: undefined },
 ];
 
@@ -381,6 +396,85 @@ export const supportTickets = [
   { id: "SUP-2270", org: "Hope Children's Foundation", subject: "Upgrade from trial to Starter", priority: "Low", status: "Resolved", age: "5 d", assignee: "Peter C." },
 ];
 
+// Shown to the public with a "Not verified" label: no ticket matched this person.
+reviews.push({ id: "r6", event: "Zed Live Sessions: October", name: "Joseph K.", verified: "Not verified", rating: 3, date: "2026-10-28", title: "Heard it was good", body: "My friends went and enjoyed it. I watched clips online; the sound seemed loud near the front.", scores: { Venue: 3, Sound: 3, Security: 3, Value: 3 }, helpful: 1, reply: null, visibility: "Public" });
+
+export const reviewPhotos: Record<string, { label: string; tint: string }[]> = {
+  r1: [{ label: "Crowd at sunset", tint: "#F4A630" }, { label: "Main stage", tint: "#0B7A75" }],
+  r4: [{ label: "Friends at the VIP bar", tint: "#5B2A86" }],
+};
+
+export const ratingBreakdown = [{ stars: 5, pct: 68 }, { stars: 4, pct: 20 }, { stars: 3, pct: 8 }, { stars: 2, pct: 3 }, { stars: 1, pct: 1 }];
+
+/** Average rating per event over time, for the trend chart. */
+export const ratingTrend = [
+  { event: "Copperbelt Nights: Ndola (Mar)", short: "Mar", rating: 3.9, reviews: 141, recommend: 78 },
+  { event: "Easter Gospel Night (Apr)", short: "Apr", rating: 4.1, reviews: 96, recommend: 82 },
+  { event: "Lusaka July Fest (Jul)", short: "Jul", rating: 4.2, reviews: 1204, recommend: 84 },
+  { event: "Zed Live Sessions: August", short: "Aug", rating: 4.3, reviews: 188, recommend: 86 },
+  { event: "Zed Live Sessions: October", short: "Oct", rating: 4.4, reviews: 286, recommend: 88 },
+];
+
+export const eventComparison = [
+  { event: "Zed Live Sessions: October", date: "24 Oct 2026", reviews: 286, overall: 4.4, Organisation: 4.3, Venue: 3.9, "Sound and lighting": 4.7, Security: 4.2, "Customer service": 4.4, "Ticket buying": 4.8, "Programme quality": 4.5, "Value for money": 4.3, recommend: 88 },
+  { event: "Zed Live Sessions: August", date: "22 Aug 2026", reviews: 188, overall: 4.3, Organisation: 4.2, Venue: 4.0, "Sound and lighting": 4.5, Security: 4.3, "Customer service": 4.2, "Ticket buying": 4.7, "Programme quality": 4.4, "Value for money": 4.2, recommend: 86 },
+  { event: "Lusaka July Fest", date: "18 Jul 2026", reviews: 1204, overall: 4.2, Organisation: 4.0, Venue: 4.1, "Sound and lighting": 4.6, Security: 3.8, "Customer service": 4.0, "Ticket buying": 4.5, "Programme quality": 4.2, "Value for money": 4.1, recommend: 84 },
+  { event: "Copperbelt Nights: Ndola", date: "14 Mar 2026", reviews: 141, overall: 3.9, Organisation: 3.7, Venue: 3.6, "Sound and lighting": 4.3, Security: 3.9, "Customer service": 3.8, "Ticket buying": 4.4, "Programme quality": 3.9, "Value for money": 3.8, recommend: 78 },
+];
+
+/** Suggestions pulled out of review text and survey answers, grouped. */
+export const suggestions = [
+  { text: "More parking marshals and a second exit", mentions: 64, area: "Venue" },
+  { text: "Open more bar points, especially in VIP", mentions: 48, area: "Customer service" },
+  { text: "Keep food stalls stocked until the end", mentions: 31, area: "Customer service" },
+  { text: "Add a ramp at Gate B for wheelchair users", mentions: 9, area: "Venue" },
+  { text: "Start headline acts earlier on a weeknight", mentions: 22, area: "Organisation" },
+  { text: "Sell water at the gates", mentions: 17, area: "Customer service" },
+];
+
+export const followUps = [
+  { id: "fu1", action: "Hire 12 parking marshals until 01:00 and open the north exit", from: "Parking and exit (64 mentions)", owner: "Mwila B.", due: "2026-12-10", done: false },
+  { id: "fu2", action: "Two extra bar points on the VIP terrace", from: "Bar queues (48 mentions)", owner: "Chanda M.", due: "2026-12-05", done: true },
+  { id: "fu3", action: "Hire a temporary ramp for Gate B", from: "Private feedback from a wheelchair user", owner: "Mwila B.", due: "2026-12-01", done: false },
+];
+
+export type SurveyQuestion = { id: string; type: "Rating" | "Choice" | "Yes or no" | "Short answer"; text: string; options?: string[] };
+export const surveys = [
+  {
+    id: "sv1", title: "Zed Live Sessions: October, after the show", event: "Zed Live Sessions: October", status: "Closed", sent: 1189, responses: 412,
+    questions: [
+      { id: "q1", type: "Rating", text: "How easy was it to get in?" },
+      { id: "q2", type: "Choice", text: "How did you get to the venue?", options: ["Own car", "Taxi or ride-hailing", "Bus or shuttle", "Walked"] },
+      { id: "q3", type: "Yes or no", text: "Would you come to a weeknight show?" },
+      { id: "q4", type: "Short answer", text: "One thing we should change next time" },
+    ] as SurveyQuestion[],
+    results: {
+      q1: { average: 4.6, spread: [71, 19, 6, 3, 1] },
+      q2: { counts: [46, 31, 18, 5] },
+      q3: { yes: 63 },
+      q4: { samples: ["More parking marshals", "Water at the gates", "Earlier start", "Bigger screens at the back"] },
+    },
+  },
+  {
+    id: "sv2", title: "Lusaka Summer Jam, morning after", event: "Lusaka Summer Jam", status: "Scheduled for 13 Dec, 09:00", sent: 0, responses: 0,
+    questions: [
+      { id: "q1", type: "Rating", text: "How was the sound?" },
+      { id: "q2", type: "Yes or no", text: "Did you use the free shuttle?" },
+      { id: "q3", type: "Short answer", text: "Anything else?" },
+    ] as SurveyQuestion[],
+    results: null,
+  },
+];
+
+export const myReviews = [
+  { event: "Copperbelt Mining Indaba 2026", date: "2026-02-19", rating: 4, title: "Useful sessions, long lunch queue", body: "The financing track was excellent. Lunch took 40 minutes to get through.", visibility: "Public", editUntil: "2026-03-05", reply: "Thanks! We're doubling the serving points for 2027." },
+];
+
+export const pendingPhotos = [
+  { id: "ph1", event: "Zed Live Sessions: October", by: "Grace T.", label: "Friends at the VIP bar", tint: "#5B2A86", note: "Faces of other guests visible" },
+  { id: "ph2", event: "Zed Live Sessions: October", by: "Anonymous attendee", label: "Car park queue at 23:40", tint: "#172033", note: "Number plates visible" },
+];
+
 export const reportedReviews = [
   { id: "rr1", event: "Lusaka Derby: Zesco vs Power Dynamos", excerpt: "This club is run by thieves and the referee was paid…", reason: "Abuse", reports: 14, by: "Organiser and 13 users", status: "Needs decision" },
   { id: "rr2", event: "Laugh Out Loud Friday", excerpt: "Visit cheap-tickets-zm dot com for half price…", reason: "Spam", reports: 6, by: "Auto-detected", status: "Hidden automatically" },
@@ -488,3 +582,106 @@ export function fromPrice(e: EventItem) {
   const open = e.tickets.filter((t) => t.sold < t.capacity);
   return Math.min(...(open.length ? open : e.tickets).map((t) => t.price));
 }
+
+export const transferHistory: Record<string, { when: string; what: string }[]> = {
+  "TKT-000481-A": [{ when: "2026-11-14 10:42", what: "Bought by Chanda Mulenga (MTN MoMo, booking EVT-8K2Q9M)" }],
+  "TKT-000481-B": [
+    { when: "2026-11-14 10:42", what: "Bought by Chanda Mulenga (MTN MoMo, booking EVT-8K2Q9M)" },
+    { when: "2026-11-15 08:10", what: "Name changed from Guest 2 to Mwila Banda" },
+    { when: "2026-11-15 08:11", what: "Sent to Mwila Banda (0977 ••• 812). New QR code issued, old one cancelled" },
+  ],
+};
+
+export const equipment = [
+  { item: "Barrier fencing, 400 m", from: "Sound Kings Zambia", qty: "1 lot", status: "Booked", arrives: "11 Dec, 08:00" },
+  { item: "Generators, 250 kVA", from: "Sound Kings Zambia", qty: "2", status: "Booked", arrives: "11 Dec, 10:00" },
+  { item: "Scanner phones (charged) + power banks", from: "Own stock", qty: "24 + 24", status: "Ready", arrives: "12 Dec, 12:00" },
+  { item: "First aid tents", from: "Zambia Red Cross", qty: "3", status: "Requested", arrives: "12 Dec, 13:00" },
+  { item: "Portable toilets", from: "CleanSweep Services", qty: "60", status: "Quote accepted", arrives: "11 Dec, 14:00" },
+  { item: "Shuttle buses, 65 seats", from: "Mosi Transport", qty: "6", status: "Booked", arrives: "12 Dec, 14:30" },
+];
+
+export const shifts = [
+  { name: "Kelvin Sakala", role: "Gate staff", where: "Gate A", time: "15:00 to 21:00" },
+  { name: "Mapalo Ngoma", role: "Gate staff", where: "Gate B", time: "15:00 to 21:00" },
+  { name: "SecureForce team (60)", role: "Security", where: "All gates and arena", time: "13:00 to 02:00" },
+  { name: "Chanda Mulenga", role: "Event manager", where: "Control room", time: "10:00 to 02:00" },
+  { name: "Daliso Mbewe", role: "Marketing", where: "Media desk", time: "16:00 to 23:00" },
+  { name: "Precious Nyirenda", role: "Finance", where: "Cash office", time: "14:00 to 00:00" },
+];
+
+export const onlineAttendees = people.slice(0, 10).map((name, i) => ({
+  name, ticket: ["Virtual pass", "Delegate (hybrid)", "Virtual pass"][i % 3], joined: i % 4 === 3 ? null : `09:${String(2 + i * 3).padStart(2, "0")}`, watched: i % 4 === 3 ? 0 : 40 + ((i * 17) % 60), device: ["Phone", "Laptop", "Phone", "Tablet"][i % 4],
+}));
+
+export const vendorServices: Record<string, { s: string; price: number; unit: string }[]> = {
+  "Sound Kings Zambia": [{ s: "Sound package, up to 5,000 people", price: 45_000, unit: "per event" }, { s: "Stadium sound and lighting, 35,000 people", price: 205_000, unit: "per event" }, { s: "Generator 250 kVA", price: 6_800, unit: "per day" }],
+  "SecureForce Ltd": [{ s: "Guard, 12-hour shift", price: 800, unit: "per guard" }, { s: "Supervisor, 12-hour shift", price: 1_400, unit: "per person" }],
+  "Mama Joyce Catering": [{ s: "Three-course dinner", price: 350, unit: "per guest" }, { s: "Buffet lunch", price: 180, unit: "per guest" }],
+};
+
+export const vendorContracts = [
+  { id: "CT-ZL-118", vendor: "Sound Kings Zambia", event: "Lusaka Summer Jam", value: 205_000, signed: "2026-11-12", status: "Signed by both" },
+  { id: "CT-ZL-114", vendor: "SecureForce Ltd", event: "Lusaka Summer Jam", value: 96_000, signed: "2026-11-03", status: "Signed by both" },
+  { id: "CT-ZL-121", vendor: "Mosi Transport", event: "Lusaka Summer Jam", value: 42_000, signed: "—", status: "Waiting for vendor" },
+];
+
+export const vendorInvoices = [
+  { id: "SK-2290", vendor: "Sound Kings Zambia", amount: 102_500, due: "2026-11-30", status: "Approved", note: "50% deposit" },
+  { id: "SF-0871", vendor: "SecureForce Ltd", amount: 96_000, due: "2026-11-20", status: "Paid", note: "" },
+  { id: "PH-1182", vendor: "PrintHub Lusaka", amount: 18_400, due: "2026-11-25", status: "Awaiting approval", note: "Wristbands and posters" },
+];
+
+export const quizzes = [
+  { title: "Quiz 1: Know your customer", questions: 8, marking: "Automatic", opens: "2027-01-12", taken: 0, average: null as number | null },
+  { title: "Quiz 2: Social media basics", questions: 10, marking: "Automatic", opens: "2027-01-19", taken: 0, average: null as number | null },
+];
+
+/** Attendance for the in-progress Bookkeeping class: P present, L late, A absent. */
+export const bookkeepingAttendance = {
+  lessons: ["L1 (28 Oct)", "L2 (30 Oct)", "L3 (4 Nov)", "L4 (6 Nov)", "L5 (11 Nov)", "L6 (13 Nov)"],
+  students: people.slice(0, 10).map((name, i) => ({ name, marks: Array.from({ length: 6 }, (_, j) => ((i * 7 + j * 3) % 11 === 0 ? "A" : (i + j) % 9 === 0 ? "L" : "P")) })),
+};
+
+export const classDashboard = {
+  attendanceByLesson: ["L1", "L2", "L3", "L4", "L5", "L6"].map((l, i) => ({ lesson: l, present: [36, 35, 33, 34, 31, 32][i], absent: [2, 3, 5, 4, 7, 6][i] })),
+  scores: [{ band: "Under 50%", students: 3 }, { band: "50–64%", students: 7 }, { band: "65–79%", students: 15 }, { band: "80%+", students: 11 }],
+};
+
+export const orgInvoices = [
+  { id: "INV-ZL-0412", to: "MTN Zambia", for: "Headline sponsorship, Lusaka Summer Jam", amount: 450_000, issued: "2026-10-01", due: "2026-10-31", status: "Paid" },
+  { id: "INV-ZL-0419", to: "Zambeef", for: "Gold sponsorship, Lusaka Summer Jam", amount: 180_000, issued: "2026-10-15", due: "2026-11-15", status: "Overdue" },
+  { id: "INV-ZL-0423", to: "Stanbic Bank", for: "20 corporate tickets (VIP)", amount: 15_000, issued: "2026-11-10", due: "2026-12-10", status: "Sent" },
+  { id: "INV-ZL-0425", to: "Copperbelt Energy", for: "VVIP table of 8", amount: 8_000, issued: "2026-11-14", due: "2026-12-01", status: "Draft" },
+];
+
+export const pledges = [
+  { donor: "Stanbic Bank", amount: 90_000, paid: 0, due: "2026-12-15", campaign: "Lusaka Summer Jam sponsorship", status: "Pledged" },
+  { donor: "Grace Tembo", amount: 12_000, paid: 6_000, due: "Monthly to March", campaign: "Feed 2,000 learners in 2027", status: "On track" },
+  { donor: "Copperbelt Rotary Club", amount: 25_000, paid: 0, due: "2026-11-30", campaign: "Feed 2,000 learners in 2027", status: "Reminder sent" },
+];
+
+export const donors = [
+  { name: "Grace Tembo", gifts: 9, total: 14_500, since: "2025", last: "2026-11-16", type: "Monthly" },
+  { name: "Copperbelt Rotary Club", gifts: 2, total: 40_000, since: "2026", last: "2026-06-02", type: "Organisation" },
+  { name: "Brian Mwansa", gifts: 4, total: 2_200, since: "2026", last: "2026-11-09", type: "One-time" },
+  { name: "Anonymous donors", gifts: 188, total: 41_300, since: "—", last: "2026-11-15", type: "Hidden by choice" },
+];
+
+export const beneficiaries = [
+  { name: "Mukuni Primary School", place: "Kazungula", learners: 420, received: 61_200, lastReport: "Term 3 report received" },
+  { name: "Simoonga Community School", place: "Livingstone", learners: 310, received: 44_800, lastReport: "Term 3 report received" },
+  { name: "Katapazi Primary School", place: "Kazungula", learners: 280, received: 38_900, lastReport: "Report due 5 Dec" },
+];
+
+export const memberOnlyEvents = [
+  { title: "Zed Live Sessions: December", when: "19 Dec 2026", access: "Members-only presale until 1 Dec, then public", plans: "Insider, Gold" },
+  { title: "Gold members' listening party", when: "7 Jan 2027", access: "Members only", plans: "Gold" },
+];
+
+export const recommendationReasons: Record<string, string> = {
+  e7: "You went to Zed Live Sessions: October",
+  e1: "Music fan, 4.2 km from you",
+  e9: "You follow SkillUp Academy",
+  e3: "Popular near you this month",
+};

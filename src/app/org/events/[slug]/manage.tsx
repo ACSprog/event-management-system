@@ -12,7 +12,17 @@ import { compact, fmtDate, fmtTime, kwacha } from "@/lib/brand";
 export function EventManage({ slug }: { slug: string }) {
   const toast = useToast();
   const { can } = useOrgRole();
-  const tabsList = ["Overview", "Tickets", "Attendees", "Check-in and gates", "Tasks", ...(can("money.view") ? ["Budget"] : []), ...(can("events.edit") ? ["Staff"] : [])];
+  const [status, setStatus] = useState(api.events.bySlug(slug)!.status);
+  const tabsList = ["Overview", "Tickets", "Attendees", ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), "Check-in and gates", "Tasks and logistics", ...(can("money.view") ? ["Budget"] : []), ...(can("events.edit") ? ["Staff and shifts"] : [])];
+  const next: Record<string, { label: string; to: typeof status; need: "events.publish" | "events.edit"; msg: string } | undefined> = {
+    "Pending approval": { label: "Approve", to: "Approved", need: "events.publish", msg: "Event approved. Publish it when you're ready." },
+    Approved: { label: "Publish now", to: "Registration open", need: "events.publish", msg: "Published. Tickets are on sale." },
+    "Registration open": { label: "Close registration", to: "Registration closed", need: "events.edit", msg: "Registration closed. Existing tickets still work." },
+    "Registration closed": { label: "Reopen registration", to: "Registration open", need: "events.edit", msg: "Registration reopened" },
+    Completed: { label: "Archive", to: "Archived", need: "events.edit", msg: "Archived. It's hidden from lists but kept for reports." },
+    Archived: { label: "Restore", to: "Completed", need: "events.edit", msg: "Restored from the archive" },
+  };
+  const step = next[status];
   const e = api.events.bySlug(slug)!;
   const [tab, setTab] = useState("Overview");
   const [q, setQ] = useState("");
@@ -29,10 +39,11 @@ export function EventManage({ slug }: { slug: string }) {
       <PageHeader
         back={{ href: "/org/events/", label: "Events" }}
         title={e.title}
-        sub={<span className="flex flex-wrap items-center gap-2"><Badge tone={statusTone[e.status]}>{e.status}</Badge> {fmtDate(e.start, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}, {fmtTime(e.start)}, {venue.name}</span>}
+        sub={<span className="flex flex-wrap items-center gap-2"><Badge tone={statusTone[status]}>{status}</Badge> {fmtDate(e.start, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}, {fmtTime(e.start)}, {venue.name}</span>}
         actions={<>
           <Button variant="secondary" href={`/events/${e.slug}/`}><ExternalLink size={15} /> View page</Button>
-          {e.status === "Pending approval" && can("events.publish") ? <Button onClick={() => toast("Event approved and published")}>Approve and publish</Button> : <Button href="/org/checkin/"><ScanLine size={15} /> Live check-in</Button>}
+          {step && can(step.need) && <Button variant={step.to === "Archived" || step.to === "Registration closed" ? "secondary" : "primary"} onClick={() => { setStatus(step.to); toast(step.msg); }}>{step.label}</Button>}
+          {["Registration open", "Sold out", "Registration closed", "In progress"].includes(status) && <Button href="/org/checkin/"><ScanLine size={15} /> Live check-in</Button>}
         </>}
       />
       <Tabs tabs={tabsList} value={tab} onChange={setTab} />
@@ -76,7 +87,9 @@ export function EventManage({ slug }: { slug: string }) {
               { key: "price", label: "Price", align: "right", render: (t) => (t.price ? kwacha(t.price as number) : "Free") },
               { key: "sold", label: "Sold", align: "right", render: (t) => `${(t.sold as number).toLocaleString()} / ${(t.capacity as number).toLocaleString()}` },
               { key: "rev", label: "Revenue", align: "right", render: (t) => kwacha((t.sold as number) * (t.price as number)) },
-              { key: "salesEnd", label: "Sales end", render: (t) => fmtDate(t.salesEnd as string, { day: "numeric", month: "short" }) },
+              { key: "salesEnd", label: "On sale", render: (t) => `${fmtDate((t.salesStart as string) ?? t.salesEnd, { day: "numeric", month: "short" })} to ${fmtDate(t.salesEnd as string, { day: "numeric", month: "short" })}` },
+              { key: "refund", label: "Refunds", render: (t) => <><p>{String(t.refund ?? "Event policy")}</p><p className="text-xs text-ink-3">{String(t.tax ?? "")}</p></> },
+              { key: "who", label: "Who can buy" },
               { key: "st", label: "", render: (t) => <Badge tone={t.sold === t.capacity ? "red" : "green"}>{t.sold === t.capacity ? "Sold out" : "On sale"}</Badge> },
             ]}
           />
@@ -119,7 +132,23 @@ export function EventManage({ slug }: { slug: string }) {
         </>
       )}
 
-      {tab === "Tasks" && (
+      {tab === "Online attendees" && (
+        <>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Stat label="Online passes" value={e.tickets.filter((t) => /virtual|course|session|instal/i.test(t.name)).reduce((a, t) => a + t.sold, 0).toLocaleString()} />
+            <Stat label="Joined the last session" value="72%" />
+            <Stat label="Average watch time" value="58 min" />
+          </div>
+          <div className="mt-6"><Table rows={api.events.onlineAttendees()} columns={[
+            { key: "name", label: "Name", render: (a) => <span className="font-semibold">{a.name}</span> }, { key: "ticket", label: "Pass" },
+            { key: "joined", label: "Joined", render: (a) => (a.joined ? a.joined : <Badge>Didn&rsquo;t join</Badge>) },
+            { key: "watched", label: "Watched", align: "right", render: (a) => (a.watched ? `${a.watched} min` : "—") }, { key: "device", label: "Device" },
+          ]} /></div>
+          <p className="mt-3 text-xs text-ink-3">Zoom reports who joined and for how long. YouTube and Facebook only report total viewers, not names.</p>
+        </>
+      )}
+
+      {tab === "Tasks and logistics" && (
         <Card>
           <SectionTitle title="Event checklist" sub={`${tasks.filter((t) => t.done).length} of ${tasks.length} done`} action={<Button size="sm"><Plus size={14} /> Add task</Button>} />
           <ul className="divide-y divide-line">
@@ -131,6 +160,11 @@ export function EventManage({ slug }: { slug: string }) {
               </li>
             ))}
           </ul>
+          <div className="mt-6"><SectionTitle title="Equipment and logistics" action={<Button size="sm" variant="secondary"><Plus size={14} /> Add item</Button>} /></div>
+          <Table rows={api.events.equipment()} columns={[
+            { key: "item", label: "Item", render: (x) => <span className="font-medium">{x.item}</span> }, { key: "qty", label: "Qty" }, { key: "from", label: "From" }, { key: "arrives", label: "Arrives" },
+            { key: "status", label: "Status", render: (x) => <Badge tone={x.status === "Ready" || x.status === "Booked" ? "green" : "gold"}>{x.status}</Badge> },
+          ]} />
         </Card>
       )}
 
@@ -146,7 +180,7 @@ export function EventManage({ slug }: { slug: string }) {
         </>
       )}
 
-      {tab === "Staff" && (
+      {tab === "Staff and shifts" && (
         <Card>
           <SectionTitle title="Staff and scanner access" sub="Gate staff only see the scanner, and only for this event and the gates you assign." action={<Button size="sm"><Send size={14} /> Invite staff</Button>} />
           <ul className="divide-y divide-line">
@@ -158,6 +192,8 @@ export function EventManage({ slug }: { slug: string }) {
               </li>
             ))}
           </ul>
+          <div className="mt-6"><SectionTitle title="Shifts on the day" action={<Button size="sm" variant="secondary"><Plus size={14} /> Add shift</Button>} /></div>
+          <Table rows={api.events.shifts()} columns={[{ key: "name", label: "Who", render: (x) => <span className="font-medium">{x.name}</span> }, { key: "role", label: "Role" }, { key: "where", label: "Where" }, { key: "time", label: "Shift" }]} />
           <div className="mt-4 flex items-center gap-3 rounded-lg bg-surface-2 p-4 text-sm">
             <span className="flex-1">Scanner sign-in code for this event: <span className="font-mono font-semibold">JAM-4417-GATE</span></span>
             <Button size="sm" variant="secondary"><Copy size={14} /> Copy</Button>

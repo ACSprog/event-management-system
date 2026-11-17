@@ -24,6 +24,8 @@ export const api = {
   events: {
     /** GET /v1/discovery/events?lat&lng&radiusKm&category */
     discover: () => mock.events.filter((e) => e.category !== "Wedding"),
+    /** GET /v1/me/recommendations (events plus the reason each was picked) */
+    recommended: () => ["e7", "e1", "e9", "e3"].map((id) => ({ event: mock.events.find((e) => e.id === id)!, reason: mock.recommendationReasons[id] })),
     /** GET /v1/events/:slug */
     bySlug: (slug: string) => mock.getEvent(slug),
     /** GET /v1/orgs/:orgId/events */
@@ -38,6 +40,12 @@ export const api = {
     incidents: () => mock.incidents,
     /** GET /v1/events/:id/checklist */
     checklist: () => mock.checklist,
+    /** GET /v1/events/:id/equipment */
+    equipment: () => mock.equipment,
+    /** GET /v1/events/:id/shifts */
+    shifts: () => mock.shifts,
+    /** GET /v1/events/:id/online-attendees */
+    onlineAttendees: () => mock.onlineAttendees,
   },
   orgs: {
     /** GET /v1/admin/organisations */
@@ -58,6 +66,8 @@ export const api = {
   finance: {
     /** GET /v1/orgs/:orgId/finance/transactions */
     transactions: () => mock.transactions,
+    /** GET /v1/orgs/:orgId/finance/invoices */
+    invoices: () => mock.orgInvoices,
     /** GET /v1/orgs/:orgId/finance/expenses */
     expenses: () => mock.expenses,
     /** GET /v1/orgs/:orgId/reports/sales?days=30 */
@@ -68,6 +78,8 @@ export const api = {
     customers: () => mock.customers,
     /** GET /v1/orgs/:orgId/memberships/plans */
     memberships: () => mock.memberships,
+    /** GET /v1/orgs/:orgId/events?visibility=members */
+    memberEvents: () => mock.memberOnlyEvents,
     /** GET /v1/orgs/:orgId/loyalty/tiers */
     loyaltyTiers: () => mock.loyaltyTiers,
   },
@@ -84,18 +96,48 @@ export const api = {
     rfqs: () => mock.rfqs,
     /** GET /v1/rfqs/:id/quotes */
     quotes: () => mock.quotes,
+    /** GET /v1/vendors/:id/services */
+    services: (name: string) => mock.vendorServices[name] ?? [],
+    /** GET /v1/orgs/:orgId/vendor-contracts */
+    contracts: () => mock.vendorContracts,
+    /** GET /v1/orgs/:orgId/vendor-invoices */
+    invoices: () => mock.vendorInvoices,
   },
   reviews: {
     /** GET /v1/events/:id/reviews */
     forEvent: () => mock.reviews,
     /** GET /v1/admin/moderation/reviews */
     reported: () => mock.reportedReviews,
+    /** GET /v1/admin/moderation/photos */
+    pendingPhotos: () => mock.pendingPhotos,
+    /** GET /v1/reviews/:id/photos (approved only) */
+    photos: (id: string) => mock.reviewPhotos[id] ?? [],
+    /** GET /v1/events/:id/reviews/summary */
+    breakdown: () => mock.ratingBreakdown,
+    /** GET /v1/orgs/:orgId/feedback/trend */
+    trend: () => mock.ratingTrend,
+    /** GET /v1/orgs/:orgId/feedback/compare?events=… */
+    compare: () => mock.eventComparison,
+    /** GET /v1/orgs/:orgId/feedback/suggestions */
+    suggestions: () => mock.suggestions,
+    /** GET /v1/orgs/:orgId/feedback/actions */
+    followUps: () => mock.followUps,
+    /** GET /v1/orgs/:orgId/surveys */
+    surveys: () => mock.surveys,
+    /** GET /v1/me/reviews */
+    mine: () => mock.myReviews,
   },
   fundraising: {
     /** GET /v1/fundraising/campaigns */
     campaigns: () => mock.fundraising,
     /** GET /v1/fundraising/campaigns/:id/donations */
     donations: () => mock.donations,
+    /** GET /v1/orgs/:orgId/pledges */
+    pledges: () => mock.pledges,
+    /** GET /v1/orgs/:orgId/donors */
+    donors: () => mock.donors,
+    /** GET /v1/orgs/:orgId/beneficiaries */
+    beneficiaries: () => mock.beneficiaries,
     /** GET /v1/orgs/:orgId/sponsorships */
     sponsors: () => mock.sponsors,
   },
@@ -106,12 +148,20 @@ export const api = {
     sessions: () => mock.courseSessions,
     /** GET /v1/courses/:id/assessments */
     assignments: () => mock.assignments,
+    /** GET /v1/courses/:id/quizzes */
+    quizzes: () => mock.quizzes,
+    /** GET /v1/courses/:id/attendance */
+    attendance: () => mock.bookkeepingAttendance,
+    /** GET /v1/orgs/:orgId/classes/dashboard */
+    dashboard: () => mock.classDashboard,
     /** GET /v1/assessments/:id/submissions */
     submissions: () => mock.submissions,
   },
   me: {
     /** GET /v1/me/tickets */
     tickets: () => mock.myTickets,
+    /** GET /v1/me/tickets/:number/history */
+    ticketHistory: (n: string) => mock.transferHistory[n] ?? [],
     /** GET /v1/me/tickets?past=true */
     pastTickets: () => mock.pastTickets,
     /** GET /v1/me/notifications */

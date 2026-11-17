@@ -44,17 +44,17 @@ export function Bars({ data, x, keys, height = 240, stacked, labels }: { data: R
   );
 }
 
-export function Lines({ data, x, keys, height = 240, labels }: { data: Record<string, unknown>[]; x: string; keys: string[]; height?: number; labels?: string[] }) {
+export function Lines({ data, x, keys, height = 240, labels, yDomain }: { data: Record<string, unknown>[]; x: string; keys: string[]; height?: number; labels?: string[]; yDomain?: [number, number] }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <CartesianGrid vertical={false} stroke="var(--line)" />
         <XAxis dataKey={x} {...axis} />
-        <YAxis {...axis} width={56} tickFormatter={(v) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${Math.round(v / 1e3)}k` : v)} />
+        <YAxis {...axis} width={56} domain={yDomain ?? [0, "auto"]} tickFormatter={(v) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${Math.round(v / 1e3)}k` : v)} />
         <Tooltip {...tip} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
         {keys.map((k, i) => (
-          <Line key={k} dataKey={k} name={labels?.[i] ?? k} stroke={palette[i]} strokeWidth={2} dot={false} />
+          <Line key={k} dataKey={k} name={labels?.[i] ?? k} stroke={palette[i]} strokeWidth={2} dot={data.length < 10} />
         ))}
       </LineChart>
     </ResponsiveContainer>

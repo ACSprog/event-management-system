@@ -318,3 +318,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 export const useToast = () => useContext(ToastCtx);
+
+/* Loading ---------------------------------------------------------------- */
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cx("animate-pulse rounded-lg bg-surface-2", className)} aria-hidden />;
+}
+
+/** Placeholder shown while a page's data loads. */
+export function PageSkeleton({ cards = 4 }: { cards?: number }) {
+  return (
+    <div role="status" aria-label="Loading">
+      <Skeleton className="h-8 w-64" />
+      <Skeleton className="mt-2 h-4 w-96 max-w-full" />
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: cards }, (_, i) => <Skeleton key={i} className="h-28" />)}
+      </div>
+      <Skeleton className="mt-6 h-72" />
+      <span className="sr-only">Loading</span>
+    </div>
+  );
+}

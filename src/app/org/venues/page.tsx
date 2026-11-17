@@ -12,13 +12,16 @@ export default function Venues() {
   const toast = useToast();
   const [tab, setTab] = useState("Venues");
   const [tool, setTool] = useState("Table of 10");
+  const [venue, setVenue] = useState("Levy Park Amphitheatre");
+  const [day, setDay] = useState(31);
+  const booked: Record<number, { e: string; s: string }> = { 5: { e: "Phone Photography Workshop", s: "Confirmed" }, 12: { e: "Summer Jam afterparty", s: "Confirmed" }, 13: { e: "Hold: Zed Live", s: "Provisional" }, 19: { e: "Zed Live Sessions: December", s: "Confirmed" }, 26: { e: "Church youth night", s: "Contract sent" }, 31: { e: "New Year's Eve Countdown", s: "Requested" } };
   const [items, setItems] = useState<{ x: number; y: number; kind: string }[]>([
     { x: 40, y: 8, kind: "Stage" }, ...Array.from({ length: 12 }, (_, i) => ({ x: 14 + (i % 4) * 22, y: 32 + Math.floor(i / 4) * 20, kind: i < 4 ? "Table of 8" : "Table of 10" })), { x: 86, y: 88, kind: "Bar" }, { x: 4, y: 88, kind: "Gate" },
   ]);
   return (
     <>
       <PageHeader title="Venues and seating" actions={<Button><Plus size={15} /> Add venue</Button>} />
-      <Tabs tabs={["Venues", "Floor plan editor", "Bookings"]} value={tab} onChange={setTab} />
+      <Tabs tabs={["Venues", "Availability", "Bookings and contracts", "Floor plan editor"]} value={tab} onChange={setTab} />
       {tab === "Venues" && (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {api.venues.list().map((v) => (
@@ -60,12 +63,56 @@ export default function Venues() {
           </Card>
         </div>
       )}
-      {tab === "Bookings" && (
+      {tab === "Availability" && (
+        <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
+          <Card>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <p className="font-semibold">December 2026</p>
+              <select value={venue} onChange={(e) => setVenue(e.target.value)} aria-label="Venue" className="rounded-lg border border-line bg-surface px-3 py-2 text-sm">{api.venues.list().map((v) => <option key={v.id}>{v.name}</option>)}</select>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs text-ink-3">{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d} className="py-1">{d}</div>)}</div>
+            <div className="grid grid-cols-7 gap-1">
+              <div />
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
+                const b = venue === "Levy Park Amphitheatre" ? booked[d] : d % 9 === 0 ? { e: "Booked", s: "Confirmed" } : undefined;
+                return (
+                  <button key={d} onClick={() => setDay(d)} className={cx("min-h-16 rounded-lg border p-1.5 text-left text-xs", day === d ? "border-kafue ring-2 ring-kafue/30" : "border-line", b?.s === "Confirmed" ? "bg-kafue-soft" : b ? "bg-marigold-soft" : "bg-surface")}>
+                    <span className="font-semibold">{d}</span>
+                    {b && <span className="mt-1 block truncate">{b.e}</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex gap-4 text-xs text-ink-3"><span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-kafue-soft ring-1 ring-line" /> Confirmed</span><span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-marigold-soft ring-1 ring-line" /> Held or requested</span><span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-surface ring-1 ring-line" /> Free</span></div>
+          </Card>
+          <Card className="h-fit">
+            <SectionTitle title={`${day} December`} sub={venue} />
+            {(venue === "Levy Park Amphitheatre" ? booked[day] : day % 9 === 0) ? (
+              <div className="space-y-2 text-sm">
+                <p className="font-semibold">{venue === "Levy Park Amphitheatre" ? booked[day].e : "Booked by another organiser"}</p>
+                {venue === "Levy Park Amphitheatre" && <Badge tone={booked[day].s === "Confirmed" ? "green" : "gold"}>{booked[day].s}</Badge>}
+              </div>
+            ) : (
+              <div className="space-y-3 text-sm">
+                <p className="text-ink-3">Free on this day.</p>
+                <Button size="sm" onClick={() => toast(`Booking request sent to ${venue} for ${day} December`)}>Request this date</Button>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+      {tab === "Bookings and contracts" && (
         <div className="space-y-3">
           {api.venues.bookings().map((b) => (
             <Card key={b.event} className="flex flex-wrap items-center justify-between gap-3">
               <div><p className="font-semibold">{b.event}</p><p className="text-sm text-ink-3">{b.venue}, {b.dates}</p></div>
-              <div className="flex items-center gap-3"><span className="font-semibold">{kwacha(b.amount)}</span><Badge tone={b.status === "Confirmed" ? "green" : b.status === "Requested" ? "gold" : "teal"}>{b.status}</Badge></div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="font-semibold">{kwacha(b.amount)}</span>
+                <Badge tone={b.status === "Confirmed" ? "green" : b.status === "Requested" ? "gold" : "teal"}>{b.status}</Badge>
+                {b.status === "Contract sent" && <Button size="sm" onClick={() => toast("Contract signed. A copy has been emailed to both sides.")}>Review and sign contract</Button>}
+                {b.status === "Confirmed" && <Button size="sm" variant="ghost">View contract</Button>}
+                {b.status === "Requested" && <span className="text-xs text-ink-3">Waiting for the venue to accept</span>}
+              </div>
             </Card>
           ))}
         </div>
