@@ -220,6 +220,6 @@ export { sold, capacity, gross, fromPrice, statusTone, people } from "@/lib/mock
 export type { EventItem, TicketType, Organisation, Venue, Category } from "@/lib/mock/data";
 export {
   DEMO_TODAY, arrangementLabel, collectionLabel, feePayerLabel, feeText, planFee, bookingFee, licenceAccess,
-  settlementStatus, settlementSteps, statementLines, payable, heldAmount, deadlines, holidayDates, staffRoleCan,
+  settlementStatus, settlementSteps, statementLines, payable, heldAmount, deadlines, holidayDates,
 } from "@/lib/mock/commerce";
 export type { Arrangement, Collection, FeePayer, Settlement, SettlementStatus, PlanKey, StaffRole, EventTerms } from "@/lib/mock/commerce";

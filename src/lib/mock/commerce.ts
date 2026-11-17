@@ -5,6 +5,7 @@
 
 import { addBusinessDays } from "@/lib/business-days";
 import { events, gross, sold } from "./data";
+import { platformRoles, platformStaffList } from "@/lib/platform-roles";
 
 /** The showcase's "today". Countdowns are worked out from this date. */
 export const DEMO_TODAY = "2026-11-17";
@@ -204,22 +205,11 @@ export const financeSettings = {
   graceDays: 14,
 };
 
-export type StaffRole = "Platform owner" | "Platform finance officer" | "Platform finance manager" | "Support agent" | "Moderator";
-export const platformStaff: { name: string; role: StaffRole; limit: number | null; mfa: boolean }[] = [
-  { name: "Thandiwe Lungu", role: "Platform owner", limit: null, mfa: true },
-  { name: "Natasha Zulu", role: "Platform finance manager", limit: null, mfa: true },
-  { name: "Bwalya Phiri", role: "Platform finance officer", limit: 50_000, mfa: true },
-  { name: "Joseph Tembo", role: "Platform finance officer", limit: 50_000, mfa: true },
-  { name: "Ruth Mwanza", role: "Support agent", limit: 0, mfa: true },
-  { name: "Kunda Siame", role: "Moderator", limit: 0, mfa: false },
-];
-export const staffRoleCan: Record<StaffRole, string[]> = {
-  "Platform owner": ["Everything except approving settlements", "Change finance settings with a second person"],
-  "Platform finance manager": ["Review and adjust settlements", "Approve any amount", "Give the second approval above the threshold", "Start payouts", "Correct settled statements as adjustments"],
-  "Platform finance officer": ["Review settlements", "Approve alone up to their limit", "Give the first of two approvals above it", "Start payouts"],
-  "Support agent": ["See statements to answer organisers", "No approvals"],
-  Moderator: ["Reviews and photos only"],
-};
+/** Staff who can act on settlements. Roles and permissions live in src/lib/platform-roles.ts. */
+export type StaffRole = string;
+export const platformStaff = platformStaffList
+  .filter((s) => s.status === "Active")
+  .map((s) => ({ name: s.name, key: s.role, role: platformRoles[s.role].label, limit: s.limit, mfa: s.mfa }));
 
 /* ------------------------------------------------------------------ */
 /* Settlements                                                         */
@@ -380,7 +370,7 @@ export const settlements: Settlement[] = [
     ref: "ST-ZL-0418", orgId: "org1", orgName: "Zed Live Entertainment", event: "Zed Live Sessions: October", eventSlug: "zed-live-sessions-oct", ended: "2026-10-24",
     arrangement: "SUBSCRIPTION", feeLabel: "3% + K2 per paid ticket", status: "SETTLED",
     tickets: 1_189, gross: 1_041_000, refunds: 12_500, chargebacks: 0, providerCharges: 18_740, bookingFees: 0, deductions: [],
-    payTo: "MTN MoMo business wallet ****0081", approvals: [{ by: "Natasha Zulu", role: "Platform finance manager", at: "2026-10-30" }, { by: "Bwalya Phiri", role: "Platform finance officer", at: "2026-10-30" }],
+    payTo: "MTN MoMo business wallet ****0081", approvals: [{ by: "Natasha Zulu", role: "Finance manager", at: "2026-10-30" }, { by: "Bwalya Phiri", role: "Finance officer", at: "2026-10-30" }],
     payout: { ref: "PO-ZL-0412", at: "2026-11-02", providerRef: "MTN-7731-0029-4471" },
     history: [
       { at: "2026-10-24", what: "Event completed automatically", who: "System" },
@@ -395,7 +385,7 @@ export const settlements: Settlement[] = [
     ref: "ST-ZL-0207", orgId: "org1", orgName: "Zed Live Entertainment", event: "Lusaka July Fest 2025", eventSlug: "lusaka-july-fest-2025", ended: "2025-07-20",
     arrangement: "PARTNERSHIP", feeLabel: "", sharePct: 15, agreement: "PA-2025-004", status: "SETTLED",
     tickets: 9_870, gross: 4_610_300 + 980_000, refunds: 61_500, chargebacks: 3_000, providerCharges: 98_400, bookingFees: 0, deductions: [{ label: "Stage and sound hire (agreed)", amount: 180_000 }], downPayment: 100_000,
-    payTo: "Zanaco ****2290", approvals: [{ by: "Bwalya Phiri", role: "Platform finance officer", at: "2025-07-28" }, { by: "Natasha Zulu", role: "Platform finance manager", at: "2025-07-28" }],
+    payTo: "Zanaco ****2290", approvals: [{ by: "Bwalya Phiri", role: "Finance officer", at: "2025-07-28" }, { by: "Natasha Zulu", role: "Finance manager", at: "2025-07-28" }],
     payout: { ref: "PO-ZL-0388", at: "2025-07-30", providerRef: "ZANACO-RTGS-552190" },
     history: [{ at: "2025-07-30", what: "Paid and confirmed by Zanaco", who: "System" }],
   }),
@@ -410,7 +400,7 @@ export const settlements: Settlement[] = [
     ref: "ST-CS-0057", orgId: "org5", orgName: "Chipolopolo Sports Events", event: "Ndola Half Marathon", ended: "2026-11-07",
     arrangement: "PARTNERSHIP", feeLabel: "", sharePct: 20, agreement: "PA-2026-011", status: "AWAITING_SECOND_APPROVAL",
     tickets: 3_420, gross: 684_000, refunds: 9_000, chargebacks: 0, providerCharges: 12_310, bookingFees: 15_380, deductions: [{ label: "Medals and race bibs (agreed)", amount: 41_000 }], downPayment: 25_000,
-    payTo: "Airtel Money business wallet ****5512", approvals: [{ by: "Bwalya Phiri", role: "Platform finance officer", at: "2026-11-16" }],
+    payTo: "Airtel Money business wallet ****5512", approvals: [{ by: "Bwalya Phiri", role: "Finance officer", at: "2026-11-16" }],
     history: [{ at: "2026-11-12", what: "Statement issued", who: "System" }, { at: "2026-11-13", what: "Statement accepted", who: "Mwansa Kapata" }, { at: "2026-11-16", what: "Approved (1 of 2). Over K50,000, second approval needed", who: "Bwalya Phiri" }],
   }),
   S({
@@ -424,7 +414,7 @@ export const settlements: Settlement[] = [
     ref: "ST-HF-0009", orgId: "org6", orgName: "Hope Children's Foundation", event: "Hope Fun Run", ended: "2026-11-01",
     arrangement: "TICKET_FEE", feeLabel: "5% + K3 per paid ticket", status: "APPROVED",
     tickets: 420, gross: 63_000, refunds: 0, chargebacks: 0, providerCharges: 1_130, bookingFees: 0, deductions: [],
-    payTo: "Airtel Money ****2209 (not yet verified)", approvals: [{ by: "Natasha Zulu", role: "Platform finance manager", at: "2026-11-10" }],
+    payTo: "Airtel Money ****2209 (not yet verified)", approvals: [{ by: "Natasha Zulu", role: "Finance manager", at: "2026-11-10" }],
     hold: "Organisation not verified: PACRA certificate and director's ID still missing. Payout starts once both are checked.",
     history: [{ at: "2026-11-10", what: "Approved, payout held until verification", who: "Natasha Zulu" }],
   }),
@@ -432,7 +422,7 @@ export const settlements: Settlement[] = [
     ref: "ST-SU-0031", orgId: "org4", orgName: "SkillUp Academy", event: "Excel for Business: October", ended: "2026-10-30",
     arrangement: "SUBSCRIPTION", feeLabel: "4% + K2 per paid ticket", status: "FAILED",
     tickets: 64, gross: 57_600, refunds: 0, chargebacks: 0, providerCharges: 1_040, bookingFees: 0, deductions: [],
-    payTo: "Airtel Money ****7731", approvals: [{ by: "Joseph Tembo", role: "Platform finance officer", at: "2026-11-09" }],
+    payTo: "Airtel Money ****7731", approvals: [{ by: "Joseph Tembo", role: "Finance officer", at: "2026-11-09" }],
     payout: { ref: "PO-SU-0029", error: "Airtel Money rejected the transfer: the wallet is registered to a different name than SkillUp Academy." },
     history: [{ at: "2026-11-09", what: "Approved", who: "Joseph Tembo" }, { at: "2026-11-09", what: "Payout rejected by Airtel: account name mismatch", who: "System" }],
   }),
@@ -440,7 +430,7 @@ export const settlements: Settlement[] = [
     ref: "ST-CB-0108", orgId: "org2", orgName: "Copperbelt Business Forum", event: "Kitwe Trade Mixer", ended: "2026-11-05",
     arrangement: "SUBSCRIPTION", feeLabel: "4% + K2 per paid ticket", status: "PAYOUT_PROCESSING",
     tickets: 212, gross: 63_600, refunds: 0, chargebacks: 0, providerCharges: 1_150, bookingFees: 0, deductions: [],
-    payTo: "Stanbic ****8820", approvals: [{ by: "Joseph Tembo", role: "Platform finance officer", at: "2026-11-13" }, { by: "Natasha Zulu", role: "Platform finance manager", at: "2026-11-16" }],
+    payTo: "Stanbic ****8820", approvals: [{ by: "Joseph Tembo", role: "Finance officer", at: "2026-11-13" }, { by: "Natasha Zulu", role: "Finance manager", at: "2026-11-16" }],
     payout: { ref: "PO-CB-0101" },
     history: [{ at: "2026-11-16", what: "Payout sent to Stanbic, waiting for confirmation", who: "Natasha Zulu" }],
   }),

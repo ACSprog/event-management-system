@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Plus, ShieldCheck } from "lucide-react";
 import { Avatar, Badge, Button, Card, Field, Input, Modal, PageHeader, SectionTitle, Table, useToast } from "@/components/ui";
-import { api, staffRoleCan, type StaffRole } from "@/lib/api";
-import { fmtDate, kwacha } from "@/lib/brand";
+import { api } from "@/lib/api";
+import { fmtDate } from "@/lib/brand";
 
 export default function FinanceSettings() {
   const toast = useToast();
@@ -13,7 +13,6 @@ export default function FinanceSettings() {
   const [add, setAdd] = useState(false);
   const [h, setH] = useState({ date: "", name: "" });
   const staff = api.settlements.staff();
-  const roles = Object.keys(staffRoleCan) as StaffRole[];
 
   return (
     <>
@@ -43,27 +42,14 @@ export default function FinanceSettings() {
         </Card>
       </div>
 
-      <SectionTitle title="Platform staff" sub="EMS's own people. These roles are separate from organisers' team roles: nobody in an organiser's team can approve a settlement." action={<Button size="sm" onClick={() => toast("Invitation sent")}><Plus size={14} /> Add staff</Button>} />
-      <Card pad={false}>
-        <ul className="divide-y divide-line">
-          {staff.map((p) => (
-            <li key={p.name} className="flex flex-wrap items-center gap-3 px-5 py-3">
-              <Avatar name={p.name} />
-              <div className="min-w-0 flex-1"><p className="font-semibold">{p.name}</p><p className="text-xs text-ink-3">{p.role}</p></div>
-              <span className="text-sm text-ink-2">{p.limit === null ? (p.role === "Platform owner" ? "Cannot approve settlements" : "No approval limit") : p.limit ? `Approves up to ${kwacha(p.limit)}` : "No approvals"}</span>
-              {p.mfa ? <Badge tone="green"><ShieldCheck size={11} /> 2-step on</Badge> : <Badge tone="red">2-step off</Badge>}
-            </li>
-          ))}
-        </ul>
-      </Card>
-      <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {roles.map((r) => (
-          <Card key={r} className="p-4">
-            <p className="font-semibold">{r}</p>
-            <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-ink-3">{staffRoleCan[r].map((c) => <li key={c}>{c}</li>)}</ul>
-          </Card>
-        ))}
-      </div>
+      <SectionTitle title="Approval limits" sub="How much each finance person can approve alone. Roles and permissions are on Staff and roles." action={<Button size="sm" variant="secondary" href="/admin/team/">Staff and roles</Button>} />
+      <Table rows={staff.filter((p) => p.key === "finance_officer" || p.key === "finance_manager")} columns={[
+        { key: "name", label: "Person", render: (p) => <span className="flex items-center gap-2"><Avatar name={p.name} size={28} />{p.name}</span> },
+        { key: "role", label: "Role" },
+        { key: "limit", label: "Approves alone up to", render: (p) => (p.limit === null ? "Any amount" : <Input aria-label={`Limit for ${p.name}`} className="w-32" defaultValue={p.limit} inputMode="numeric" />) },
+        { key: "second", label: "Second approvals", render: (p) => (p.key === "finance_manager" ? <Badge tone="green">Yes</Badge> : <Badge tone="grey">No</Badge>) },
+        { key: "mfa", label: "2-step", render: (p) => (p.mfa ? <Badge tone="green"><ShieldCheck size={11} /> On</Badge> : <Badge tone="red">Off</Badge>) },
+      ]} />
 
       <SectionTitle title="Public holidays" sub="Used to count business days for settlement deadlines" action={<Button size="sm" variant="secondary" onClick={() => setAdd(true)}><Plus size={14} /> Add holiday</Button>} />
       <Table rows={holidays} columns={[

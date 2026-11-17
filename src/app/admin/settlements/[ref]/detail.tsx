@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle, CheckCircle2, FileText, Lock, ShieldCheck } from "lucide-react";
 import { Button, Card, Field, Input, Modal, PageHeader, SectionTitle, Select, Textarea, useToast } from "@/components/ui";
+import { useAdminRole } from "@/components/layout/admin-role";
 import { Countdown, SettlementBadge, SettlementTimeline, StatementTable } from "@/components/settlement";
 import { api, arrangementLabel, payable, heldAmount, settlementStatus, type Settlement, type StaffRole } from "@/lib/api";
 import { fmtDate, kwacha } from "@/lib/brand";
@@ -12,8 +13,9 @@ const TODAY = "2026-11-17";
 export function AdminSettlement({ ref_ }: { ref_: string }) {
   const toast = useToast();
   const settings = api.settlements.financeSettings();
-  const staff = api.settlements.staff().filter((p) => p.role === "Platform finance officer" || p.role === "Platform finance manager");
-  const [me, setMe] = useState(staff.find((p) => p.name === "Natasha Zulu")!);
+  const { role, can } = useAdminRole();
+  // The signed-in person. In the showcase this follows "Preview as" in the header.
+  const me = api.settlements.staff().find((p) => p.key === role) ?? { name: "You", key: role, role: "Staff", limit: 0, mfa: true };
   const [s, setS] = useState<Settlement>(api.settlements.get(ref_)!);
   const [adjust, setAdjust] = useState(false);
   const [adj, setAdj] = useState({ amount: "", reason: "", sign: "Add to the organiser's payout" });
@@ -23,7 +25,7 @@ export function AdminSettlement({ ref_ }: { ref_: string }) {
 
   const amount = payable(s) - heldAmount(s);
   const need = payable(s) >= settings.dualThreshold ? 2 : 1;
-  const isManager = me.role === "Platform finance manager";
+  const isManager = me.key === "finance_manager";
   const withinLimit = me.limit === null || amount <= me.limit;
   const alreadyApproved = s.approvals.some((a) => a.by === me.name);
   const log = (what: string, patch: Partial<Settlement> = {}) => setS((cur) => ({ ...cur, ...patch, history: [...cur.history, { at: TODAY, what, who: me.name }] }));
@@ -50,24 +52,27 @@ export function AdminSettlement({ ref_ }: { ref_: string }) {
   let why = "";
   switch (s.status) {
     case "UNDER_FINANCE_REVIEW":
-      action = <Button onClick={() => { log("Finance review finished, no material discrepancies", { status: "AWAITING_APPROVAL" }); toast("Review finished. Ready for approval."); }}><ShieldCheck size={16} /> Finish review</Button>;
+      if (!can("settlements.review")) why = "Your role can see settlements but not review them.";
+      action = <Button disabled={!!why} onClick={() => { log("Finance review finished, no material discrepancies", { status: "AWAITING_APPROVAL" }); toast("Review finished. Ready for approval."); }}><ShieldCheck size={16} /> Finish review</Button>;
       break;
     case "AWAITING_APPROVAL":
     case "AWAITING_SECOND_APPROVAL":
-      if (alreadyApproved) why = "You gave the first approval. A different person must give the second.";
+      if (!can("settlements.approve")) why = "Only finance roles can approve settlements.";
+      else if (alreadyApproved) why = "You gave the first approval. A different person must give the second.";
       else if (need === 1 && !withinLimit) why = `Your approval limit is ${kwacha(me.limit!)}. A finance manager must approve this.`;
-      else if (s.status === "AWAITING_SECOND_APPROVAL" && !isManager) why = "Second approvals above the threshold must come from a finance manager.";
+      else if (s.status === "AWAITING_SECOND_APPROVAL" && !(isManager && can("settlements.second"))) why = "Second approvals above the threshold must come from a finance manager.";
       action = <Button disabled={!!why} onClick={approve}><CheckCircle2 size={16} /> {s.status === "AWAITING_SECOND_APPROVAL" ? "Give second approval" : "Approve settlement"}</Button>;
       break;
     case "APPROVED":
-      if (s.hold) why = "Payout is blocked until the organisation is verified.";
+      if (!can("payouts.start")) why = "Only finance roles can start payouts.";
+      else if (s.hold) why = "Payout is blocked until the organisation is verified.";
       action = <Button disabled={!!why} onClick={() => { log(`Payout of ${kwacha(amount)} sent to ${s.payTo}`, { status: "PAYOUT_PROCESSING", payout: { ref: `PO-${s.ref.slice(3)}` } }); toast("Payout sent. It's marked paid only when the provider confirms it."); }}>Start payout of {kwacha(amount)}</Button>;
       break;
     case "PAYOUT_PROCESSING":
       action = <Button variant="secondary" onClick={() => { log("Paid and confirmed by the provider", { status: "SETTLED", payout: { ...s.payout!, at: TODAY, providerRef: "STANBIC-EFT-889120" } }); toast("Confirmed by the provider. Settlement closed."); }}>Check payout status</Button>;
       break;
     case "FAILED":
-      action = <><Button variant="secondary" onClick={() => toast("Organisation asked to update and re-verify its payout account")}>Ask organiser to fix the account</Button><Button disabled title="The account must be re-verified first">Retry with the same reference</Button></>;
+      action = <><Button variant="secondary" disabled={!can("settlements.review")} onClick={() => toast("Organisation asked to update and re-verify its payout account")}>Ask organiser to fix the account</Button><Button disabled title="The account must be re-verified first">Retry with the same reference</Button></>;
       why = "Retrying uses the same payout reference, so the organiser can never be paid twice.";
       break;
   }
@@ -78,14 +83,8 @@ export function AdminSettlement({ ref_ }: { ref_: string }) {
         back={{ href: "/admin/settlements/", label: "Settlements" }}
         title={s.event}
         sub={<span className="flex flex-wrap items-center gap-2"><SettlementBadge s={s} /> {s.orgName}, <span className="font-mono text-xs">{s.ref}</span></span>}
-        actions={
-          <label className="flex items-center gap-2 text-sm text-ink-3">
-            Acting as
-            <Select aria-label="Acting as" className="w-64" value={me.name} onChange={(e) => setMe(staff.find((p) => p.name === e.target.value)!)} options={staff.map((p) => p.name)} />
-          </label>
-        }
       />
-      <p className="-mt-4 mb-6 text-xs text-ink-3">Showcase only: switch between finance staff to see the separation of duties. {me.name} is a {me.role.toLowerCase()}{me.limit ? `, approval limit ${kwacha(me.limit)}` : ", no approval limit"}.</p>
+      <p className="-mt-4 mb-6 text-xs text-ink-3">Signed in as {me.name}, {me.role.toLowerCase()}{me.key === "finance_officer" ? `, approves alone up to ${kwacha(me.limit ?? 0)}` : ""}. Showcase: use &ldquo;Preview as&rdquo; at the top to try other staff roles.</p>
 
       <Card>
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -97,7 +96,7 @@ export function AdminSettlement({ ref_ }: { ref_: string }) {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-4">
-          <SectionTitle title="Statement" sub="Generated from the ledger. The payout amount cannot be typed in; it is always this total." action={["UNDER_FINANCE_REVIEW", "DISPUTED", "AWAITING_APPROVAL"].includes(s.status) ? <Button size="sm" variant="secondary" onClick={() => setAdjust(true)}>Add adjustment</Button> : undefined} />
+          <SectionTitle title="Statement" sub="Generated from the ledger. The payout amount cannot be typed in; it is always this total." action={can("settlements.review") && ["UNDER_FINANCE_REVIEW", "DISPUTED", "AWAITING_APPROVAL"].includes(s.status) ? <Button size="sm" variant="secondary" onClick={() => setAdjust(true)}>Add adjustment</Button> : undefined} />
           <StatementTable s={s} />
 
           {s.dispute?.status === "Open" && (
@@ -105,10 +104,10 @@ export function AdminSettlement({ ref_ }: { ref_: string }) {
               <p className="flex items-center gap-2 font-semibold text-hibiscus"><AlertTriangle size={16} /> Dispute on {s.dispute.line.toLowerCase()}: {kwacha(s.dispute.amount)}</p>
               <p className="mt-2 text-sm">&ldquo;{s.dispute.reason}&rdquo;</p>
               <p className="mt-1 text-xs text-ink-3">{s.dispute.by}, {fmtDate(s.dispute.at, { day: "numeric", month: "short" })}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              {can("settlements.review") && <div className="mt-4 flex flex-wrap gap-2">
                 <Button onClick={() => { log(`Dispute upheld: +${kwacha(s.dispute!.amount)}`, { status: "UNDER_FINANCE_REVIEW", dispute: { ...s.dispute!, status: "Resolved" }, adjustments: [...(s.adjustments ?? []), { amount: s.dispute!.amount, reason: "Dispute upheld: refunds paid by the organiser in cash", by: me.name, at: TODAY }] }); toast("Dispute upheld. Adjustment added; the statement goes back to review."); }}>Uphold and adjust</Button>
                 <Button variant="secondary" onClick={() => setReject(true)}>Reject with reason</Button>
-              </div>
+              </div>}
             </Card>
           )}
 

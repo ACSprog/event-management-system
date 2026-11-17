@@ -46,9 +46,8 @@ export default function Team() {
                   <p className="text-xs text-ink-3">{p.email}</p>
                 </div>
                 {p.mfa ? <Badge tone="green"><ShieldCheck size={11} /> 2-step on</Badge> : <Badge tone="grey">2-step off</Badge>}
-                <Select
+                <div className="w-48 shrink-0"><Select
                   aria-label={`Role for ${p.name}`}
-                  className="w-48"
                   disabled={i === 0}
                   value={teamRoles[p.roleKey].label}
                   onChange={(e) => {
@@ -57,7 +56,7 @@ export default function Team() {
                     toast(`${p.name.split(" ")[0]} is now ${teamRoles[r].label.toLowerCase()}`);
                   }}
                   options={roleOrder.map((r) => teamRoles[r].label)}
-                />
+                /></div>
               </li>
             ))}
           </ul>
