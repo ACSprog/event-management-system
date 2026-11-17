@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { Copy, Download, ExternalLink, Mail, Plus, ScanLine, Send, Undo2 } from "lucide-react";
-import { Avatar, Badge, Button, Card, Checkbox, Input, Modal, PageHeader, Progress, SectionTitle, Stat, Table, Tabs, useToast, Field, Select } from "@/components/ui";
+import { Avatar, Badge, Button, Textarea, Card, Checkbox, Input, Modal, PageHeader, Progress, SectionTitle, Stat, Table, Tabs, useToast, Field, Select } from "@/components/ui";
 import { AreaTrend, Bars } from "@/components/ui/charts";
 import { api, arrangementLabel, capacity, collectionLabel, feePayerLabel, gross, payable, sold, statusTone } from "@/lib/api";
+import { SelectOther } from "@/components/select-other";
 import { NoEarlyPayouts, SettlementBadge, SettlementTimeline } from "@/components/settlement";
 import { useOrgRole } from "@/components/layout/org-role";
 import { compact, fmtDate, fmtTime, kwacha } from "@/lib/brand";
@@ -223,8 +224,9 @@ export function EventManage({ slug }: { slug: string }) {
 
       <Modal open={problem} onClose={() => setProblem(false)} title="Report a problem with this event" footer={<><Button variant="ghost" onClick={() => setProblem(false)}>Cancel</Button><Button variant="danger" onClick={() => { setProblem(false); toast(problemKind === "Cancelled" ? "Cancellation reported. EMS will confirm it, then every buyer is refunded from the money held." : "Postponement reported. Money stays held and buyers can ask for refunds."); }}>Report</Button></>}>
         <div className="space-y-4 text-sm">
-          <Field label="What happened?"><Select value={problemKind} onChange={(x) => setProblemKind(x.target.value)} options={["Cancelled", "Postponed to a new date", "Partly happened (cut short)"]} /></Field>
-          <p className="text-ink-3">{problemKind === "Cancelled" ? "All ticket buyers are refunded from the money EMS is holding. Nothing is paid out to you for this event." : problemKind.startsWith("Postponed") ? "Ticket money stays held. Buyers keep their tickets for the new date or can ask for a refund." : "EMS finance contacts you to agree partial refunds before the statement is prepared."}</p>
+          <Field label="What happened?"><Select value={problemKind} onChange={(x) => setProblemKind(x.target.value)} options={["Cancelled", "Postponed to a new date", "Partly happened (cut short)", "Something else"]} /></Field>
+          {problemKind === "Something else" && <Field label="What happened?"><Textarea rows={3} placeholder="e.g. Venue changed on the day, headline act didn't perform" /></Field>}
+          <p className="text-ink-3">{problemKind === "Something else" ? "EMS finance reads your note and contacts you before the statement is prepared." : problemKind === "Cancelled" ? "All ticket buyers are refunded from the money EMS is holding. Nothing is paid out to you for this event." : problemKind.startsWith("Postponed") ? "Ticket money stays held. Buyers keep their tickets for the new date or can ask for a refund." : "EMS finance contacts you to agree partial refunds before the statement is prepared."}</p>
         </div>
       </Modal>
 
@@ -251,8 +253,8 @@ export function EventManage({ slug }: { slug: string }) {
 
       <Modal open={!!refund} onClose={() => setRefund(null)} title={`Refund ${refund}`} footer={<><Button variant="ghost" onClick={() => setRefund(null)}>Cancel</Button><Button variant="danger" onClick={() => { setRefund(null); toast("Refund started. The ticket is cancelled and can no longer be scanned."); }}>Refund and cancel ticket</Button></>}>
         <div className="space-y-4">
-          <Field label="Amount"><Select options={["Full ticket price", "Ticket price minus booking fee", "Custom amount"]} /></Field>
-          <Field label="Reason"><Select options={["Customer request", "Event change", "Duplicate purchase", "Other"]} /></Field>
+          <SelectOther label="Amount" options={["Full ticket price", "Ticket price minus booking fee"]} other="Custom amount" prompt="Amount to refund (K)" placeholder="e.g. 100" />
+          <SelectOther label="Reason" options={["Customer request", "Event change", "Duplicate purchase"]} prompt="Reason for the refund" placeholder="Shown on the refund record and the buyer's receipt" />
           <p className="text-sm text-ink-3">The ticket is cancelled straight away and every scanner rejects it after its next sync (within 30 seconds when online).</p>
         </div>
       </Modal>

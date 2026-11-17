@@ -1,7 +1,9 @@
 "use client";
 
+import { SelectOther } from "@/components/select-other";
+
 import { useState } from "react";
-import { Badge, Button, Field, Modal, PageHeader, Select, Table, Textarea, useToast } from "@/components/ui";
+import { Badge, Button, Modal, PageHeader, Table, useToast } from "@/components/ui";
 import { kwacha } from "@/lib/brand";
 
 const orders = [
@@ -32,8 +34,7 @@ export default function Orders() {
       <Modal open={!!open} onClose={() => setOpen(null)} title="Request a refund" footer={<><Button variant="ghost" onClick={() => setOpen(null)}>Keep my tickets</Button><Button variant="danger" onClick={() => { setOpen(null); toast("Refund requested. We'll update you by SMS."); }}>Request refund</Button></>}>
         <p className="text-sm text-ink-2">This organiser allows refunds until 5 December. The money goes back to the wallet or card you paid with, minus the K5 booking fee per ticket.</p>
         <div className="mt-4 space-y-4">
-          <Field label="Reason"><Select options={["I can't attend anymore", "The event changed", "I bought by mistake", "Other"]} /></Field>
-          <Field label="Anything else? (optional)"><Textarea rows={3} /></Field>
+          <SelectOther label="Reason" options={["I can't attend anymore", "The event changed", "I bought by mistake"]} prompt="Tell us why" multiline placeholder="The organiser sees this with your request" />
         </div>
       </Modal>
     </>

@@ -1,5 +1,7 @@
 "use client";
 
+import { SelectOther } from "@/components/select-other";
+
 import { useState } from "react";
 import { Button, Card, cx, Field, Input, PageHeader, SectionTitle, Select, Textarea, Toggle, useToast } from "@/components/ui";
 
@@ -32,7 +34,7 @@ export default function Settings() {
         <Card className="space-y-2">
           <SectionTitle title="Event rules" />
           <Toggle checked={approval} onChange={setApproval} label="Events need admin approval before publishing" />
-          <div className="pt-2"><Field label="Default refund policy"><Select options={["Refunds until 7 days before", "Refunds until 48 hours before", "No refunds, transfers allowed"]} /></Field></div>
+          <div className="pt-2"><SelectOther label="Default refund policy" options={["Refunds until 7 days before", "Refunds until 48 hours before", "No refunds, transfers allowed"]} other="Write our own policy" prompt="Your refund policy" multiline placeholder="Used for new events unless you change it" /></div>
           <div className="pt-2"><Field label="Default time zone"><Select options={["Africa/Lusaka (CAT, UTC+2)"]} /></Field></div>
         </Card>
         <Card className="space-y-2">

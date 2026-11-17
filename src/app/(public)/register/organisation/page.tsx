@@ -19,7 +19,7 @@ export default function RegisterOrg() {
   const [kind, setKind] = useState<Kind>("regular");
   const [i, setI] = useState(0);
   const [done, setDone] = useState(false);
-  const [f, setF] = useState({ name: "", type: "Concert promoter", city: "Lusaka", pacra: "", about: "", admin: "", email: "", phone: "", payout: "MTN MoMo business wallet", account: "", start: startOptions[0], event: "", occasion: "Wedding", date: "", guests: "150", pkg: "Standard", payer: false, payWith: "MTN MoMo", otherType: "", otherOccasion: "" });
+  const [f, setF] = useState({ name: "", type: "Concert promoter", city: "Lusaka", pacra: "", about: "", admin: "", email: "", phone: "", payout: "MTN MoMo business wallet", account: "", start: startOptions[0], event: "", occasion: "Wedding", date: "", guests: "150", pkg: "Standard", payer: false, payWith: "MTN MoMo", otherType: "", otherOccasion: "", otherCity: "" });
   const [err, setErr] = useState<Record<string, string>>({});
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const steps = stepsFor[kind];
@@ -104,6 +104,7 @@ export default function RegisterOrg() {
             <Field label="Type"><Select value={f.type} onChange={set("type")} options={["Concert promoter", "Church", "Business association", "Training provider", "Sports organiser", "Charity", "Government", "School or university", "Event planner", "Venue", "Other"]} /></Field>
             {f.type === "Other" && <Field label="What kind of organisation?" error={err.otherType}><Input value={f.otherType} onChange={set("otherType")} placeholder="e.g. Student union, Professional body" /></Field>}
             <Field label="Town or city"><Select value={f.city} onChange={set("city")} options={["Lusaka", "Kitwe", "Ndola", "Livingstone", "Kabwe", "Chipata", "Solwezi", "Other"]} /></Field>
+            {f.city === "Other" && <Field label="Which town?"><Input value={f.otherCity} onChange={set("otherCity")} placeholder="e.g. Mansa, Mongu, Kasama" /></Field>}
           </div>
           <Field label="PACRA or registration number" hint="Optional now, needed before your first payout"><Input value={f.pacra} onChange={set("pacra")} /></Field>
           <Field label="About you" hint="Shown on your public organiser page"><Textarea value={f.about} onChange={set("about")} /></Field>
@@ -116,6 +117,7 @@ export default function RegisterOrg() {
             <Field label="Date" error={err.date}><Input type="date" value={f.date} onChange={set("date")} /></Field>
             <Field label="Expected guests"><Input inputMode="numeric" value={f.guests} onChange={(e) => setF({ ...f, guests: e.target.value.replace(/\D/g, ""), pkg: (packages.find((p) => p.guests >= Number(e.target.value.replace(/\D/g, "") || 0)) ?? packages[2]).key })} /></Field>
             <Field label="Town or city"><Select value={f.city} onChange={set("city")} options={["Lusaka", "Kitwe", "Ndola", "Livingstone", "Kabwe", "Chipata", "Solwezi", "Other"]} /></Field>
+            {f.city === "Other" && <Field label="Which town?"><Input value={f.otherCity} onChange={set("otherCity")} placeholder="e.g. Mansa, Mongu, Kasama" /></Field>}
           </div>
           <p className="text-sm text-ink-3">Private events are unlisted: only people you invite can see them. One licence covers every function of the occasion, such as the kitchen party, ceremony and reception.</p>
         </>)}
@@ -151,7 +153,7 @@ export default function RegisterOrg() {
         {i === 4 && (
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             {Object.entries(kind === "regular"
-              ? { Organisation: f.name, Type: f.type === "Other" ? f.otherType : f.type, City: f.city, Start: f.start, Admin: f.admin, Email: f.email, Payouts: `${f.payout}, ${f.account}` }
+              ? { Organisation: f.name, Type: f.type === "Other" ? f.otherType : f.type, City: f.city === "Other" ? f.otherCity : f.city, Start: f.start, Admin: f.admin, Email: f.email, Payouts: `${f.payout}, ${f.account}` }
               : { Event: f.event, Occasion: f.occasion === "Other" ? f.otherOccasion : f.occasion, Date: f.date, Guests: f.guests, Package: `${pkg.key}, ${kwacha(pkg.price)} once`, Payment: f.payer ? "Shareable payment link" : f.payWith, Organiser: f.admin, Email: f.email }
             ).map(([k, v]) => (
               <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v || "—"}</dd></div>

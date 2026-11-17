@@ -26,7 +26,7 @@ export default function PlatformSettings() {
           <Toggle checked={s.signups} onChange={t("signups")} label="Allow new organisations to register" />
           <Toggle checked={s.approval} onChange={t("approval")} label="Check each organisation before its first paid event" />
           <Toggle checked={s.mfa} onChange={t("mfa")} label="Require 2-step sign-in for organisation admins and finance" />
-          <div className="pt-2"><Field label="Hold payouts until" hint="Protects buyers if an event is cancelled"><Select options={["3 days after the event", "7 days after the event", "Weekly for courses"]} /></Field></div>
+          <p className="pt-2 text-sm text-ink-3">Payouts are made once, after each event, under the settlement rules. Deadlines and approval limits are in <a href="/admin/finance-settings/" className="font-semibold text-kafue">Finance settings</a>.</p>
         </Card>
         <Card className="space-y-1">
           <SectionTitle title="Attendees and discovery" />

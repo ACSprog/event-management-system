@@ -1,5 +1,7 @@
 "use client";
 
+import { SelectOther } from "@/components/select-other";
+
 import { useState } from "react";
 import { CheckCircle2, Clock, ShieldAlert } from "lucide-react";
 import { Badge, Button, Card, cx, Field, Input, Modal, PageHeader, Progress, SectionTitle, Select, Textarea, useToast } from "@/components/ui";
@@ -88,9 +90,9 @@ export default function Partnerships() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Organisation"><Select options={api.orgs.list().filter((o) => o.status === "Active").map((o) => o.name)} /></Field>
           <Field label="EMS share (%)"><Input defaultValue="20" inputMode="numeric" /></Field>
-          <Field label="Shared amount"><Select options={["Ticket sales minus refunds and payment charges", "Ticket sales minus refunds, charges and listed costs"]} /></Field>
+          <SelectOther label="Shared amount" options={["Ticket sales minus refunds and payment charges", "Ticket sales minus refunds, charges and listed costs"]} other="Something else (describe)" prompt="How the shared amount is worked out" placeholder="e.g. Ticket and bar sales minus refunds and charges" />
           <Field label="Down payment (K)"><Input defaultValue="0" inputMode="numeric" /></Field>
-          <Field label="Down payment counts as"><Select options={["Advance against EMS's share", "Non-refundable fee", "Refundable deposit"]} /></Field>
+          <SelectOther label="Down payment counts as" options={["Advance against EMS's share", "Non-refundable fee", "Refundable deposit"]} other="Something else (describe)" prompt="How the down payment is treated" placeholder="e.g. Half advance, half fee" />
           <Field label="Most EMS will put in (K)"><Input placeholder="e.g. 60000" inputMode="numeric" /></Field>
           <div className="sm:col-span-2"><Field label="Costs that may be deducted" hint="Only these, and only when approved"><Textarea placeholder="e.g. Stage and sound hire, up to K200,000" /></Field></div>
           <div className="sm:col-span-2"><Field label="If the event is cancelled"><Textarea placeholder="Buyers are refunded from held funds first. Then…" /></Field></div>

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Check, ChevronDown, ImagePlus, Lock, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { Poster } from "@/components/poster";
 import { NoEarlyPayouts } from "@/components/settlement";
+import { SelectOther } from "@/components/select-other";
 import { Badge, Button, Card, Checkbox, cx, Field, Input, PageHeader, Select, Textarea, useToast } from "@/components/ui";
 import { api, bookingFee, feePayerLabel, planFee, type FeePayer } from "@/lib/api";
 import { kwacha } from "@/lib/brand";
@@ -126,7 +127,7 @@ export default function NewEvent() {
               <Field label="Time zone"><Select options={["Africa/Lusaka (CAT, UTC+2)", "Africa/Johannesburg (SAST)", "Europe/London"]} /></Field>
               <Field label="Repeats"><Select value={f.recurring} onChange={set("recurring")} options={["Does not repeat", "Every week", "Every month", "Custom dates"]} /></Field>
             </div>
-            {f.format !== "Virtual" && <Field label="Venue" hint="From your venues, or request a booking from the venue directory"><Select value={f.venue} onChange={set("venue")} options={api.venues.list().map((v) => v.name)} /></Field>}
+            {f.format !== "Virtual" && <SelectOther label="Venue" hint="From your venues, or request a booking from the venue directory" options={api.venues.list().map((v) => v.name)} other="Another venue (not in the list)" prompt="Venue name and address" placeholder="e.g. Chilenje Community Hall, Lusaka" onChange={(c, t) => setF({ ...f, venue: c.startsWith("Another") ? t || "Another venue" : c })} />}
             {f.format !== "Physical" && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Streaming"><Select value={f.stream} onChange={set("stream")} options={["YouTube", "Facebook Live", "Zoom (registered attendees)", "Other link"]} /></Field>
@@ -141,7 +142,8 @@ export default function NewEvent() {
                 <div key={i} className="mt-3 grid items-end gap-3 sm:grid-cols-[1.3fr_1fr_1.3fr_auto]">
                   <Field label="Session"><Input value={x.title} onChange={(e) => setSessions(sessions.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} /></Field>
                   <Field label="Starts"><Input type="datetime-local" value={x.start} onChange={(e) => setSessions(sessions.map((y, j) => (j === i ? { ...y, start: e.target.value } : y)))} /></Field>
-                  <Field label="Venue"><Select value={x.venue} onChange={(e) => setSessions(sessions.map((y, j) => (j === i ? { ...y, venue: e.target.value } : y)))} options={["Same as main event", ...api.venues.list().map((v) => v.name)]} /></Field>
+                  <Field label="Venue"><Select value={x.venue} onChange={(e) => setSessions(sessions.map((y, j) => (j === i ? { ...y, venue: e.target.value } : y)))} options={["Same as main event", ...api.venues.list().map((v) => v.name), "Another venue"]} /></Field>
+                  {x.venue === "Another venue" && <div className="sm:col-span-4"><Field label="Venue name and address"><Input placeholder="e.g. Kalingalinga Grounds, Lusaka" /></Field></div>}
                   <Button variant="ghost" aria-label="Remove session" onClick={() => setSessions(sessions.filter((_, j) => j !== i))}><Trash2 size={16} /></Button>
                 </div>
               ))}
@@ -165,8 +167,8 @@ export default function NewEvent() {
                       <Field label="Sales start"><Input type="datetime-local" defaultValue="2026-12-01T09:00" /></Field>
                       <Field label="Sales end"><Input type="datetime-local" defaultValue="2027-02-27T12:00" /></Field>
                       <Field label="Tax"><Select options={["VAT 16% included in price", "VAT 16% added at checkout", "No tax"]} /></Field>
-                      <Field label="Refunds"><Select options={["Use the event's policy", "Until 7 days before", "Until 48 hours before", "No refunds, transfers allowed", "No refunds or transfers"]} /></Field>
-                      <Field label="Who can buy"><Select options={["Anyone", "Members only", "With an invite code", "Students (ID at the gate)", "Approval needed"]} /></Field>
+                      <SelectOther label="Refunds" options={["Use the event's policy", "Until 7 days before", "Until 48 hours before", "No refunds, transfers allowed", "No refunds or transfers"]} other="Write my own" prompt="Refund rule for this ticket" placeholder="e.g. Refunds until 14 days before, 50% after that" />
+                      <SelectOther label="Who can buy" options={["Anyone", "Members only", "With an invite code", "Students (ID at the gate)", "Approval needed"]} other="Other condition" prompt="Who can buy this ticket?" placeholder="e.g. Staff of sponsor companies, ID checked at the gate" />
                       <Field label="Max per order"><Input defaultValue="6" inputMode="numeric" /></Field>
                       <Field label="Currency"><Select options={["ZMW (K)", "USD ($)"]} /></Field>
                     </div>
@@ -178,7 +180,7 @@ export default function NewEvent() {
               {["Early bird", "Student", "Group of 5", "VVIP table", "Complimentary"].map((n) => <Button key={n} size="sm" variant="secondary" onClick={() => setTickets([...tickets, { name: n, price: 0, qty: 50 }])}><Plus size={14} /> {n}</Button>)}
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Seating"><Select options={["General admission", "Reserved seats", "Tables"]} /></Field>
+              <SelectOther label="Seating" options={["General admission", "Reserved seats", "Tables"]} other="Mixed or other layout" prompt="Describe the layout" placeholder="e.g. Standing at the front, tables at the back" />
               <Field label="Max per order"><Input defaultValue="6" /></Field>
             </div>
             {err && <p className="text-sm text-hibiscus">{err}</p>}
@@ -243,7 +245,7 @@ export default function NewEvent() {
               <div className="flex gap-2">{["#172033", "#0B7A75", "#5B2A86", "#D62F45", "#1F9D55", "#C77C3A"].map((c) => <button key={c} onClick={() => setAccent(c)} aria-label={`Use ${c}`} aria-pressed={accent === c} className={cx("h-9 w-9 rounded-full ring-offset-2 ring-offset-surface", accent === c && "ring-2 ring-kafue")} style={{ background: c }} />)}</div>
               <p className="mt-1 text-xs text-ink-3">Used for the poster, buttons and headings on this event&rsquo;s page. Text contrast is checked automatically.</p>
             </div>
-            <Field label="Refund policy"><Select value={f.refund} onChange={set("refund")} options={["Refunds until 7 days before", "Refunds until 48 hours before", "No refunds, transfers allowed", "No refunds or transfers"]} /></Field>
+            <SelectOther label="Refund policy" options={["Refunds until 7 days before", "Refunds until 48 hours before", "No refunds, transfers allowed", "No refunds or transfers"]} other="Write my own policy" prompt="Your refund policy" multiline placeholder="Shown to buyers before they pay" onChange={(c, t) => setF({ ...f, refund: c === "Write my own policy" ? t || "Own policy" : c })} />
             <Field label="Terms shown at checkout"><Textarea value={f.terms} onChange={set("terms")} placeholder="Age limits, prohibited items, recording policy…" /></Field>
             <Checkbox checked={f.approval} onChange={(v) => setF({ ...f, approval: v })} label="Send to a manager for approval before it goes live" />
           </>)}
