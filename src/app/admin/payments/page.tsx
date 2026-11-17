@@ -18,13 +18,13 @@ export default function Payments() {
       ]} />
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <Card className="space-y-4">
-          <SectionTitle title="Default transaction fees" />
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Field label="Starter"><Input defaultValue="5% + K2" /></Field>
-            <Field label="Growth"><Input defaultValue="3% + K2" /></Field>
-            <Field label="Enterprise"><Input defaultValue="Custom" /></Field>
+          <SectionTitle title="Fees and collection" />
+          <p className="text-sm text-ink-2">Fees per paid ticket are set on each plan in <a href="/admin/plans/" className="font-semibold text-kafue">Plans and packages</a>. Organisers choose per event whether they absorb the fee or buyers pay a booking fee.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Booking fee when buyers pay it" hint="Per paid ticket"><Input defaultValue="3% + K2" /></Field>
+            <Field label="Collection partner"><Input defaultValue="Licensed aggregator (to be selected)" /></Field>
           </div>
-          <Field label="Booking fee shown to buyers" hint="Per ticket, on paid tickets only"><Input defaultValue="K5 + 2%" /></Field>
+          <p className="text-xs text-ink-3">All ticket money for central collection is held in the partner&rsquo;s regulated collection account and recorded as owed to organisers until settlement.</p>
           <Button onClick={() => toast("Fee changes apply to orders from tomorrow 00:00")}>Save fees</Button>
         </Card>
         <Card>

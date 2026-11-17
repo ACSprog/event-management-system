@@ -27,7 +27,7 @@ export default function Expenses() {
         { key: "date", label: "Date" }, { key: "vendor", label: "Vendor", render: (x) => <span className="font-semibold">{x.vendor}</span> }, { key: "category", label: "Category" },
         { key: "amount", label: "Amount", align: "right", render: (x) => kwacha(x.amount) },
         { key: "status", label: "Status", render: (x) => <Badge tone={x.status === "Paid" ? "green" : x.status === "Approved" ? "teal" : "gold"}>{x.status}</Badge> },
-        { key: "a", label: "", render: (x) => x.status === "Awaiting approval" && can("payouts.approve") ? <Button size="sm" onClick={() => { setRows(rows.map((r) => (r.id === x.id ? { ...r, status: "Approved" } : r))); toast("Expense approved"); }}>Approve</Button> : null },
+        { key: "a", label: "", render: (x) => x.status === "Awaiting approval" && can("expenses.approve") ? <Button size="sm" onClick={() => { setRows(rows.map((r) => (r.id === x.id ? { ...r, status: "Approved" } : r))); toast("Expense approved"); }}>Approve</Button> : null },
       ]} />
     </>
   );

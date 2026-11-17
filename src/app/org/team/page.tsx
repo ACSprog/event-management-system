@@ -32,7 +32,7 @@ export default function Team() {
 
   return (
     <>
-      <PageHeader title="Team and roles" sub="Invite your people and choose what each one can do. You decide the roles; changes apply the next time they open a page." actions={<Button onClick={() => setInvite(true)}><Plus size={15} /> Invite someone</Button>} />
+      <PageHeader title="Team and roles" sub={<>Invite your people and choose what each one can do. You decide the roles; changes apply the next time they open a page. <span className="font-semibold text-ink-2">{people.length} of 15 team members on your Professional plan.</span></>} actions={<Button onClick={() => setInvite(true)}><Plus size={15} /> Invite someone</Button>} />
       <Tabs tabs={["People", "What each role can do"]} value={tab} onChange={setTab} />
 
       {tab === "People" ? (
@@ -112,7 +112,7 @@ export default function Team() {
               </table>
             </div>
             <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-3">
-              <p className="text-xs text-ink-3">Gate staff are also limited to the events and gates you assign on each event&rsquo;s Staff tab.</p>
+              <p className="text-xs text-ink-3">Gate staff are also limited to the events and gates you assign on each event&rsquo;s Staff tab. Settlements are approved by EMS finance, never by anyone in your team.</p>
               <div className="flex gap-2">
                 <Button variant="ghost" disabled={!dirty} onClick={() => setDraft(rolePerms)}>Discard</Button>
                 <Button disabled={!dirty} onClick={() => { roleOrder.forEach((r) => setRolePerms(r, draft[r])); toast("Role permissions saved"); }}>Save changes</Button>

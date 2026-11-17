@@ -28,7 +28,7 @@ export function OrgRoleProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem("ems.previewRole") as TeamRole | null;
       if (saved && roleOrder.includes(saved)) setRoleState(saved);
-      const perms = localStorage.getItem("ems.rolePerms");
+      const perms = localStorage.getItem("ems.rolePerms.v2");
       if (perms) setAll((cur) => ({ ...cur, ...JSON.parse(perms), admin: teamRoles.admin.perms }));
     } catch {}
   }, []);
@@ -41,7 +41,7 @@ export function OrgRoleProvider({ children }: { children: ReactNode }) {
   const setRolePerms = useCallback((r: TeamRole, perms: Permission[]) => {
     setAll((cur) => {
       const next = { ...cur, [r]: r === "admin" ? teamRoles.admin.perms : perms };
-      try { localStorage.setItem("ems.rolePerms", JSON.stringify(next)); } catch {}
+      try { localStorage.setItem("ems.rolePerms.v2", JSON.stringify(next)); } catch {}
       return next;
     });
   }, []);

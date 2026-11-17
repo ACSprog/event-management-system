@@ -45,7 +45,8 @@ export default function OrgDashboard() {
           <ul className="space-y-3 text-sm">
             {can("events.publish") && <li className="flex gap-3 rounded-lg bg-marigold-soft p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-[#a35f00]" /><div><p className="font-semibold">New Year&rsquo;s Eve Countdown is waiting for approval</p><Link href="/org/events/new-year-countdown/" className="text-kafue">Review and approve</Link></div></li>}
             {can("audience.view") && <li className="flex gap-3 rounded-lg bg-hibiscus-soft p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-hibiscus" /><div><p className="font-semibold">2 reviews mention parking problems</p><Link href="/org/reviews/" className="text-kafue">Read and respond</Link></div></li>}
-            {can("payouts.approve") && <li className="flex gap-3 rounded-lg bg-surface-2 p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-ink-3" /><div><p className="font-semibold">PrintHub invoice K18,400 awaiting approval</p><Link href="/org/finance/expenses/" className="text-kafue">Approve expense</Link></div></li>}
+            {can("settlements.review") && <li className="flex gap-3 rounded-lg bg-marigold-soft p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-[#a35f00]" /><div><p className="font-semibold">Settlement statement for Copperbelt Nights: Ndola is ready</p><Link href="/org/finance/settlements/ST-ZL-0431/" className="text-kafue">Check it by the end of today</Link></div></li>}
+            {can("expenses.approve") && <li className="flex gap-3 rounded-lg bg-surface-2 p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-ink-3" /><div><p className="font-semibold">PrintHub invoice K18,400 awaiting approval</p><Link href="/org/finance/expenses/" className="text-kafue">Approve expense</Link></div></li>}
           </ul>
         </Card>
       </div>

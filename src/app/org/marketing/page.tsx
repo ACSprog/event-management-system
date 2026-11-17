@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Badge, Button, Card, PageHeader, SectionTitle, Stat, Table, Tabs } from "@/components/ui";
 import { api } from "@/lib/api";
+import { PlanLimit } from "@/components/plan-limit";
 import { kwacha } from "@/lib/brand";
 
 export default function Marketing() {
@@ -11,6 +12,7 @@ export default function Marketing() {
   return (
     <>
       <PageHeader title="Marketing" sub="Only customers who agreed to hear from you receive promotional messages." actions={<Button href="/org/marketing/new/"><Plus size={15} /> New campaign</Button>} />
+      <PlanLimit className="mb-6" title="1,240 SMS credits left" body="That's enough for about one more campaign to your Lusaka customers. Email and WhatsApp campaigns don't use credits." action="Buy SMS credits" href="/org/settings/billing/#addons" />
       <div className="mb-6 grid gap-4 sm:grid-cols-4">
         <Stat label="Revenue from campaigns, 30 days" value={kwacha(896_750)} delta="+31%" />
         <Stat label="Messages sent" value="72,520" />

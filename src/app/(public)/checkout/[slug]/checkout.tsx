@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CreditCard, Landmark, Loader2, Lock, Smartphone, Timer } from "lucide-react";
 import { Button, Checkbox, cx, Field, Input } from "@/components/ui";
 import { Poster } from "@/components/poster";
-import { api } from "@/lib/api";
+import { api, bookingFee } from "@/lib/api";
 import { fmtDate, fmtTime, kwacha } from "@/lib/brand";
 
 const methods = [
@@ -49,7 +49,9 @@ export function Checkout({ slug }: { slug: string }) {
   }, [e]);
 
   const subtotal = lines.reduce((a, l) => a + l.qty * l.price, 0);
-  const fee = subtotal === 0 ? 0 : Math.round(lines.reduce((a, l) => a + l.qty, 0) * 5 + subtotal * 0.02);
+  // Booking fee only when the organiser chose "buyer pays" (frozen event terms).
+  const buyerPays = api.settlements.termsFor(e.id).feePayer === "BUYER_PAYS";
+  const fee = buyerPays ? lines.reduce((a, l) => a + l.qty * bookingFee(l.price), 0) : 0;
   const total = Math.max(0, subtotal - discount + fee);
   const isMobile = ["mtn", "airtel", "zamtel"].includes(method);
 
@@ -154,7 +156,7 @@ export function Checkout({ slug }: { slug: string }) {
                 ))}
                 {seats && <li className="text-xs text-ink-3">{seats.replaceAll(",", ", ")}</li>}
                 {discount > 0 && <li className="flex justify-between text-leaf"><span>Code JAM2026</span><span>−{kwacha(discount)}</span></li>}
-                <li className="flex justify-between text-ink-3"><span>Booking fee</span><span>{kwacha(fee)}</span></li>
+                {fee > 0 ? <li className="flex justify-between text-ink-3"><span>Booking fee</span><span>{kwacha(fee)}</span></li> : subtotal > 0 && <li className="text-xs text-ink-3">No booking fee: the organiser pays it</li>}
               </ul>
               <div className="mt-3 flex items-end justify-between border-t border-line pt-3">
                 <span className="font-semibold">Total</span>

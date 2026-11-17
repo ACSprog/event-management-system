@@ -46,6 +46,7 @@ const sections: Section[] = [
       { href: "/org/finance/transactions/", label: "Sales and refunds" },
       { href: "/org/finance/invoices/", label: "Invoices" },
       { href: "/org/finance/expenses/", label: "Budgets and expenses" },
+      { href: "/org/finance/settlements/", label: "Settlements" },
       { href: "/org/finance/payouts/", label: "Payouts" },
       { href: "/org/fundraising/", label: "Donations and sponsors" },
       { href: "/org/reports/", label: "Reports" },
@@ -56,6 +57,7 @@ const sections: Section[] = [
     tabs: [
       { href: "/org/team/", label: "Team and roles" },
       { href: "/org/settings/", label: "Organisation" },
+      { href: "/org/settings/billing/", label: "Plan and billing" },
       { href: "/org/integrations/", label: "Integrations" },
     ],
   },

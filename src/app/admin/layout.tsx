@@ -1,14 +1,19 @@
 "use client";
 
-import { Activity, Building2, CreditCard, FileClock, Gauge, LifeBuoy, Mail, ShieldAlert, Layers, SlidersHorizontal } from "lucide-react";
+import { Activity, Building2, CreditCard, FileClock, Gauge, Handshake, Landmark, LifeBuoy, Mail, ShieldAlert, Layers, SlidersHorizontal, Wallet } from "lucide-react";
 import { PortalShell, type NavGroup } from "@/components/layout/portal-shell";
 
 const nav: NavGroup[] = [
   { items: [{ href: "/admin/", label: "Platform overview", icon: Gauge }] },
   { label: "Customers", items: [
     { href: "/admin/organisations/", label: "Organisations", icon: Building2, badge: "1" },
-    { href: "/admin/plans/", label: "Plans and subscriptions", icon: Layers },
+    { href: "/admin/plans/", label: "Plans and packages", icon: Layers },
     { href: "/admin/support/", label: "Support", icon: LifeBuoy, badge: "3" },
+  ] },
+  { label: "Money", items: [
+    { href: "/admin/settlements/", label: "Settlements", icon: Wallet, badge: "5" },
+    { href: "/admin/partnerships/", label: "Partnerships", icon: Handshake },
+    { href: "/admin/finance-settings/", label: "Finance settings", icon: Landmark },
   ] },
   { label: "Platform", items: [
     { href: "/admin/payments/", label: "Payments and fees", icon: CreditCard },

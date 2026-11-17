@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, ChevronDown, ImagePlus, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, ImagePlus, Lock, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { Poster } from "@/components/poster";
+import { NoEarlyPayouts } from "@/components/settlement";
 import { Badge, Button, Card, Checkbox, cx, Field, Input, PageHeader, Select, Textarea, useToast } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, bookingFee, feePayerLabel, planFee, type FeePayer } from "@/lib/api";
 import { kwacha } from "@/lib/brand";
 
 const profiles: Record<string, { cat: string; modules: string[] }> = {
@@ -17,7 +18,7 @@ const profiles: Record<string, { cat: string; modules: string[] }> = {
   "Exhibition or trade fair": { cat: "Exhibition", modules: ["Exhibitors", "Booths and floor plan", "Visitor registration"] },
   "Fundraiser or gala": { cat: "Charity", modules: ["Donations", "Tables", "Auction lots", "Sponsors"] },
 };
-const steps = ["Basics", "Date and place", "Tickets", "Policies", "Review"];
+const steps = ["Basics", "Date and place", "Tickets", "Fees and payouts", "Policies", "Review"];
 
 export default function NewEvent() {
   const toast = useToast();
@@ -32,6 +33,10 @@ export default function NewEvent() {
   const [contact, setContact] = useState({ name: "Chanda Mulenga", phone: "0966 120 448", email: "events@zedlive.example", whatsapp: "0966 120 448" });
   const [accent, setAccent] = useState("#172033");
   const [err, setErr] = useState("");
+  const [feePayer, setFeePayer] = useState<FeePayer>("ORGANISER_ABSORBS");
+  const plan = api.billing.subscription().plan;
+  const paid = tickets.filter((t) => t.price > 0);
+  const sample = paid[0];
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const p = profiles[profile];
   const next = () => {
@@ -151,14 +156,60 @@ export default function NewEvent() {
             <div className="flex flex-wrap gap-2">
               {["Early bird", "Student", "Group of 5", "VVIP table", "Complimentary"].map((n) => <Button key={n} size="sm" variant="secondary" onClick={() => setTickets([...tickets, { name: n, price: 0, qty: 50 }])}><Plus size={14} /> {n}</Button>)}
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Seating"><Select options={["General admission", "Reserved seats", "Tables"]} /></Field>
               <Field label="Max per order"><Input defaultValue="6" /></Field>
-              <Field label="Who pays the booking fee?"><Select options={["Buyer pays", "We absorb it"]} /></Field>
             </div>
             {err && <p className="text-sm text-hibiscus">{err}</p>}
           </>)}
           {step === 3 && (<>
+            <div>
+              <p className="text-sm font-medium">How EMS earns on this event</p>
+              <div className="mt-2 rounded-lg border border-line p-4">
+                {paid.length ? (<>
+                  <p className="font-semibold">Covered by your {plan} plan: {kwacha(planFee(plan, sample.price))} on a {kwacha(sample.price)} ticket</p>
+                  <p className="text-sm text-ink-3">3% + K2 on each paid ticket. Free tickets and complimentary tickets are never charged.{profile === "Wedding or private party" ? " Your subscription also covers private events, so you never need a one-off event licence." : ""}</p>
+                </>) : (<>
+                  <p className="font-semibold">Free event: no charge</p>
+                  <p className="text-sm text-ink-3">All tickets are free, so EMS charges nothing.</p>
+                </>)}
+              </div>
+              <p className="mt-2 text-xs text-ink-3">Want EMS to co-promote or co-fund this event for a share of sales? Partnerships are agreed with EMS first. <button className="font-semibold text-kafue" onClick={() => toast("Partnership request sent. EMS will contact you within 2 business days.")}>Ask about a partnership</button></p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Where ticket money goes</p>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <div className="rounded-lg border-2 border-kafue bg-kafue-soft p-3 text-sm">
+                  <p className="font-semibold">Collected by EMS, paid to you after the event</p>
+                  <p className="text-ink-2">Buyers pay EMS through a licensed payment partner. You get one payment after the event.</p>
+                </div>
+                <div className="rounded-lg border-2 border-line p-3 text-sm text-ink-3" aria-disabled="true">
+                  <p className="flex items-center gap-1.5 font-semibold"><Lock size={13} /> Straight into your own merchant account</p>
+                  <p>Available by contract only (Enterprise). <button className="font-semibold text-kafue" onClick={() => toast("EMS sales will contact you about a contract")}>Ask EMS</button></p>
+                </div>
+              </div>
+            </div>
+            {paid.length > 0 && (
+              <div>
+                <p className="text-sm font-medium">Who pays the EMS fee?</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {(["ORGANISER_ABSORBS", "BUYER_PAYS"] as FeePayer[]).map((k) => {
+                    const fee = k === "BUYER_PAYS" ? bookingFee(sample.price) : planFee(plan, sample.price);
+                    return (
+                      <button key={k} onClick={() => setFeePayer(k)} aria-pressed={feePayer === k} className={cx("rounded-lg border-2 p-3 text-left text-sm", feePayer === k ? "border-kafue bg-kafue-soft" : "border-line hover:border-ink-3")}>
+                        <p className="font-semibold">{k === "ORGANISER_ABSORBS" ? "We absorb it" : "Buyer pays a booking fee"}</p>
+                        <p className="mt-1 text-ink-2">{sample.name}: buyer pays <strong>{kwacha(sample.price + (k === "BUYER_PAYS" ? fee : 0))}</strong>, you receive <strong>{kwacha(sample.price - (k === "ORGANISER_ABSORBS" ? fee : 0))}</strong></p>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs text-ink-3">Buyers always see the full price, including any booking fee, before they pay. Payment provider charges are passed on at cost and shown on your statement.</p>
+              </div>
+            )}
+            <NoEarlyPayouts className="rounded-lg bg-surface-2 p-3" />
+            <p className="text-xs text-ink-3">These terms are fixed when you publish. Later price changes don&rsquo;t affect this event.</p>
+          </>)}
+          {step === 4 && (<>
             <Field label="Who can see it?"><Select value={f.visibility} onChange={set("visibility")} options={["Public, listed in discovery", "Members only (Insider and Gold)", "Unlisted, link only", "Private, invited guests only"]} /></Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Contact name"><Input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} /></Field>
@@ -175,10 +226,10 @@ export default function NewEvent() {
             <Field label="Terms shown at checkout"><Textarea value={f.terms} onChange={set("terms")} placeholder="Age limits, prohibited items, recording policy…" /></Field>
             <Checkbox checked={f.approval} onChange={(v) => setF({ ...f, approval: v })} label="Send to a manager for approval before it goes live" />
           </>)}
-          {step === 4 && (
+          {step === 5 && (
             <div className="space-y-4 text-sm">
               <dl className="grid gap-3 sm:grid-cols-2">
-                {[["Type", profile], ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Contact", `${contact.name}, ${contact.phone}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
+                {[["Type", profile], ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Contact", `${contact.name}, ${contact.phone}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
               </dl>
               <ul className="divide-y divide-line rounded-lg border border-line">{tickets.map((t) => <li key={t.name} className="flex justify-between px-4 py-2"><span>{t.name}, {t.qty}</span><span className="font-semibold">{t.price ? kwacha(t.price) : "Free"}</span></li>)}</ul>
               <p className="text-ink-3">Potential gross if all tickets sell: <strong className="text-ink">{kwacha(tickets.reduce((a, t) => a + t.price * t.qty, 0))}</strong></p>
@@ -187,7 +238,7 @@ export default function NewEvent() {
           {err && step !== 1 && step !== 2 && <p className="text-sm text-hibiscus">{err}</p>}
           <div className="flex justify-between border-t border-line pt-4">
             <Button variant="ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>Back</Button>
-            {step < 4 ? <Button onClick={next}>Continue</Button> : <Button onClick={() => toast(f.approval ? "Sent for approval. Your manager has been notified." : "Event published")}><Check size={16} /> {f.approval ? "Submit for approval" : "Publish event"}</Button>}
+            {step < 5 ? <Button onClick={next}>Continue</Button> : <Button onClick={() => toast(f.approval ? "Sent for approval. Your manager has been notified." : "Event published")}><Check size={16} /> {f.approval ? "Submit for approval" : "Publish event"}</Button>}
           </div>
         </Card>
         <div className="space-y-3">

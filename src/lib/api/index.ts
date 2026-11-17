@@ -7,6 +7,7 @@
  * screens untouched.
  */
 import * as mock from "@/lib/mock/data";
+import * as commerce from "@/lib/mock/commerce";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -168,8 +169,6 @@ export const api = {
     notifications: () => mock.notifications,
   },
   platform: {
-    /** GET /v1/admin/plans */
-    plans: () => mock.plans,
     /** GET /v1/admin/payment-gateways */
     gateways: () => mock.gateways,
     /** GET /v1/admin/audit-logs */
@@ -179,7 +178,48 @@ export const api = {
     /** GET /v1/admin/metrics/monthly */
     series: () => mock.platformSeries,
   },
+  billing: {
+    /** GET /v1/plans (public price list, current plan versions) */
+    plans: () => commerce.planCatalog,
+    /** GET /v1/plans/features */
+    features: () => commerce.planFeatures,
+    /** GET /v1/licence-packages */
+    licencePackages: () => commerce.licencePackages,
+    /** GET /v1/addons */
+    addOns: () => commerce.addOns,
+    /** GET /v1/orgs/:orgId/subscription (plan, usage against entitlements, invoices) */
+    subscription: () => commerce.orgSubscription,
+    /** GET /v1/admin/discounts */
+    discounts: () => commerce.discounts,
+    /** GET /v1/admin/trials */
+    trials: () => commerce.trials,
+    /** GET /v1/admin/licences */
+    licences: () => commerce.eventLicences,
+  },
+  settlements: {
+    /** GET /v1/events/:id/commercial (frozen terms) */
+    termsFor: (eventId: string) => commerce.termsFor(eventId),
+    /** GET /v1/orgs/:orgId/settlements, or GET /v1/admin/settlements when no org is given */
+    list: (orgId?: string) => (orgId ? commerce.settlements.filter((s) => s.orgId === orgId) : commerce.settlements),
+    /** GET /v1/settlements/:ref (statement lines come from the ledger) */
+    get: (ref: string) => commerce.settlementByRef(ref),
+    /** GET /v1/orgs/:orgId/payout-account */
+    payoutAccount: () => commerce.payoutAccount,
+    /** GET /v1/admin/partnerships */
+    partnerships: () => commerce.partnerships,
+    /** GET /v1/admin/finance-settings */
+    financeSettings: () => commerce.financeSettings,
+    /** GET /v1/admin/holidays */
+    holidays: () => commerce.holidays,
+    /** GET /v1/admin/staff */
+    staff: () => commerce.platformStaff,
+  },
 };
 
 export { sold, capacity, gross, fromPrice, statusTone, people } from "@/lib/mock/data";
 export type { EventItem, TicketType, Organisation, Venue, Category } from "@/lib/mock/data";
+export {
+  DEMO_TODAY, arrangementLabel, collectionLabel, feePayerLabel, feeText, planFee, bookingFee, licenceAccess,
+  settlementStatus, settlementSteps, statementLines, payable, heldAmount, deadlines, holidayDates, staffRoleCan,
+} from "@/lib/mock/commerce";
+export type { Arrangement, Collection, FeePayer, Settlement, SettlementStatus, PlanKey, StaffRole, EventTerms } from "@/lib/mock/commerce";
