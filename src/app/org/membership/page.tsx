@@ -22,6 +22,10 @@ export default function Membership() {
           </Card>
         ))}
       </div>
+      <SectionTitle title="Member-only events and presales" sub="Set an event's visibility to Members only, or give members early access, in the create-event wizard." />
+      <div className="mb-2 grid gap-4 md:grid-cols-2">
+        {api.crm.memberEvents().map((m) => <Card key={m.title}><p className="font-semibold">{m.title}</p><p className="text-sm text-ink-3">{m.when}</p><p className="mt-2 text-sm">{m.access}</p><Badge tone="teal" className="mt-2">{m.plans}</Badge></Card>)}
+      </div>
       <SectionTitle title="Loyalty tiers" sub="Points are earned on eligible ticket purchases, not on donations." />
       <div className="grid gap-4 md:grid-cols-3">
         {api.crm.loyaltyTiers().map((t) => <Card key={t.name}><p className="font-semibold">{t.name}</p><p className="text-sm text-ink-3">From {t.from.toLocaleString()} points</p><p className="mt-2 text-sm">{t.earn}</p><p className="text-sm text-ink-2">{t.perks}</p></Card>)}

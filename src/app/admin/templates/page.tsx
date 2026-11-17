@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Card, cx, Field, Input, PageHeader, Textarea, useToast } from "@/components/ui";
 
 const templates = [
+  ["Registration confirmation", "You're registered for {{event}}", "Hi {{first_name}}, you're registered for {{event}} on {{date}} at {{venue}}. Your entry code: {{ticket_link}}"],
   ["Ticket purchase", "Your tickets for {{event}}", "Hi {{first_name}}, you're going to {{event}} on {{date}}! Your tickets: {{ticket_link}}"],
   ["Payment confirmation", "Payment received: {{amount}}", "We received {{amount}} via {{method}}. Booking {{reference}}."],
   ["Event reminder", "{{event}} is tomorrow", "Gates open {{time}} at {{venue}}. Have your QR code ready: {{ticket_link}}"],
@@ -11,6 +12,7 @@ const templates = [
   ["Cancellation", "{{event}} has been cancelled", "We're sorry. Your refund of {{amount}} is on its way to {{method}}."],
   ["Refund update", "Refund {{status}}", "Your refund of {{amount}} is {{status}}."],
   ["Classroom enrolment", "Welcome to {{course}}", "Your first lesson is {{date}}. Your personal Zoom link: {{join_link}}"],
+  ["Course reminder", "{{course}}: lesson {{lesson_number}} starts soon", "Your lesson '{{lesson_title}}' starts at {{time}}. Join with your personal link: {{join_link}}"],
   ["Certificate", "Your certificate for {{course}}", "Congratulations! Download it here: {{certificate_link}}"],
   ["Review request", "How was {{event}}?", "Tell others what it was like. It takes a minute: {{review_link}}"],
 ];

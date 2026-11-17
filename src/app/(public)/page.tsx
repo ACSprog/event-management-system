@@ -62,6 +62,24 @@ export default function Home() {
         <section>
           <div className="mb-5 flex items-end justify-between">
             <div>
+              <h2 className="text-2xl font-semibold">Recommended for you</h2>
+              <p className="text-sm text-ink-3">Based on events you&rsquo;ve been to, organisers you follow and what you told us you enjoy.</p>
+            </div>
+            <Link href="/account/preferences/" className="text-sm font-semibold text-kafue hover:underline">Change interests</Link>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {api.events.recommended().map(({ event, reason }) => (
+              <div key={event.id}>
+                <p className="mb-2 text-xs font-medium text-ink-3">{reason}</p>
+                <EventCard e={event} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-5 flex items-end justify-between">
+            <div>
               <h2 className="text-2xl font-semibold">Near you this month</h2>
               <p className="flex items-center gap-1 text-sm text-ink-3"><MapPin size={13} /> Sorted by distance from Lusaka CBD</p>
             </div>

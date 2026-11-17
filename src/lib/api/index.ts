@@ -24,6 +24,8 @@ export const api = {
   events: {
     /** GET /v1/discovery/events?lat&lng&radiusKm&category */
     discover: () => mock.events.filter((e) => e.category !== "Wedding"),
+    /** GET /v1/me/recommendations (events plus the reason each was picked) */
+    recommended: () => ["e7", "e1", "e9", "e3"].map((id) => ({ event: mock.events.find((e) => e.id === id)!, reason: mock.recommendationReasons[id] })),
     /** GET /v1/events/:slug */
     bySlug: (slug: string) => mock.getEvent(slug),
     /** GET /v1/orgs/:orgId/events */
@@ -64,6 +66,8 @@ export const api = {
   finance: {
     /** GET /v1/orgs/:orgId/finance/transactions */
     transactions: () => mock.transactions,
+    /** GET /v1/orgs/:orgId/finance/invoices */
+    invoices: () => mock.orgInvoices,
     /** GET /v1/orgs/:orgId/finance/expenses */
     expenses: () => mock.expenses,
     /** GET /v1/orgs/:orgId/reports/sales?days=30 */
@@ -74,6 +78,8 @@ export const api = {
     customers: () => mock.customers,
     /** GET /v1/orgs/:orgId/memberships/plans */
     memberships: () => mock.memberships,
+    /** GET /v1/orgs/:orgId/events?visibility=members */
+    memberEvents: () => mock.memberOnlyEvents,
     /** GET /v1/orgs/:orgId/loyalty/tiers */
     loyaltyTiers: () => mock.loyaltyTiers,
   },
@@ -126,6 +132,12 @@ export const api = {
     campaigns: () => mock.fundraising,
     /** GET /v1/fundraising/campaigns/:id/donations */
     donations: () => mock.donations,
+    /** GET /v1/orgs/:orgId/pledges */
+    pledges: () => mock.pledges,
+    /** GET /v1/orgs/:orgId/donors */
+    donors: () => mock.donors,
+    /** GET /v1/orgs/:orgId/beneficiaries */
+    beneficiaries: () => mock.beneficiaries,
     /** GET /v1/orgs/:orgId/sponsorships */
     sponsors: () => mock.sponsors,
   },
@@ -136,6 +148,12 @@ export const api = {
     sessions: () => mock.courseSessions,
     /** GET /v1/courses/:id/assessments */
     assignments: () => mock.assignments,
+    /** GET /v1/courses/:id/quizzes */
+    quizzes: () => mock.quizzes,
+    /** GET /v1/courses/:id/attendance */
+    attendance: () => mock.bookkeepingAttendance,
+    /** GET /v1/orgs/:orgId/classes/dashboard */
+    dashboard: () => mock.classDashboard,
     /** GET /v1/assessments/:id/submissions */
     submissions: () => mock.submissions,
   },

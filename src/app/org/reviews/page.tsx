@@ -117,7 +117,7 @@ export default function OrgReviews() {
           </Card>
           <Card>
             <SectionTitle title="Rating over time" sub="Average rating at each of your recent events" />
-            <Lines data={api.reviews.trend()} x="short" keys={["rating"]} labels={["Average rating"]} height={200} />
+            <Lines data={api.reviews.trend()} x="short" keys={["rating"]} labels={["Average rating"]} height={200} yDomain={[3, 5]} />
           </Card>
           <Card>
             <SectionTitle title="Satisfaction by area" sub="Change against your previous event" />

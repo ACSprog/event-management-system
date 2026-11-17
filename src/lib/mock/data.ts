@@ -631,3 +631,57 @@ export const vendorInvoices = [
   { id: "SF-0871", vendor: "SecureForce Ltd", amount: 96_000, due: "2026-11-20", status: "Paid", note: "" },
   { id: "PH-1182", vendor: "PrintHub Lusaka", amount: 18_400, due: "2026-11-25", status: "Awaiting approval", note: "Wristbands and posters" },
 ];
+
+export const quizzes = [
+  { title: "Quiz 1: Know your customer", questions: 8, marking: "Automatic", opens: "2027-01-12", taken: 0, average: null as number | null },
+  { title: "Quiz 2: Social media basics", questions: 10, marking: "Automatic", opens: "2027-01-19", taken: 0, average: null as number | null },
+];
+
+/** Attendance for the in-progress Bookkeeping class: P present, L late, A absent. */
+export const bookkeepingAttendance = {
+  lessons: ["L1 (28 Oct)", "L2 (30 Oct)", "L3 (4 Nov)", "L4 (6 Nov)", "L5 (11 Nov)", "L6 (13 Nov)"],
+  students: people.slice(0, 10).map((name, i) => ({ name, marks: Array.from({ length: 6 }, (_, j) => ((i * 7 + j * 3) % 11 === 0 ? "A" : (i + j) % 9 === 0 ? "L" : "P")) })),
+};
+
+export const classDashboard = {
+  attendanceByLesson: ["L1", "L2", "L3", "L4", "L5", "L6"].map((l, i) => ({ lesson: l, present: [36, 35, 33, 34, 31, 32][i], absent: [2, 3, 5, 4, 7, 6][i] })),
+  scores: [{ band: "Under 50%", students: 3 }, { band: "50–64%", students: 7 }, { band: "65–79%", students: 15 }, { band: "80%+", students: 11 }],
+};
+
+export const orgInvoices = [
+  { id: "INV-ZL-0412", to: "MTN Zambia", for: "Headline sponsorship, Lusaka Summer Jam", amount: 450_000, issued: "2026-10-01", due: "2026-10-31", status: "Paid" },
+  { id: "INV-ZL-0419", to: "Zambeef", for: "Gold sponsorship, Lusaka Summer Jam", amount: 180_000, issued: "2026-10-15", due: "2026-11-15", status: "Overdue" },
+  { id: "INV-ZL-0423", to: "Stanbic Bank", for: "20 corporate tickets (VIP)", amount: 15_000, issued: "2026-11-10", due: "2026-12-10", status: "Sent" },
+  { id: "INV-ZL-0425", to: "Copperbelt Energy", for: "VVIP table of 8", amount: 8_000, issued: "2026-11-14", due: "2026-12-01", status: "Draft" },
+];
+
+export const pledges = [
+  { donor: "Stanbic Bank", amount: 90_000, paid: 0, due: "2026-12-15", campaign: "Lusaka Summer Jam sponsorship", status: "Pledged" },
+  { donor: "Grace Tembo", amount: 12_000, paid: 6_000, due: "Monthly to March", campaign: "Feed 2,000 learners in 2027", status: "On track" },
+  { donor: "Copperbelt Rotary Club", amount: 25_000, paid: 0, due: "2026-11-30", campaign: "Feed 2,000 learners in 2027", status: "Reminder sent" },
+];
+
+export const donors = [
+  { name: "Grace Tembo", gifts: 9, total: 14_500, since: "2025", last: "2026-11-16", type: "Monthly" },
+  { name: "Copperbelt Rotary Club", gifts: 2, total: 40_000, since: "2026", last: "2026-06-02", type: "Organisation" },
+  { name: "Brian Mwansa", gifts: 4, total: 2_200, since: "2026", last: "2026-11-09", type: "One-time" },
+  { name: "Anonymous donors", gifts: 188, total: 41_300, since: "—", last: "2026-11-15", type: "Hidden by choice" },
+];
+
+export const beneficiaries = [
+  { name: "Mukuni Primary School", place: "Kazungula", learners: 420, received: 61_200, lastReport: "Term 3 report received" },
+  { name: "Simoonga Community School", place: "Livingstone", learners: 310, received: 44_800, lastReport: "Term 3 report received" },
+  { name: "Katapazi Primary School", place: "Kazungula", learners: 280, received: 38_900, lastReport: "Report due 5 Dec" },
+];
+
+export const memberOnlyEvents = [
+  { title: "Zed Live Sessions: December", when: "19 Dec 2026", access: "Members-only presale until 1 Dec, then public", plans: "Insider, Gold" },
+  { title: "Gold members' listening party", when: "7 Jan 2027", access: "Members only", plans: "Gold" },
+];
+
+export const recommendationReasons: Record<string, string> = {
+  e7: "You went to Zed Live Sessions: October",
+  e1: "Music fan, 4.2 km from you",
+  e9: "You follow SkillUp Academy",
+  e3: "Popular near you this month",
+};
