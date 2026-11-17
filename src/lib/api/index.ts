@@ -8,6 +8,7 @@
  */
 import * as mock from "@/lib/mock/data";
 import * as commerce from "@/lib/mock/commerce";
+import * as programme from "@/lib/mock/programme";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -45,6 +46,10 @@ export const api = {
     equipment: () => mock.equipment,
     /** GET /v1/events/:id/shifts */
     shifts: () => mock.shifts,
+    /** GET /v1/events/:id/programme (running order, published with the event) */
+    programme: (eventId: string) => programme.programmes[eventId] ?? [],
+    /** GET /v1/programme-templates */
+    programmeTemplates: () => programme.programmeTemplates,
     /** GET /v1/events/:id/online-attendees */
     onlineAttendees: () => mock.onlineAttendees,
   },
@@ -223,3 +228,5 @@ export {
   settlementStatus, settlementSteps, statementLines, payable, heldAmount, deadlines, holidayDates,
 } from "@/lib/mock/commerce";
 export type { Arrangement, Collection, FeePayer, Settlement, SettlementStatus, PlanKey, StaffRole, EventTerms } from "@/lib/mock/commerce";
+export { programmeKinds } from "@/lib/mock/programme";
+export type { ProgrammeItem } from "@/lib/mock/programme";

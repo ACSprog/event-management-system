@@ -5,8 +5,9 @@ import { Check, ChevronDown, ImagePlus, Lock, Plus, Sparkles, Trash2, X } from "
 import { Poster } from "@/components/poster";
 import { NoEarlyPayouts } from "@/components/settlement";
 import { SelectOther } from "@/components/select-other";
+import { ProgrammeEditor, programmeIssues } from "@/components/programme";
 import { Badge, Button, Card, Checkbox, cx, Field, Input, PageHeader, Select, Textarea, useToast } from "@/components/ui";
-import { api, bookingFee, feePayerLabel, planFee, type FeePayer } from "@/lib/api";
+import { api, type ProgrammeItem, bookingFee, feePayerLabel, planFee, type FeePayer } from "@/lib/api";
 import { kwacha } from "@/lib/brand";
 
 const profiles: Record<string, { cat: string; modules: string[] }> = {
@@ -22,7 +23,7 @@ const profiles: Record<string, { cat: string; modules: string[] }> = {
 };
 const allModules = [...new Set(Object.values(profiles).flatMap((p) => p.modules))].sort();
 const listUnder = ["Music", "Conference", "Wedding", "Sports", "Church", "Workshop", "Exhibition", "Charity", "Comedy", "Education"];
-const steps = ["Basics", "Date and place", "Tickets", "Fees and payouts", "Policies", "Review"];
+const steps = ["Basics", "Date and place", "Programme", "Tickets", "Fees and payouts", "Policies", "Review"];
 
 export default function NewEvent() {
   const toast = useToast();
@@ -38,6 +39,7 @@ export default function NewEvent() {
   const [accent, setAccent] = useState("#172033");
   const [err, setErr] = useState("");
   const [other, setOther] = useState({ name: "", listUnder: "Conference", modules: ["Programme", "Sessions"] as string[] });
+  const [programme, setProgramme] = useState<ProgrammeItem[]>([]);
   const [feePayer, setFeePayer] = useState<FeePayer>("ORGANISER_ABSORBS");
   const plan = api.billing.subscription().plan;
   const paid = tickets.filter((t) => t.price > 0);
@@ -48,7 +50,8 @@ export default function NewEvent() {
     if (step === 0 && profile === "Something else" && other.name.trim().length < 3) return setErr("Say what kind of event it is, e.g. Graduation ceremony or Car show.");
     if (step === 0 && f.title.trim().length < 4) return setErr("Give the event a name of at least 4 characters.");
     if (step === 1 && f.end <= f.start) return setErr("The end time must be after the start time.");
-    if (step === 2 && tickets.some((t) => !t.name || t.qty < 1)) return setErr("Every ticket type needs a name and a quantity.");
+    if (step === 2 && programmeIssues(programme).length) return setErr("Fix the programme items marked above, or remove them. You can also leave the programme empty and add it later.");
+    if (step === 3 && tickets.some((t) => !t.name || t.qty < 1)) return setErr("Every ticket type needs a name and a quantity.");
     setErr("");
     setStep(step + 1);
   };
@@ -151,6 +154,14 @@ export default function NewEvent() {
             </div>
           </>)}
           {step === 2 && (<>
+            <div>
+              <p className="font-semibold">Programme</p>
+              <p className="text-sm text-ink-3">The running order guests see on the event page: times, what happens, who and where. Optional now; you can add or change it any time, and ticket holders can be told about changes.</p>
+            </div>
+            <ProgrammeEditor items={programme} onChange={(x) => { setProgramme(x); setErr(""); }} defaultDay={new Date(f.start).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} templates={api.events.programmeTemplates()} templateFor={profile} />
+            {err && <p className="text-sm text-hibiscus">{err}</p>}
+          </>)}
+          {step === 3 && (<>
             <div className="space-y-3">
               {tickets.map((t, i) => (
                 <div key={i} className="grid items-end gap-3 rounded-lg border border-line p-3 sm:grid-cols-[1.5fr_1fr_1fr_auto]">
@@ -185,7 +196,7 @@ export default function NewEvent() {
             </div>
             {err && <p className="text-sm text-hibiscus">{err}</p>}
           </>)}
-          {step === 3 && (<>
+          {step === 4 && (<>
             <div>
               <p className="text-sm font-medium">How EMS earns on this event</p>
               <div className="mt-2 rounded-lg border border-line p-4">
@@ -232,7 +243,7 @@ export default function NewEvent() {
             <NoEarlyPayouts className="rounded-lg bg-surface-2 p-3" />
             <p className="text-xs text-ink-3">These terms are fixed when you publish. Later price changes don&rsquo;t affect this event.</p>
           </>)}
-          {step === 4 && (<>
+          {step === 5 && (<>
             <Field label="Who can see it?"><Select value={f.visibility} onChange={set("visibility")} options={["Public, listed in discovery", "Members only (Insider and Gold)", "Unlisted, link only", "Private, invited guests only"]} /></Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Contact name"><Input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} /></Field>
@@ -249,19 +260,19 @@ export default function NewEvent() {
             <Field label="Terms shown at checkout"><Textarea value={f.terms} onChange={set("terms")} placeholder="Age limits, prohibited items, recording policy…" /></Field>
             <Checkbox checked={f.approval} onChange={(v) => setF({ ...f, approval: v })} label="Send to a manager for approval before it goes live" />
           </>)}
-          {step === 5 && (
+          {step === 6 && (
             <div className="space-y-4 text-sm">
               <dl className="grid gap-3 sm:grid-cols-2">
-                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Contact", `${contact.name}, ${contact.phone}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
+                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Programme", programme.length ? `${programme.length} items over ${new Set(programme.map((x) => x.day)).size} day${new Set(programme.map((x) => x.day)).size > 1 ? "s" : ""}` : "None yet, add it later"], ["Contact", `${contact.name}, ${contact.phone}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
               </dl>
               <ul className="divide-y divide-line rounded-lg border border-line">{tickets.map((t) => <li key={t.name} className="flex justify-between px-4 py-2"><span>{t.name}, {t.qty}</span><span className="font-semibold">{t.price ? kwacha(t.price) : "Free"}</span></li>)}</ul>
               <p className="text-ink-3">Potential gross if all tickets sell: <strong className="text-ink">{kwacha(tickets.reduce((a, t) => a + t.price * t.qty, 0))}</strong></p>
             </div>
           )}
-          {err && step !== 1 && step !== 2 && !(step === 0 && profile === "Something else" && !other.name.trim()) && <p className="text-sm text-hibiscus">{err}</p>}
+          {err && step !== 1 && step !== 2 && step !== 3 && !(step === 0 && profile === "Something else" && !other.name.trim()) && <p className="text-sm text-hibiscus">{err}</p>}
           <div className="flex justify-between border-t border-line pt-4">
             <Button variant="ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>Back</Button>
-            {step < 5 ? <Button onClick={next}>Continue</Button> : <Button onClick={() => toast(f.approval ? "Sent for approval. Your manager has been notified." : "Event published")}><Check size={16} /> {f.approval ? "Submit for approval" : "Publish event"}</Button>}
+            {step < 6 ? <Button onClick={next}>Continue</Button> : <Button onClick={() => toast(f.approval ? "Sent for approval. Your manager has been notified." : "Event published")}><Check size={16} /> {f.approval ? "Submit for approval" : "Publish event"}</Button>}
           </div>
         </Card>
         <div className="space-y-3">

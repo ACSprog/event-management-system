@@ -6,6 +6,8 @@ import { Avatar, Badge, Button, Textarea, Card, Checkbox, Input, Modal, PageHead
 import { AreaTrend, Bars } from "@/components/ui/charts";
 import { api, arrangementLabel, capacity, collectionLabel, feePayerLabel, gross, payable, sold, statusTone } from "@/lib/api";
 import { SelectOther } from "@/components/select-other";
+import { ProgrammeEditor, ProgrammeView, programmeIssues } from "@/components/programme";
+import { Toggle } from "@/components/ui";
 import { NoEarlyPayouts, SettlementBadge, SettlementTimeline } from "@/components/settlement";
 import { useOrgRole } from "@/components/layout/org-role";
 import { compact, fmtDate, fmtTime, kwacha } from "@/lib/brand";
@@ -15,7 +17,7 @@ export function EventManage({ slug }: { slug: string }) {
   const toast = useToast();
   const { can } = useOrgRole();
   const [status, setStatus] = useState(api.events.bySlug(slug)!.status);
-  const tabsList = ["Overview", "Tickets", "Attendees", ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), "Check-in and gates", "Tasks and logistics", ...(can("money.view") ? ["Budget", "Money and settlement"] : []), ...(can("events.edit") ? ["Staff and shifts"] : [])];
+  const tabsList = ["Overview", "Programme", "Tickets", "Attendees", ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), "Check-in and gates", "Tasks and logistics", ...(can("money.view") ? ["Budget", "Money and settlement"] : []), ...(can("events.edit") ? ["Staff and shifts"] : [])];
   const next: Record<string, { label: string; to: typeof status; need: "events.publish" | "events.edit"; msg: string } | undefined> = {
     "Pending approval": { label: "Approve", to: "Approved", need: "events.publish", msg: "Event approved. Publish it when you're ready." },
     Approved: { label: "Publish now", to: "Registration open", need: "events.publish", msg: "Published. Tickets are on sale." },
@@ -32,6 +34,10 @@ export function EventManage({ slug }: { slug: string }) {
   const [problem, setProblem] = useState(false);
   const [problemKind, setProblemKind] = useState("Cancelled");
   const terms = api.settlements.termsFor(e.id);
+  const [programme, setProgramme] = useState(api.events.programme(e.id));
+  const [savedProgramme, setSavedProgramme] = useState(programme);
+  const [notify, setNotify] = useState(true);
+  const programmeDirty = JSON.stringify(programme) !== JSON.stringify(savedProgramme);
   const settlement = terms.settlementRef ? api.settlements.get(terms.settlementRef) : undefined;
   const [tasks, setTasks] = useState(api.events.checklist());
   const venue = api.venues.get(e.venueId);
@@ -84,6 +90,22 @@ export function EventManage({ slug }: { slug: string }) {
             </Card>
           </div>
         </>
+      )}
+
+      {tab === "Programme" && (
+        <Card>
+          <SectionTitle title="Programme" sub="The running order shown on the event page and on every ticket." action={<Button size="sm" variant="secondary" href={`/events/${e.slug}/#programme`}><ExternalLink size={14} /> See it on the event page</Button>} />
+          {can("events.edit") ? (<>
+            <ProgrammeEditor items={programme} onChange={setProgramme} defaultDay={fmtDate(e.start, { weekday: "short", day: "numeric", month: "short" })} templates={api.events.programmeTemplates()} templateFor={{ Music: "Concert or festival", Conference: "Conference or seminar", Wedding: "Wedding or private party", Church: "Church gathering", Sports: "Sports match or tournament", Workshop: "Workshop or course", Education: "Workshop or course", Exhibition: "Exhibition or trade fair", Charity: "Fundraiser or gala" }[e.category as string]} />
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+              <Toggle checked={notify} onChange={setNotify} label="Tell ticket holders about changes by SMS and email" />
+              <div className="flex gap-2">
+                <Button variant="ghost" disabled={!programmeDirty} onClick={() => setProgramme(savedProgramme)}>Discard</Button>
+                <Button disabled={!programmeDirty || programmeIssues(programme).length > 0} onClick={() => { setSavedProgramme(programme); toast(notify && ["Registration open", "Sold out", "Registration closed", "In progress"].includes(status) ? `Programme published. ${sold(e).toLocaleString()} ticket holders will get a short update.` : "Programme saved and shown on the event page."); }}>Publish programme</Button>
+              </div>
+            </div>
+          </>) : <ProgrammeView items={programme} title="" />}
+        </Card>
       )}
 
       {tab === "Tickets" && (

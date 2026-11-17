@@ -8,6 +8,7 @@ import { fmtDate, fmtTime } from "@/lib/brand";
 import { ReviewsBlock } from "./reviews-block";
 import { AddToCalendar } from "@/components/add-to-calendar";
 import { WatchOnline } from "./watch-online";
+import { ProgrammeView } from "@/components/programme";
 
 export function generateStaticParams() {
   return [...events, ...orgEventsExtra].map((e) => ({ slug: e.slug }));
@@ -18,6 +19,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const e = api.events.bySlug(slug)!;
   const venue = api.venues.get(e.venueId);
   const org = api.orgs.get(e.orgId);
+  const programme = api.events.programme(e.id).length
+    ? api.events.programme(e.id)
+    : (e.schedule ?? []).map((x, i) => ({ id: `s${i}`, day: fmtDate(e.start, { weekday: "short", day: "numeric", month: "short" }), start: x.time, title: x.title, kind: "Activity", who: x.detail }));
   const sameDay = new Date(e.start).toDateString() === new Date(e.end).toDateString();
 
   return (
@@ -68,21 +72,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </section>
           )}
 
-          {e.schedule && (
-            <section className="mt-10">
-              <h2 className="text-xl font-semibold">Programme</h2>
-              <ol className="mt-4 border-l-2 border-kafue/30 pl-5">
-                {e.schedule.map((s) => (
-                  <li key={s.time + s.title} className="relative pb-5 last:pb-0">
-                    <span className="absolute -left-[27px] top-1.5 h-3 w-3 rounded-full border-2 border-kafue bg-surface" />
-                    <p className="text-sm font-semibold text-kafue">{s.time}</p>
-                    <p className="font-medium">{s.title}</p>
-                    {s.detail && <p className="text-sm text-ink-3">{s.detail}</p>}
-                  </li>
-                ))}
-              </ol>
-            </section>
-          )}
+          <ProgrammeView items={programme} />
 
           {e.format !== "Virtual" && (
             <section className="mt-10">
