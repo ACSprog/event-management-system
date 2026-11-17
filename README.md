@@ -68,7 +68,7 @@ There are three kinds of user:
 | User | Where | What they do |
 |---|---|---|
 | **Super admin** (system owners) | `/admin/` | Approve and suspend organisers, plans and fees, payment providers, review moderation, support, system health, audit logs |
-| **Event organiser** | `/org/` | Everything to run events: events, classes, venues, vendors, audience, money, settings |
+| **Event organiser** | `/org/` | Everything to run events: events, classes, venues, vendors, gate scanner, audience, money, settings |
 | **Attendee** (public) | `/`, `/events/`, `/account/` | Find events nearby, buy tickets, wallet, transfers and refunds, reviews, alerts |
 
 Organisers invite their own people and give each a **team role**. The admin
@@ -91,7 +91,9 @@ The organiser workspace has five areas, each with tabs:
 **Home**, **Events** (events, classes, venues, vendors), **Audience** (customers,
 campaigns, reviews, membership), **Money** (overview, sales and refunds, budgets
 and expenses, payouts, donations and sponsors, reports) and **Settings** (team and
-roles, organisation, integrations). The gate scanner is at `/scan/`.
+roles, organisation, integrations). The gate scanner (`/org/scan/`) is part of the
+organiser workspace: anyone whose role can scan tickets opens it from Events, and
+gate staff see nothing else. It opens full screen so it works well on a phone.
 
 ## How it connects to the backend later
 
@@ -116,6 +118,6 @@ roles, organisation, integrations). The gate scanner is at `/scan/`.
 
 ## Showcase only
 
-- The dark "Switch view" bar at the top switches between the attendee site, the organiser workspace, the gate scanner and the super admin area.
+- The dark "Switch view" bar at the top switches between the three kinds of user: attendee site, event organiser and super admin.
   Remove `<DemoBar />` from `src/app/layout.tsx` for production.
 - Payments, Zoom, SMS and sign-in are simulated in the browser. Nothing is charged or sent.
