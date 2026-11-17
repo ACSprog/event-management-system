@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 import { Copy, Download, ExternalLink, Mail, Plus, ScanLine, Send, Undo2 } from "lucide-react";
-import { Avatar, Badge, Button, Card, Checkbox, Input, Modal, PageHeader, Progress, SectionTitle, Stat, Table, Tabs, useToast, Field, Select } from "@/components/ui";
+import { Avatar, Badge, Button, Textarea, Card, Checkbox, Input, Modal, PageHeader, Progress, SectionTitle, Stat, Table, Tabs, useToast, Field, Select } from "@/components/ui";
 import { AreaTrend, Bars } from "@/components/ui/charts";
-import { api, capacity, gross, sold, statusTone } from "@/lib/api";
+import { api, arrangementLabel, capacity, collectionLabel, feePayerLabel, gross, payable, sold, statusTone } from "@/lib/api";
+import { SelectOther } from "@/components/select-other";
+import { ProgrammeEditor, ProgrammeView, programmeIssues } from "@/components/programme";
+import { Toggle } from "@/components/ui";
+import { NoEarlyPayouts, SettlementBadge, SettlementTimeline } from "@/components/settlement";
 import { useOrgRole } from "@/components/layout/org-role";
 import { compact, fmtDate, fmtTime, kwacha } from "@/lib/brand";
 
@@ -13,7 +17,7 @@ export function EventManage({ slug }: { slug: string }) {
   const toast = useToast();
   const { can } = useOrgRole();
   const [status, setStatus] = useState(api.events.bySlug(slug)!.status);
-  const tabsList = ["Overview", "Tickets", "Attendees", ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), "Check-in and gates", "Tasks and logistics", ...(can("money.view") ? ["Budget"] : []), ...(can("events.edit") ? ["Staff and shifts"] : [])];
+  const tabsList = ["Overview", "Programme", "Tickets", "Attendees", ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), "Check-in and gates", "Tasks and logistics", ...(can("money.view") ? ["Budget", "Money and settlement"] : []), ...(can("events.edit") ? ["Staff and shifts"] : [])];
   const next: Record<string, { label: string; to: typeof status; need: "events.publish" | "events.edit"; msg: string } | undefined> = {
     "Pending approval": { label: "Approve", to: "Approved", need: "events.publish", msg: "Event approved. Publish it when you're ready." },
     Approved: { label: "Publish now", to: "Registration open", need: "events.publish", msg: "Published. Tickets are on sale." },
@@ -27,6 +31,14 @@ export function EventManage({ slug }: { slug: string }) {
   const [tab, setTab] = useState("Overview");
   const [q, setQ] = useState("");
   const [refund, setRefund] = useState<string | null>(null);
+  const [problem, setProblem] = useState(false);
+  const [problemKind, setProblemKind] = useState("Cancelled");
+  const terms = api.settlements.termsFor(e.id);
+  const [programme, setProgramme] = useState(api.events.programme(e.id));
+  const [savedProgramme, setSavedProgramme] = useState(programme);
+  const [notify, setNotify] = useState(true);
+  const programmeDirty = JSON.stringify(programme) !== JSON.stringify(savedProgramme);
+  const settlement = terms.settlementRef ? api.settlements.get(terms.settlementRef) : undefined;
   const [tasks, setTasks] = useState(api.events.checklist());
   const venue = api.venues.get(e.venueId);
   const attendees = api.events.attendees().filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) || a.ref.toLowerCase().includes(q.toLowerCase()));
@@ -78,6 +90,22 @@ export function EventManage({ slug }: { slug: string }) {
             </Card>
           </div>
         </>
+      )}
+
+      {tab === "Programme" && (
+        <Card>
+          <SectionTitle title="Programme" sub="The running order shown on the event page and on every ticket." action={<Button size="sm" variant="secondary" href={`/events/${e.slug}/#programme`}><ExternalLink size={14} /> See it on the event page</Button>} />
+          {can("events.edit") ? (<>
+            <ProgrammeEditor items={programme} onChange={setProgramme} defaultDay={fmtDate(e.start, { weekday: "short", day: "numeric", month: "short" })} templates={api.events.programmeTemplates()} templateFor={{ Music: "Concert or festival", Conference: "Conference or seminar", Wedding: "Wedding or private party", Church: "Church gathering", Sports: "Sports match or tournament", Workshop: "Workshop or course", Education: "Workshop or course", Exhibition: "Exhibition or trade fair", Charity: "Fundraiser or gala" }[e.category as string]} />
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+              <Toggle checked={notify} onChange={setNotify} label="Tell ticket holders about changes by SMS and email" />
+              <div className="flex gap-2">
+                <Button variant="ghost" disabled={!programmeDirty} onClick={() => setProgramme(savedProgramme)}>Discard</Button>
+                <Button disabled={!programmeDirty || programmeIssues(programme).length > 0} onClick={() => { setSavedProgramme(programme); toast(notify && ["Registration open", "Sold out", "Registration closed", "In progress"].includes(status) ? `Programme published. ${sold(e).toLocaleString()} ticket holders will get a short update.` : "Programme saved and shown on the event page."); }}>Publish programme</Button>
+              </div>
+            </div>
+          </>) : <ProgrammeView items={programme} title="" />}
+        </Card>
       )}
 
       {tab === "Tickets" && (
@@ -183,6 +211,47 @@ export function EventManage({ slug }: { slug: string }) {
         </>
       )}
 
+      {tab === "Money and settlement" && (
+        <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+          <div className="space-y-6">
+            <Card>
+              <SectionTitle title="Settlement" sub="One payment to you after the event" action={settlement ? <Button size="sm" variant="secondary" href={`/org/finance/settlements/${settlement.ref}/`}>Open statement</Button> : undefined} />
+              {settlement ? (<>
+                <div className="mb-5 flex flex-wrap items-center gap-3"><SettlementBadge s={settlement} /><span className="text-sm text-ink-3">{settlement.status === "SETTLED" ? `Paid ${kwacha(payable(settlement))}` : `About ${kwacha(payable(settlement))} to you so far, after fees and charges`}</span></div>
+                <SettlementTimeline s={settlement} />
+              </>) : <p className="text-sm text-ink-3">Nothing to settle yet. Money from ticket sales is held until the event is over.</p>}
+            </Card>
+            <Card>
+              <SectionTitle title="Did the event go ahead as planned?" sub="The event is marked finished automatically when its end time passes. Tell us if it didn't happen as planned." />
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => setProblem(true)}>Report a cancellation or postponement</Button>
+              </div>
+              <p className="mt-3 text-xs text-ink-3">You can&rsquo;t mark an event finished before its end time, and finishing an event never pays anything out on its own.</p>
+            </Card>
+          </div>
+          <Card>
+            <SectionTitle title="Terms for this event" />
+            <dl className="space-y-3 text-sm">
+              <div><dt className="text-ink-3">How EMS earns</dt><dd className="font-semibold">{arrangementLabel[terms.arrangement]}</dd></div>
+              <div><dt className="text-ink-3">Fee</dt><dd className="font-semibold">{terms.fee}</dd></div>
+              <div><dt className="text-ink-3">Fee paid by</dt><dd className="font-semibold">{feePayerLabel[terms.feePayer]}</dd></div>
+              <div><dt className="text-ink-3">Ticket money</dt><dd className="font-semibold">{collectionLabel[terms.collection]}</dd></div>
+              <div><dt className="text-ink-3">Listing</dt><dd className="font-semibold">{terms.listing === "Public" ? "Public, shown in discovery" : "Unlisted, invited people only"}</dd></div>
+            </dl>
+            <p className="mt-3 text-xs text-ink-3">{terms.frozen ? "Fixed when the event was published." : "Can still change until you publish."}</p>
+            <NoEarlyPayouts className="mt-4 border-t border-line pt-4" />
+          </Card>
+        </div>
+      )}
+
+      <Modal open={problem} onClose={() => setProblem(false)} title="Report a problem with this event" footer={<><Button variant="ghost" onClick={() => setProblem(false)}>Cancel</Button><Button variant="danger" onClick={() => { setProblem(false); toast(problemKind === "Cancelled" ? "Cancellation reported. EMS will confirm it, then every buyer is refunded from the money held." : "Postponement reported. Money stays held and buyers can ask for refunds."); }}>Report</Button></>}>
+        <div className="space-y-4 text-sm">
+          <Field label="What happened?"><Select value={problemKind} onChange={(x) => setProblemKind(x.target.value)} options={["Cancelled", "Postponed to a new date", "Partly happened (cut short)", "Something else"]} /></Field>
+          {problemKind === "Something else" && <Field label="What happened?"><Textarea rows={3} placeholder="e.g. Venue changed on the day, headline act didn't perform" /></Field>}
+          <p className="text-ink-3">{problemKind === "Something else" ? "EMS finance reads your note and contacts you before the statement is prepared." : problemKind === "Cancelled" ? "All ticket buyers are refunded from the money EMS is holding. Nothing is paid out to you for this event." : problemKind.startsWith("Postponed") ? "Ticket money stays held. Buyers keep their tickets for the new date or can ask for a refund." : "EMS finance contacts you to agree partial refunds before the statement is prepared."}</p>
+        </div>
+      </Modal>
+
       {tab === "Staff and shifts" && (
         <Card>
           <SectionTitle title="Staff and scanner access" sub="Gate staff only see the scanner, and only for this event and the gates you assign." action={<Button size="sm"><Send size={14} /> Invite staff</Button>} />
@@ -206,8 +275,8 @@ export function EventManage({ slug }: { slug: string }) {
 
       <Modal open={!!refund} onClose={() => setRefund(null)} title={`Refund ${refund}`} footer={<><Button variant="ghost" onClick={() => setRefund(null)}>Cancel</Button><Button variant="danger" onClick={() => { setRefund(null); toast("Refund started. The ticket is cancelled and can no longer be scanned."); }}>Refund and cancel ticket</Button></>}>
         <div className="space-y-4">
-          <Field label="Amount"><Select options={["Full ticket price", "Ticket price minus booking fee", "Custom amount"]} /></Field>
-          <Field label="Reason"><Select options={["Customer request", "Event change", "Duplicate purchase", "Other"]} /></Field>
+          <SelectOther label="Amount" options={["Full ticket price", "Ticket price minus booking fee"]} other="Custom amount" prompt="Amount to refund (K)" placeholder="e.g. 100" />
+          <SelectOther label="Reason" options={["Customer request", "Event change", "Duplicate purchase"]} prompt="Reason for the refund" placeholder="Shown on the refund record and the buyer's receipt" />
           <p className="text-sm text-ink-3">The ticket is cancelled straight away and every scanner rejects it after its next sync (within 30 seconds when online).</p>
         </div>
       </Modal>

@@ -72,7 +72,7 @@ export interface Organisation {
   name: string;
   type: string;
   city: string;
-  plan: "Starter" | "Growth" | "Enterprise";
+  plan: "Free" | "Starter" | "Professional" | "Enterprise";
   status: "Active" | "Pending" | "Suspended" | "Trial";
   joined: string;
   events: number;
@@ -97,13 +97,13 @@ export interface Venue {
 }
 
 export const organisations: Organisation[] = [
-  { id: "org1", slug: "zed-live", name: "Zed Live Entertainment", type: "Concert promoter", city: "Lusaka", plan: "Enterprise", status: "Active", joined: "2025-03-14", events: 48, revenue: 4_820_400, followers: 21_400, verified: true, about: "Lusaka's biggest live music promoter since 2011. We run Lusaka July Fest, Copperbelt Nights and the Zed Live Sessions series." },
-  { id: "org2", slug: "copperbelt-business-forum", name: "Copperbelt Business Forum", type: "Business association", city: "Kitwe", plan: "Growth", status: "Active", joined: "2025-06-02", events: 17, revenue: 1_204_900, followers: 6_210, verified: true, about: "Connecting mining, manufacturing and services on the Copperbelt through conferences, trade fairs and executive breakfasts." },
-  { id: "org3", slug: "grace-chapel", name: "Grace Chapel International", type: "Church", city: "Lusaka", plan: "Growth", status: "Active", joined: "2025-09-21", events: 31, revenue: 312_750, followers: 9_880, verified: true, about: "A Lusaka church family running conventions, youth camps and community outreach across Zambia." },
+  { id: "org1", slug: "zed-live", name: "Zed Live Entertainment", type: "Concert promoter", city: "Lusaka", plan: "Professional", status: "Active", joined: "2025-03-14", events: 48, revenue: 4_820_400, followers: 21_400, verified: true, about: "Lusaka's biggest live music promoter since 2011. We run Lusaka July Fest, Copperbelt Nights and the Zed Live Sessions series." },
+  { id: "org2", slug: "copperbelt-business-forum", name: "Copperbelt Business Forum", type: "Business association", city: "Kitwe", plan: "Starter", status: "Active", joined: "2025-06-02", events: 17, revenue: 1_204_900, followers: 6_210, verified: true, about: "Connecting mining, manufacturing and services on the Copperbelt through conferences, trade fairs and executive breakfasts." },
+  { id: "org3", slug: "grace-chapel", name: "Grace Chapel International", type: "Church", city: "Lusaka", plan: "Starter", status: "Active", joined: "2025-09-21", events: 31, revenue: 312_750, followers: 9_880, verified: true, about: "A Lusaka church family running conventions, youth camps and community outreach across Zambia." },
   { id: "org4", slug: "skillup-academy", name: "SkillUp Academy", type: "Training provider", city: "Ndola", plan: "Starter", status: "Active", joined: "2026-01-11", events: 22, revenue: 186_300, followers: 3_140, verified: false, about: "Short courses in digital skills, bookkeeping and project management, online and in Ndola." },
-  { id: "org5", slug: "chipolopolo-sports", name: "Chipolopolo Sports Events", type: "Sports organiser", city: "Ndola", plan: "Growth", status: "Active", joined: "2025-11-08", events: 12, revenue: 2_018_000, followers: 14_700, verified: true, about: "Football tournaments, marathons and community sports days." },
-  { id: "org6", slug: "hope-foundation", name: "Hope Children's Foundation", type: "Charity", city: "Livingstone", plan: "Starter", status: "Trial", joined: "2026-10-28", events: 3, revenue: 94_500, followers: 1_210, verified: false, about: "Raising funds for school feeding and bursaries in Southern Province." },
-  { id: "org7", slug: "laugh-out-lusaka", name: "Laugh Out Lusaka", type: "Comedy collective", city: "Lusaka", plan: "Starter", status: "Pending", joined: "2026-11-12", events: 0, revenue: 0, followers: 0, verified: false, about: "Stand-up comedy nights." },
+  { id: "org5", slug: "chipolopolo-sports", name: "Chipolopolo Sports Events", type: "Sports organiser", city: "Ndola", plan: "Professional", status: "Active", joined: "2025-11-08", events: 12, revenue: 2_018_000, followers: 14_700, verified: true, about: "Football tournaments, marathons and community sports days." },
+  { id: "org6", slug: "hope-foundation", name: "Hope Children's Foundation", type: "Charity", city: "Livingstone", plan: "Free", status: "Trial", joined: "2026-10-28", events: 3, revenue: 94_500, followers: 1_210, verified: false, about: "Raising funds for school feeding and bursaries in Southern Province." },
+  { id: "org7", slug: "laugh-out-lusaka", name: "Laugh Out Lusaka", type: "Comedy collective", city: "Lusaka", plan: "Free", status: "Pending", joined: "2026-11-12", events: 0, revenue: 0, followers: 0, verified: false, about: "Stand-up comedy nights." },
 ];
 
 export const venues: Venue[] = [
@@ -364,11 +364,6 @@ export const team = [
 ];
 
 
-export const plans = [
-  { name: "Starter", price: 0, fee: "5% + K2 per paid ticket", orgs: 412, features: ["Unlimited free events", "Ticketing and QR check-in", "Email notifications", "1 team member"] },
-  { name: "Growth", price: 1_450, fee: "3% + K2 per paid ticket", orgs: 138, features: ["Everything in Starter", "Reserved seating", "SMS and push campaigns", "Reviews and CRM", "10 team members"] },
-  { name: "Enterprise", price: 6_900, fee: "Custom", orgs: 21, features: ["Everything in Growth", "Custom roles", "Finance and accounting", "Virtual classrooms", "Dedicated support", "API access"] },
-];
 
 export const gateways = [
   { name: "MTN MoMo", type: "Mobile money", status: "Connected", successRate: 97.8, volume: 6_420_100, avgConfirm: "38 s" },

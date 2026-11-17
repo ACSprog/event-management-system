@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { History, Send, UserPen } from "lucide-react";
+import { History, Send, UserPen, ListOrdered } from "lucide-react";
 import { TicketCard } from "@/components/ticket-card";
 import { Button, Field, Input, Modal, PageHeader, Tabs, useToast } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -27,7 +27,8 @@ export default function MyTickets() {
             return (
               <div key={t.id}>
                 <TicketCard e={e} t={t} venueName={api.venues.get(e.venueId).name} />
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {api.events.programme(e.id).length > 0 && <Button size="sm" variant="ghost" href={`/events/${e.slug}/#programme`}><ListOrdered size={14} /> Programme</Button>}
                   <Button size="sm" variant="ghost" onClick={() => setTransfer(t.number)}><Send size={14} /> Transfer</Button>
                   <Button size="sm" variant="ghost" onClick={() => toast("Name change request sent to the organiser")}><UserPen size={14} /> Change name</Button>
                   <Button size="sm" variant="ghost" onClick={() => setHistory(t.number)}><History size={14} /> History</Button>

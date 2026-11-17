@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Bot, PlusCircle } from "lucide-react";
 import { useOrgRole } from "@/components/layout/org-role";
-import { teamRoles } from "@/lib/roles";
 import { Badge, Button, Card, PageHeader, Progress, SectionTitle, Stat, Stars } from "@/components/ui";
 import { AreaTrend } from "@/components/ui/charts";
 import { api, capacity, gross, sold, statusTone } from "@/lib/api";
 import { compact, fmtDate, kwacha } from "@/lib/brand";
 
 export default function OrgDashboard() {
-  const { can, role } = useOrgRole();
-  const first = teamRoles[role].person.split(" ")[0];
+  const { can, role, roleInfo } = useOrgRole();
+  const first = roleInfo(role).person.split(" ")[0];
   const evs = api.events.forOrg();
   const upcoming = evs.filter((e) => !["Completed", "Draft"].includes(e.status));
   const series = api.finance.salesSeries();
@@ -21,7 +20,7 @@ export default function OrgDashboard() {
     <>
       <PageHeader
         title={`Good afternoon, ${first}`}
-        sub={`Signed in as ${teamRoles[role].label.toLowerCase()}. Here's what's happening across your events.`}
+        sub={`Signed in as ${roleInfo(role).label.toLowerCase()}. Here's what's happening across your events.`}
         actions={<>
           {can("events.edit") && <Button variant="secondary" href="/org/assistant/"><Bot size={16} /> Plan with AI</Button>}
           {can("money.view") && <Button variant="secondary" href="/org/reports/">Reports</Button>}
@@ -45,7 +44,9 @@ export default function OrgDashboard() {
           <ul className="space-y-3 text-sm">
             {can("events.publish") && <li className="flex gap-3 rounded-lg bg-marigold-soft p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-[#a35f00]" /><div><p className="font-semibold">New Year&rsquo;s Eve Countdown is waiting for approval</p><Link href="/org/events/new-year-countdown/" className="text-kafue">Review and approve</Link></div></li>}
             {can("audience.view") && <li className="flex gap-3 rounded-lg bg-hibiscus-soft p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-hibiscus" /><div><p className="font-semibold">2 reviews mention parking problems</p><Link href="/org/reviews/" className="text-kafue">Read and respond</Link></div></li>}
-            {can("payouts.approve") && <li className="flex gap-3 rounded-lg bg-surface-2 p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-ink-3" /><div><p className="font-semibold">PrintHub invoice K18,400 awaiting approval</p><Link href="/org/finance/expenses/" className="text-kafue">Approve expense</Link></div></li>}
+            {can("refunds.issue") && <li className="flex gap-3 rounded-lg bg-surface-2 p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-ink-3" /><div><p className="font-semibold">3 refund requests are waiting for an answer</p><Link href="/org/finance/refunds/" className="text-kafue">Review refund requests</Link></div></li>}
+            {can("settlements.review") && <li className="flex gap-3 rounded-lg bg-marigold-soft p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-[#a35f00]" /><div><p className="font-semibold">Settlement statement for Copperbelt Nights: Ndola is ready</p><Link href="/org/finance/settlements/ST-ZL-0431/" className="text-kafue">Check it by the end of today</Link></div></li>}
+            {can("expenses.approve") && <li className="flex gap-3 rounded-lg bg-surface-2 p-3"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-ink-3" /><div><p className="font-semibold">PrintHub invoice K18,400 awaiting approval</p><Link href="/org/finance/expenses/" className="text-kafue">Approve expense</Link></div></li>}
           </ul>
         </Card>
       </div>

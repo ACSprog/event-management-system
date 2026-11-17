@@ -1,5 +1,7 @@
 "use client";
 
+import { SelectOther } from "@/components/select-other";
+
 import { useState } from "react";
 import { Button, Card, cx, Field, Input, PageHeader, Select, Textarea, Toggle, useToast } from "@/components/ui";
 
@@ -18,12 +20,12 @@ export default function NewCourse() {
           <Field label="Course name"><Input placeholder="e.g. Excel for Beginners" /></Field>
           <Field label="Description"><Textarea /></Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Format"><Select options={["Multi-lesson course", "Single workshop", "Recurring class", "Training programme"]} /></Field>
+            <SelectOther label="Format" options={["Multi-lesson course", "Single workshop", "Recurring class", "Training programme"]} prompt="What kind of class is it?" placeholder="e.g. Bootcamp, Mentorship programme" />
             <Field label="Lessons"><Input defaultValue="8" /></Field>
             <Field label="Schedule"><Select options={["Tuesdays and Thursdays", "Weekly", "Custom dates"]} /></Field>
             <Field label="Start time"><Input type="time" defaultValue="18:00" /></Field>
             <Field label="Capacity"><Input defaultValue="40" /></Field>
-            <Field label="Assistant instructor"><Select options={["None", "Joseph Zulu"]} /></Field>
+            <SelectOther label="Assistant instructor" options={["None", "Joseph Zulu"]} other="Someone else (invite them)" prompt="Their email address" placeholder="name@example.com" />
           </div>
           <p className="rounded-lg bg-surface-2 p-3 text-sm">A permanent classroom code (like EMS-CLS-2026-00513) is created when you save. It&rsquo;s never reused, even if the class is deleted.</p>
         </Card>

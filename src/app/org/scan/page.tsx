@@ -5,7 +5,6 @@ import { AlertOctagon, Camera, CheckCircle2, CloudOff, History, Keyboard, Refres
 import Link from "next/link";
 import { cx } from "@/components/ui";
 import { useOrgRole } from "@/components/layout/org-role";
-import { teamRoles } from "@/lib/roles";
 import { api } from "@/lib/api";
 
 type Result = { kind: "valid" | "used" | "invalid" | "gate" | "cancelled"; name?: string; ticket?: string; detail: string; number?: string };
@@ -32,8 +31,8 @@ declare global {
 }
 
 export default function Scanner() {
-  const { role } = useOrgRole();
-  const who = teamRoles[role].person.split(" ");
+  const { role, roleInfo } = useOrgRole();
+  const who = roleInfo(role).person.split(" ");
   const [stage, setStage] = useState<"setup" | "loading" | "scan">("setup");
   const [code, setCode] = useState("JAM-4417-GATE");
   const [gate, setGate] = useState("Gate A");

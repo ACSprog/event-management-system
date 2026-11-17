@@ -6,7 +6,7 @@ import { CalendarDays, CircleDollarSign, Home, Lock, ScanLine, Settings, Users }
 import { PortalShell, type NavGroup } from "@/components/layout/portal-shell";
 import { OrgRoleProvider, useOrgRole } from "@/components/layout/org-role";
 import { Button, Card, cx } from "@/components/ui";
-import { roleOrder, teamRoles, type Permission, type TeamRole } from "@/lib/roles";
+import { type Permission } from "@/lib/roles";
 
 interface Section {
   href: string;
@@ -37,17 +37,21 @@ const sections: Section[] = [
       { href: "/org/marketing/", label: "Campaigns", need: ["campaigns.send"] },
       { href: "/org/reviews/", label: "Reviews", need: ["audience.view"] },
       { href: "/org/membership/", label: "Membership", need: ["audience.view"] },
+      { href: "/org/support/", label: "Questions and help", need: ["audience.view"] },
     ],
   },
   {
     href: "/org/finance/", label: "Money", icon: CircleDollarSign, need: ["money.view"],
     tabs: [
       { href: "/org/finance/", label: "Overview" },
-      { href: "/org/finance/transactions/", label: "Sales and refunds" },
+      { href: "/org/finance/transactions/", label: "Sales" },
+      { href: "/org/finance/refunds/", label: "Refunds" },
       { href: "/org/finance/invoices/", label: "Invoices" },
       { href: "/org/finance/expenses/", label: "Budgets and expenses" },
+      { href: "/org/finance/settlements/", label: "Settlements" },
       { href: "/org/finance/payouts/", label: "Payouts" },
       { href: "/org/fundraising/", label: "Donations and sponsors" },
+      { href: "/org/finance/partnerships/", label: "Partnerships" },
       { href: "/org/reports/", label: "Reports" },
     ],
   },
@@ -56,6 +60,9 @@ const sections: Section[] = [
     tabs: [
       { href: "/org/team/", label: "Team and roles" },
       { href: "/org/settings/", label: "Organisation" },
+      { href: "/org/settings/billing/", label: "Plan and billing" },
+      { href: "/org/settings/messages/", label: "Messages to buyers" },
+      { href: "/org/settings/activity/", label: "Activity log" },
       { href: "/org/integrations/", label: "Integrations" },
     ],
   },
@@ -85,12 +92,12 @@ function findTab(path: string, s?: Section) {
 }
 
 function RolePreview() {
-  const { role, setRole } = useOrgRole();
+  const { role, setRole, roles } = useOrgRole();
   return (
     <label className="flex items-center gap-2 text-sm">
       <span className="hidden text-ink-3 sm:inline">Preview as</span>
-      <select value={role} onChange={(e) => setRole(e.target.value as TeamRole)} className="rounded-lg border border-line bg-canvas px-2 py-1.5 text-sm font-medium focus:border-kafue focus:outline-none" aria-label="Preview the workspace as a team role">
-        {roleOrder.map((r) => <option key={r} value={r}>{teamRoles[r].label}</option>)}
+      <select value={role} onChange={(e) => setRole(e.target.value)} className="rounded-lg border border-line bg-canvas px-2 py-1.5 text-sm font-medium focus:border-kafue focus:outline-none" aria-label="Preview the workspace as a team role">
+        {roles.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
       </select>
     </label>
   );
@@ -98,7 +105,7 @@ function RolePreview() {
 
 function OrgShell({ children }: { children: React.ReactNode }) {
   const path = usePathname() ?? "/org/";
-  const { role, can } = useOrgRole();
+  const { role, can, roleInfo } = useOrgRole();
   const allowed = (need?: Permission[]) => !need || need.some(can);
   const section = findSection(path);
   const tab = findTab(path, section);
@@ -139,7 +146,7 @@ function OrgShell({ children }: { children: React.ReactNode }) {
       <Card className="mx-auto mt-10 max-w-md text-center">
         <Lock className="mx-auto text-ink-3" size={32} />
         <h1 className="mt-3 text-xl font-semibold">Your role can&rsquo;t open this page</h1>
-        <p className="mt-1 text-sm text-ink-3">{teamRoles[role].label}s can&rsquo;t open {page ? "this page" : (tab?.label ?? section?.label ?? "this page").toLowerCase()}. Ask your organisation admin to change your role if you need it.</p>
+        <p className="mt-1 text-sm text-ink-3">{roleInfo(role).label}s can&rsquo;t open {page ? "this page" : (tab?.label ?? section?.label ?? "this page").toLowerCase()}. Ask your organisation admin to change your role if you need it.</p>
         <Button href="/org/" variant="secondary" className="mt-5">Go to Home</Button>
       </Card>
     );
@@ -151,7 +158,7 @@ function OrgShell({ children }: { children: React.ReactNode }) {
       activeFor={() => section?.href}
       workspace={{ name: "Zed Live Entertainment", sub: "Event organiser" }}
       workspaces={["Zed Live Entertainment", "Grace Chapel International", "SkillUp Academy"]}
-      user={{ name: teamRoles[role].person, role: teamRoles[role].label }}
+      user={{ name: roleInfo(role).person, role: roleInfo(role).label }}
       headerSlot={<RolePreview />}
     >
       {role !== "gate" && !blocked && visibleTabs.length > 1 && (

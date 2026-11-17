@@ -25,7 +25,7 @@ export default function Invoices() {
   };
   return (
     <>
-      <PageHeader title="Invoices" sub="Bills you send to sponsors and corporate buyers. Each has a payment link for mobile money, card or bank transfer." actions={can("payouts.approve") ? <Button onClick={() => setOpen(true)}><Plus size={15} /> New invoice</Button> : undefined} />
+      <PageHeader title="Invoices" sub="Bills you send to sponsors and corporate buyers. Each has a payment link for mobile money, card or bank transfer." actions={can("expenses.approve") ? <Button onClick={() => setOpen(true)}><Plus size={15} /> New invoice</Button> : undefined} />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Stat label="Outstanding" value={kwacha(outstanding)} />
         <Stat label="Overdue" value={kwacha(rows.filter((r) => r.status === "Overdue").reduce((a, r) => a + r.amount, 0))} tone="down" />
@@ -37,7 +37,7 @@ export default function Invoices() {
         { key: "issued", label: "Issued" }, { key: "due", label: "Due" },
         { key: "amount", label: "Amount", align: "right", render: (r) => kwacha(r.amount) },
         { key: "status", label: "Status", render: (r) => <Badge tone={r.status === "Paid" ? "green" : r.status === "Overdue" ? "red" : r.status === "Sent" ? "teal" : "grey"}>{r.status}</Badge> },
-        { key: "a", label: "", render: (r) => (r.status === "Overdue" ? <Button size="sm" variant="ghost" onClick={() => toast(`Reminder sent to ${r.to}`)}>Send reminder</Button> : r.status === "Draft" && can("payouts.approve") ? <Button size="sm" variant="ghost" onClick={() => { setRows(rows.map((x) => (x.id === r.id ? { ...x, status: "Sent" } : x))); toast("Invoice sent"); }}>Send</Button> : null) },
+        { key: "a", label: "", render: (r) => (r.status === "Overdue" ? <Button size="sm" variant="ghost" onClick={() => toast(`Reminder sent to ${r.to}`)}>Send reminder</Button> : r.status === "Draft" && can("expenses.approve") ? <Button size="sm" variant="ghost" onClick={() => { setRows(rows.map((x) => (x.id === r.id ? { ...x, status: "Sent" } : x))); toast("Invoice sent"); }}>Send</Button> : null) },
       ]} />
       <Modal open={open} onClose={() => setOpen(false)} title="New invoice" footer={<><Button variant="ghost" onClick={() => create(false)}>Save draft</Button><Button onClick={() => create(true)}>Send invoice</Button></>}>
         <div className="space-y-4">

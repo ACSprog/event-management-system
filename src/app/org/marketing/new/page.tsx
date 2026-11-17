@@ -1,5 +1,7 @@
 "use client";
 
+import { SelectOther } from "@/components/select-other";
+
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button, Card, cx, Field, Input, PageHeader, Select, Textarea, useToast } from "@/components/ui";
@@ -16,7 +18,7 @@ export default function NewCampaign() {
           <Field label="Channel"><div className="flex gap-2">{["SMS", "Email", "Push", "WhatsApp"].map((c) => <button key={c} onClick={() => setCh(c)} className={cx("flex-1 rounded-lg border-2 py-2 text-sm font-semibold", ch === c ? "border-kafue bg-kafue-soft" : "border-line")}>{c}</button>)}</div></Field>
           <Field label="Campaign name"><Input defaultValue="Summer Jam: 26 days to go" /></Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Audience"><Select options={["Concert fans, Lusaka 25 km (18,420)", "VIP regulars (2,104)", "Lapsed 6 months (6,880)", "Everyone who opted in (34,200)"]} /></Field>
+            <SelectOther label="Audience" options={["Concert fans, Lusaka 25 km (18,420)", "VIP regulars (2,104)", "Lapsed 6 months (6,880)", "Everyone who opted in (34,200)"]} other="A custom audience" prompt="Who should get it?" placeholder="e.g. Bought VIP in 2025 and live in Kitwe" hint="Only people who agreed to marketing are included" />
             <Field label="Promote"><Select options={["Lusaka Summer Jam", "New Year's Eve Countdown", "Copperbelt Nights: Kitwe"]} /></Field>
           </div>
           {ch === "Email" && <Field label="Subject"><Input defaultValue="26 days to Summer Jam. Are you in?" /></Field>}

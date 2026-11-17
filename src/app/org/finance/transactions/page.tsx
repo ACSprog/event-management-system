@@ -12,7 +12,7 @@ export default function Transactions() {
   const rows = api.finance.transactions().filter((t) => (f === "All" || t.type === f || t.status === f) && `${t.id} ${t.customer}`.toLowerCase().includes(q.toLowerCase()));
   return (
     <>
-      <PageHeader title="Transactions and refunds" sub="Every payment is matched to a confirmed callback from the payment provider before tickets are issued." actions={<Button variant="secondary"><Download size={15} /> Export CSV</Button>} />
+      <PageHeader title="Sales" sub="Every payment for your events, including refunds made. Each payment is confirmed by the payment provider before tickets are issued. Refund requests are under Refunds." actions={<Button variant="secondary"><Download size={15} /> Export CSV</Button>} />
       <div className="mb-4 flex flex-wrap gap-2">
         {["All", "Ticket sale", "Refund", "Donation", "Sponsorship", "Pending", "Failed"].map((x) => <button key={x} onClick={() => setF(x)} className={cx("rounded-full border px-3.5 py-1.5 text-sm font-medium", f === x ? "border-ink bg-ink text-canvas" : "border-line bg-surface")}>{x}</button>)}
         <Input className="ml-auto max-w-xs" placeholder="Search reference or name" value={q} onChange={(e) => setQ(e.target.value)} />

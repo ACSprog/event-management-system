@@ -10,9 +10,16 @@
  * Team roles only exist inside an organiser's workspace. The organisation admin
  * can change what each role is allowed to do on the Team page.
  * The NestJS API enforces the same permissions; hiding a menu is never the only check.
+ *
+ * No organiser role can approve a settlement or a payout. Those approvals belong
+ * to EMS's own finance staff (super admin staff roles, see platformStaff).
  */
 
-export type TeamRole = "admin" | "event_manager" | "finance" | "marketing" | "gate";
+export type BuiltInRole = "admin" | "event_manager" | "finance" | "marketing" | "gate";
+/** A built-in role key, or the key of a custom role the organisation created ("custom_…"). */
+export type TeamRole = string;
+
+export interface RoleInfo { key: TeamRole; label: string; summary: string; person: string; custom?: boolean }
 
 export type Permission =
   | "events.view"
@@ -22,7 +29,9 @@ export type Permission =
   | "checkin.scan"
   | "refunds.issue"
   | "money.view"
-  | "payouts.approve"
+  | "expenses.approve"
+  | "settlements.review"
+  | "payouts.account"
   | "audience.view"
   | "campaigns.send"
   | "reviews.reply"
@@ -41,11 +50,13 @@ export const permissions: { key: Permission; label: string; group: string }[] = 
   { key: "campaigns.send", label: "Send campaigns and discount codes", group: "Audience" },
   { key: "money.view", label: "See sales, costs and reports", group: "Money" },
   { key: "refunds.issue", label: "Issue refunds", group: "Money" },
-  { key: "payouts.approve", label: "Approve expenses and payouts", group: "Money" },
+  { key: "expenses.approve", label: "Approve expenses and vendor bills", group: "Money" },
+  { key: "settlements.review", label: "Accept or dispute settlement statements", group: "Money" },
+  { key: "payouts.account", label: "Change the payout account", group: "Money" },
   { key: "team.manage", label: "Manage team, roles and settings", group: "Settings" },
 ];
 
-export const teamRoles: Record<TeamRole, { label: string; summary: string; person: string; perms: Permission[] }> = {
+export const teamRoles: Record<BuiltInRole, { label: string; summary: string; person: string; perms: Permission[] }> = {
   admin: {
     label: "Organisation admin",
     summary: "Full control of the workspace, including the team and money.",
@@ -60,9 +71,9 @@ export const teamRoles: Record<TeamRole, { label: string; summary: string; perso
   },
   finance: {
     label: "Finance officer",
-    summary: "Sales, costs, refunds and payouts. Cannot change events.",
+    summary: "Sales, costs, refunds and settlement statements. Cannot change events or the payout account.",
     person: "Precious Nyirenda",
-    perms: ["events.view", "money.view", "refunds.issue", "payouts.approve"],
+    perms: ["events.view", "money.view", "refunds.issue", "expenses.approve", "settlements.review"],
   },
   marketing: {
     label: "Marketing officer",
@@ -78,8 +89,6 @@ export const teamRoles: Record<TeamRole, { label: string; summary: string; perso
   },
 };
 
-export const roleOrder: TeamRole[] = ["admin", "event_manager", "finance", "marketing", "gate"];
+export const roleOrder: BuiltInRole[] = ["admin", "event_manager", "finance", "marketing", "gate"];
 
-export function roleByLabel(label: string): TeamRole {
-  return (roleOrder.find((r) => teamRoles[r].label === label) ?? "event_manager") as TeamRole;
-}
+export const builtInRoleInfo: RoleInfo[] = roleOrder.map((k) => ({ key: k, label: teamRoles[k].label, summary: teamRoles[k].summary, person: teamRoles[k].person }));
