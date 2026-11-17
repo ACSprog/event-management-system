@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Activity, Building2, CreditCard, FileClock, Gauge, Handshake, Landmark, LifeBuoy, Lock, Mail, ShieldAlert, Layers, SlidersHorizontal, UserCog, Wallet } from "lucide-react";
+import { Activity, Receipt, Building2, CreditCard, FileClock, Gauge, Handshake, Landmark, LifeBuoy, Lock, Mail, ShieldAlert, Layers, SlidersHorizontal, UserCog, Wallet } from "lucide-react";
 import { PortalShell, type NavGroup } from "@/components/layout/portal-shell";
 import { AdminRoleProvider, useAdminRole } from "@/components/layout/admin-role";
 import { Button, Card } from "@/components/ui";
@@ -17,6 +17,7 @@ const groups: { label?: string; items: Item[] }[] = [
     { href: "/admin/support/", label: "Support", icon: LifeBuoy, badge: "3", need: "support.handle" },
   ] },
   { label: "Money", items: [
+    { href: "/admin/transactions/", label: "Transactions", icon: Receipt, need: "settlements.view" },
     { href: "/admin/settlements/", label: "Settlements", icon: Wallet, badge: "5", need: "settlements.view" },
     { href: "/admin/partnerships/", label: "Partnerships", icon: Handshake, need: "partnerships.manage" },
     { href: "/admin/finance-settings/", label: "Finance settings", icon: Landmark, need: "finance.settings" },

@@ -39,7 +39,7 @@ export default function Partnerships() {
               <div><dt className="text-ink-3">Split</dt><dd className="font-semibold">EMS {p.share}%, organiser {100 - p.share}%</dd></div>
               <div><dt className="text-ink-3">Shared amount</dt><dd className="font-semibold">{p.base}</dd></div>
               <div><dt className="text-ink-3">Costs that may be deducted</dt><dd className="font-semibold">{p.deductions.length ? p.deductions.join("; ") : "None"}</dd></div>
-              <div><dt className="text-ink-3">Down payment</dt><dd className="font-semibold">{p.downPayment ? `${kwacha(p.downPayment)}, ${p.downTreatment.toLowerCase()}` : "None"}</dd></div>
+              <div><dt className="text-ink-3">Down payment</dt><dd className="font-semibold">{p.downPayment ? `${kwacha(p.downPayment)}, ${p.downTreatment.replace(/^./, (c) => c.toLowerCase())}` : "None"}</dd></div>
               <div><dt className="text-ink-3">If the event is cancelled</dt><dd className="font-semibold">{p.cancellation}</dd></div>
               <div><dt className="text-ink-3">Ticket money</dt><dd className="font-semibold">Collected by EMS, settled once after the event</dd></div>
             </dl>

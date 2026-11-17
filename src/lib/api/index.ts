@@ -9,6 +9,7 @@
 import * as mock from "@/lib/mock/data";
 import * as commerce from "@/lib/mock/commerce";
 import * as programme from "@/lib/mock/programme";
+import * as ops from "@/lib/mock/operations";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -174,6 +175,8 @@ export const api = {
     notifications: () => mock.notifications,
   },
   platform: {
+    /** GET /v1/admin/transactions (every organiser) */
+    transactions: () => ops.allTransactions,
     /** GET /v1/admin/payment-gateways */
     gateways: () => mock.gateways,
     /** GET /v1/admin/audit-logs */
@@ -182,6 +185,25 @@ export const api = {
     support: () => mock.supportTickets,
     /** GET /v1/admin/metrics/monthly */
     series: () => mock.platformSeries,
+  },
+  refunds: {
+    /** GET /v1/orgs/:orgId/refund-requests, or GET /v1/admin/refund-requests when no org is given */
+    requests: (orgId?: string) => (orgId ? ops.refundRequests.filter((r) => r.orgId === orgId) : ops.refundRequests),
+    /** GET /v1/orgs/:orgId/chargebacks, or GET /v1/admin/chargebacks */
+    chargebacks: (orgId?: string) => (orgId ? ops.chargebacks.filter((r) => r.orgId === orgId) : ops.chargebacks),
+    /** GET /v1/orgs/:orgId/refund-rules */
+    rules: () => ops.refundRules,
+  },
+  activity: {
+    /** GET /v1/orgs/:orgId/activity (the organisation's own audit log) */
+    forOrg: () => ops.orgActivity,
+  },
+  messages: {
+    /** GET /v1/orgs/:orgId/message-templates */
+    templates: () => ops.orgTemplates,
+    variables: () => ops.templateVariables,
+    /** GET /v1/orgs/:orgId/support (questions from buyers and tickets with EMS support) */
+    threads: (orgId = "org1") => ops.supportThreads.filter((t) => t.orgId === orgId),
   },
   billing: {
     /** GET /v1/plans (public price list, current plan versions) */
@@ -230,3 +252,4 @@ export {
 export type { Arrangement, Collection, FeePayer, Settlement, SettlementStatus, PlanKey, StaffRole, EventTerms } from "@/lib/mock/commerce";
 export { programmeKinds } from "@/lib/mock/programme";
 export type { ProgrammeItem } from "@/lib/mock/programme";
+export type { RefundRequest } from "@/lib/mock/operations";
