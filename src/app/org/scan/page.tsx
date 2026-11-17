@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AlertOctagon, Camera, CheckCircle2, CloudOff, History, Keyboard, RefreshCw, ScanLine, ShieldAlert, Siren, Wifi, XCircle } from "lucide-react";
+import Link from "next/link";
 import { cx } from "@/components/ui";
+import { useOrgRole } from "@/components/layout/org-role";
+import { teamRoles } from "@/lib/roles";
 import { api } from "@/lib/api";
 
 type Result = { kind: "valid" | "used" | "invalid" | "gate" | "cancelled"; name?: string; ticket?: string; detail: string; number?: string };
@@ -29,6 +32,8 @@ declare global {
 }
 
 export default function Scanner() {
+  const { role } = useOrgRole();
+  const who = teamRoles[role].person.split(" ");
   const [stage, setStage] = useState<"setup" | "loading" | "scan">("setup");
   const [code, setCode] = useState("JAM-4417-GATE");
   const [gate, setGate] = useState("Gate A");
@@ -94,8 +99,10 @@ export default function Scanner() {
     return (
       <div className="flex min-h-[calc(100vh-37px)] items-center justify-center bg-[#0f1522] p-4 text-white">
         <div className="w-full max-w-sm">
+          {role !== "gate" && <Link href="/org/events/" className="mb-6 inline-block text-sm text-white/60 hover:text-white">‹ Back to the workspace</Link>}
           <ScanLine size={36} className="text-marigold" />
-          <h1 className="font-display mt-4 text-3xl font-bold">Gate scanner</h1>
+          <p className="mt-4 text-sm text-white/60">Zed Live Entertainment</p>
+          <h1 className="font-display text-3xl font-bold">Gate scanner</h1>
           <p className="mt-1 text-white/60">Works offline once the ticket list has downloaded.</p>
           {stage === "setup" ? (
             <div className="mt-8 space-y-5">
@@ -125,7 +132,10 @@ export default function Scanner() {
   return (
     <div className="relative flex min-h-[calc(100vh-37px)] flex-col bg-[#0f1522] text-white">
       <div className="flex items-center justify-between px-4 py-3 text-sm">
-        <div><p className="font-semibold">{gate}, Lusaka Summer Jam</p><p className="text-white/50">Kelvin S., scanner #4</p></div>
+        <div>
+          <p className="font-semibold">{gate}, Lusaka Summer Jam</p>
+          <p className="text-white/50">{who[0]} {who[1]?.[0]}., scanner #4{role !== "gate" && <>. <Link href="/org/events/lusaka-summer-jam-2026/" className="underline">Back to the workspace</Link></>}</p>
+        </div>
         <button onClick={() => { setOnline(!online); if (!online) setPending(0); }} className={cx("flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold", online ? "bg-[#1F9D55]/20 text-[#5fd394]" : "bg-[#F4A630]/20 text-marigold")}>
           {online ? <><Wifi size={13} /> Synced</> : <><CloudOff size={13} /> Offline, {pending} to sync</>}
         </button>

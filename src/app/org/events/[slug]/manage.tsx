@@ -43,7 +43,10 @@ export function EventManage({ slug }: { slug: string }) {
         actions={<>
           <Button variant="secondary" href={`/events/${e.slug}/`}><ExternalLink size={15} /> View page</Button>
           {step && can(step.need) && <Button variant={step.to === "Archived" || step.to === "Registration closed" ? "secondary" : "primary"} onClick={() => { setStatus(step.to); toast(step.msg); }}>{step.label}</Button>}
-          {["Registration open", "Sold out", "Registration closed", "In progress"].includes(status) && <Button href="/org/checkin/"><ScanLine size={15} /> Live check-in</Button>}
+          {["Registration open", "Sold out", "Registration closed", "In progress"].includes(status) && <>
+            <Button variant="secondary" href="/org/checkin/">Live check-in</Button>
+            {can("checkin.scan") && <Button href="/org/scan/"><ScanLine size={15} /> Open gate scanner</Button>}
+          </>}
         </>}
       />
       <Tabs tabs={tabsList} value={tab} onChange={setTab} />

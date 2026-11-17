@@ -27,6 +27,7 @@ const sections: Section[] = [
       { href: "/org/classrooms/", label: "Classes", need: ["classes.manage"] },
       { href: "/org/venues/", label: "Venues" },
       { href: "/org/vendors/", label: "Vendors" },
+      { href: "/org/scan/", label: "Gate scanner", need: ["checkin.scan"] },
     ],
   },
   {
@@ -65,6 +66,7 @@ const pageNeeds: [string, Permission[]][] = [
   ["/org/events/new/", ["events.edit"]],
   ["/org/assistant/", ["events.edit"]],
   ["/org/checkin/", ["checkin.scan", "events.view"]],
+  ["/org/scan/", ["checkin.scan"]],
   ["/org/marketing/new/", ["campaigns.send"]],
   ["/org/classrooms/new/", ["classes.manage"]],
 ];
@@ -105,6 +107,23 @@ function OrgShell({ children }: { children: React.ReactNode }) {
   const blocked = (section && !allowed(section.need)) || (tab && !allowed(tab.need)) || (page && !allowed(page[1]));
   const visibleTabs = section?.tabs?.filter((t) => allowed(t.need)) ?? [];
 
+  // The scanner is part of the organiser workspace but runs full screen, like an app on the gate phone.
+  if (path.startsWith("/org/scan")) {
+    if (!can("checkin.scan")) {
+      return (
+        <div className="flex min-h-[calc(100vh-37px)] items-center justify-center p-4">
+          <Card className="max-w-md text-center">
+            <Lock className="mx-auto text-ink-3" size={32} />
+            <h1 className="mt-3 text-xl font-semibold">Your role can&rsquo;t scan tickets</h1>
+            <p className="mt-1 text-sm text-ink-3">Ask your organisation admin to give you the Gate staff role, or the &ldquo;Scan tickets at the gate&rdquo; permission.</p>
+            <Button href="/org/" variant="secondary" className="mt-5">Back to the workspace</Button>
+          </Card>
+        </div>
+      );
+    }
+    return <>{children}</>;
+  }
+
   let body: React.ReactNode = children;
   if (role === "gate") {
     body = (
@@ -112,7 +131,7 @@ function OrgShell({ children }: { children: React.ReactNode }) {
         <ScanLine className="mx-auto text-kafue" size={36} />
         <h1 className="mt-3 text-xl font-semibold">Gate staff use the scanner</h1>
         <p className="mt-1 text-sm text-ink-3">Your role only lets you check tickets at the gates you&rsquo;re assigned to. Everything else in the workspace is hidden.</p>
-        <Button href="/scan/" className="mt-5">Open the scanner</Button>
+        <Button href="/org/scan/" className="mt-5">Open the scanner</Button>
       </Card>
     );
   } else if (blocked) {
@@ -128,7 +147,7 @@ function OrgShell({ children }: { children: React.ReactNode }) {
 
   return (
     <PortalShell
-      nav={role === "gate" ? [{ items: [{ href: "/scan/", label: "Gate scanner", icon: ScanLine }] }] : nav}
+      nav={role === "gate" ? [{ items: [{ href: "/org/scan/", label: "Gate scanner", icon: ScanLine }] }] : nav}
       activeFor={() => section?.href}
       workspace={{ name: "Zed Live Entertainment", sub: "Event organiser" }}
       workspaces={["Zed Live Entertainment", "Grace Chapel International", "SkillUp Academy"]}
