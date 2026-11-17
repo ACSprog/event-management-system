@@ -381,6 +381,85 @@ export const supportTickets = [
   { id: "SUP-2270", org: "Hope Children's Foundation", subject: "Upgrade from trial to Starter", priority: "Low", status: "Resolved", age: "5 d", assignee: "Peter C." },
 ];
 
+// Shown to the public with a "Not verified" label: no ticket matched this person.
+reviews.push({ id: "r6", event: "Zed Live Sessions: October", name: "Joseph K.", verified: "Not verified", rating: 3, date: "2026-10-28", title: "Heard it was good", body: "My friends went and enjoyed it. I watched clips online; the sound seemed loud near the front.", scores: { Venue: 3, Sound: 3, Security: 3, Value: 3 }, helpful: 1, reply: null, visibility: "Public" });
+
+export const reviewPhotos: Record<string, { label: string; tint: string }[]> = {
+  r1: [{ label: "Crowd at sunset", tint: "#F4A630" }, { label: "Main stage", tint: "#0B7A75" }],
+  r4: [{ label: "Friends at the VIP bar", tint: "#5B2A86" }],
+};
+
+export const ratingBreakdown = [{ stars: 5, pct: 68 }, { stars: 4, pct: 20 }, { stars: 3, pct: 8 }, { stars: 2, pct: 3 }, { stars: 1, pct: 1 }];
+
+/** Average rating per event over time, for the trend chart. */
+export const ratingTrend = [
+  { event: "Copperbelt Nights: Ndola (Mar)", short: "Mar", rating: 3.9, reviews: 141, recommend: 78 },
+  { event: "Easter Gospel Night (Apr)", short: "Apr", rating: 4.1, reviews: 96, recommend: 82 },
+  { event: "Lusaka July Fest (Jul)", short: "Jul", rating: 4.2, reviews: 1204, recommend: 84 },
+  { event: "Zed Live Sessions: August", short: "Aug", rating: 4.3, reviews: 188, recommend: 86 },
+  { event: "Zed Live Sessions: October", short: "Oct", rating: 4.4, reviews: 286, recommend: 88 },
+];
+
+export const eventComparison = [
+  { event: "Zed Live Sessions: October", date: "24 Oct 2026", reviews: 286, overall: 4.4, Organisation: 4.3, Venue: 3.9, "Sound and lighting": 4.7, Security: 4.2, "Customer service": 4.4, "Ticket buying": 4.8, "Programme quality": 4.5, "Value for money": 4.3, recommend: 88 },
+  { event: "Zed Live Sessions: August", date: "22 Aug 2026", reviews: 188, overall: 4.3, Organisation: 4.2, Venue: 4.0, "Sound and lighting": 4.5, Security: 4.3, "Customer service": 4.2, "Ticket buying": 4.7, "Programme quality": 4.4, "Value for money": 4.2, recommend: 86 },
+  { event: "Lusaka July Fest", date: "18 Jul 2026", reviews: 1204, overall: 4.2, Organisation: 4.0, Venue: 4.1, "Sound and lighting": 4.6, Security: 3.8, "Customer service": 4.0, "Ticket buying": 4.5, "Programme quality": 4.2, "Value for money": 4.1, recommend: 84 },
+  { event: "Copperbelt Nights: Ndola", date: "14 Mar 2026", reviews: 141, overall: 3.9, Organisation: 3.7, Venue: 3.6, "Sound and lighting": 4.3, Security: 3.9, "Customer service": 3.8, "Ticket buying": 4.4, "Programme quality": 3.9, "Value for money": 3.8, recommend: 78 },
+];
+
+/** Suggestions pulled out of review text and survey answers, grouped. */
+export const suggestions = [
+  { text: "More parking marshals and a second exit", mentions: 64, area: "Venue" },
+  { text: "Open more bar points, especially in VIP", mentions: 48, area: "Customer service" },
+  { text: "Keep food stalls stocked until the end", mentions: 31, area: "Customer service" },
+  { text: "Add a ramp at Gate B for wheelchair users", mentions: 9, area: "Venue" },
+  { text: "Start headline acts earlier on a weeknight", mentions: 22, area: "Organisation" },
+  { text: "Sell water at the gates", mentions: 17, area: "Customer service" },
+];
+
+export const followUps = [
+  { id: "fu1", action: "Hire 12 parking marshals until 01:00 and open the north exit", from: "Parking and exit (64 mentions)", owner: "Mwila B.", due: "2026-12-10", done: false },
+  { id: "fu2", action: "Two extra bar points on the VIP terrace", from: "Bar queues (48 mentions)", owner: "Chanda M.", due: "2026-12-05", done: true },
+  { id: "fu3", action: "Hire a temporary ramp for Gate B", from: "Private feedback from a wheelchair user", owner: "Mwila B.", due: "2026-12-01", done: false },
+];
+
+export type SurveyQuestion = { id: string; type: "Rating" | "Choice" | "Yes or no" | "Short answer"; text: string; options?: string[] };
+export const surveys = [
+  {
+    id: "sv1", title: "Zed Live Sessions: October, after the show", event: "Zed Live Sessions: October", status: "Closed", sent: 1189, responses: 412,
+    questions: [
+      { id: "q1", type: "Rating", text: "How easy was it to get in?" },
+      { id: "q2", type: "Choice", text: "How did you get to the venue?", options: ["Own car", "Taxi or ride-hailing", "Bus or shuttle", "Walked"] },
+      { id: "q3", type: "Yes or no", text: "Would you come to a weeknight show?" },
+      { id: "q4", type: "Short answer", text: "One thing we should change next time" },
+    ] as SurveyQuestion[],
+    results: {
+      q1: { average: 4.6, spread: [71, 19, 6, 3, 1] },
+      q2: { counts: [46, 31, 18, 5] },
+      q3: { yes: 63 },
+      q4: { samples: ["More parking marshals", "Water at the gates", "Earlier start", "Bigger screens at the back"] },
+    },
+  },
+  {
+    id: "sv2", title: "Lusaka Summer Jam, morning after", event: "Lusaka Summer Jam", status: "Scheduled for 13 Dec, 09:00", sent: 0, responses: 0,
+    questions: [
+      { id: "q1", type: "Rating", text: "How was the sound?" },
+      { id: "q2", type: "Yes or no", text: "Did you use the free shuttle?" },
+      { id: "q3", type: "Short answer", text: "Anything else?" },
+    ] as SurveyQuestion[],
+    results: null,
+  },
+];
+
+export const myReviews = [
+  { event: "Copperbelt Mining Indaba 2026", date: "2026-02-19", rating: 4, title: "Useful sessions, long lunch queue", body: "The financing track was excellent. Lunch took 40 minutes to get through.", visibility: "Public", editUntil: "2026-03-05", reply: "Thanks! We're doubling the serving points for 2027." },
+];
+
+export const pendingPhotos = [
+  { id: "ph1", event: "Zed Live Sessions: October", by: "Grace T.", label: "Friends at the VIP bar", tint: "#5B2A86", note: "Faces of other guests visible" },
+  { id: "ph2", event: "Zed Live Sessions: October", by: "Anonymous attendee", label: "Car park queue at 23:40", tint: "#172033", note: "Number plates visible" },
+];
+
 export const reportedReviews = [
   { id: "rr1", event: "Lusaka Derby: Zesco vs Power Dynamos", excerpt: "This club is run by thieves and the referee was paid…", reason: "Abuse", reports: 14, by: "Organiser and 13 users", status: "Needs decision" },
   { id: "rr2", event: "Laugh Out Loud Friday", excerpt: "Visit cheap-tickets-zm dot com for half price…", reason: "Spam", reports: 6, by: "Auto-detected", status: "Hidden automatically" },

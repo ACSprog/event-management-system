@@ -90,6 +90,24 @@ export const api = {
     forEvent: () => mock.reviews,
     /** GET /v1/admin/moderation/reviews */
     reported: () => mock.reportedReviews,
+    /** GET /v1/admin/moderation/photos */
+    pendingPhotos: () => mock.pendingPhotos,
+    /** GET /v1/reviews/:id/photos (approved only) */
+    photos: (id: string) => mock.reviewPhotos[id] ?? [],
+    /** GET /v1/events/:id/reviews/summary */
+    breakdown: () => mock.ratingBreakdown,
+    /** GET /v1/orgs/:orgId/feedback/trend */
+    trend: () => mock.ratingTrend,
+    /** GET /v1/orgs/:orgId/feedback/compare?events=… */
+    compare: () => mock.eventComparison,
+    /** GET /v1/orgs/:orgId/feedback/suggestions */
+    suggestions: () => mock.suggestions,
+    /** GET /v1/orgs/:orgId/feedback/actions */
+    followUps: () => mock.followUps,
+    /** GET /v1/orgs/:orgId/surveys */
+    surveys: () => mock.surveys,
+    /** GET /v1/me/reviews */
+    mine: () => mock.myReviews,
   },
   fundraising: {
     /** GET /v1/fundraising/campaigns */

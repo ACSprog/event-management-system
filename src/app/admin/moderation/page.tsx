@@ -7,6 +7,8 @@ import { api } from "@/lib/api";
 export default function Moderation() {
   const toast = useToast();
   const [items, setItems] = useState(api.reviews.reported());
+  const [photos, setPhotos] = useState(api.reviews.pendingPhotos());
+  const decidePhoto = (id: string, msg: string) => { setPhotos(photos.filter((p) => p.id !== id)); toast(msg); };
   const decide = (id: string, msg: string) => { setItems(items.filter((i) => i.id !== id)); toast(msg); };
   return (
     <>
@@ -26,7 +28,26 @@ export default function Moderation() {
             </div>
           </Card>
         ))}
-        {items.length === 0 && <Card className="text-center text-ink-3">Nothing left to review. Nice work.</Card>}
+        {items.length === 0 && <Card className="text-center text-ink-3">No reported reviews left.</Card>}
+      </div>
+      <h2 className="mb-3 mt-8 text-lg font-semibold">Photos waiting for approval</h2>
+      <p className="mb-4 text-sm text-ink-3">Attendee photos only appear on reviews after approval. Reject photos showing children, other people&rsquo;s private details or anything offensive.</p>
+      <div className="grid gap-4 md:grid-cols-2">
+        {photos.map((p) => (
+          <Card key={p.id} className="flex gap-4">
+            <div className="flex h-24 w-32 shrink-0 items-end rounded-lg p-2 text-[11px] font-medium text-white" style={{ background: p.tint }} role="img" aria-label={p.label}>{p.label}</div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm text-ink-3">{p.event}, by {p.by}</p>
+              <Badge tone="gold" className="mt-1">{p.note}</Badge>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => decidePhoto(p.id, "Photo approved and shown on the review")}>Approve</Button>
+                <Button size="sm" variant="secondary" onClick={() => decidePhoto(p.id, "Faces and plates blurred, photo approved")}>Blur and approve</Button>
+                <Button size="sm" variant="danger" onClick={() => decidePhoto(p.id, "Photo rejected; the reviewer has been told why")}>Reject</Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+        {photos.length === 0 && <Card className="text-center text-ink-3 md:col-span-2">No photos waiting.</Card>}
       </div>
     </>
   );
