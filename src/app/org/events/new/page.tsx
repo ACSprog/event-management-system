@@ -17,7 +17,10 @@ const profiles: Record<string, { cat: string; modules: string[] }> = {
   "Workshop or course": { cat: "Workshop", modules: ["Sessions", "Materials", "Attendance", "Certificates"] },
   "Exhibition or trade fair": { cat: "Exhibition", modules: ["Exhibitors", "Booths and floor plan", "Visitor registration"] },
   "Fundraiser or gala": { cat: "Charity", modules: ["Donations", "Tables", "Auction lots", "Sponsors"] },
+  "Something else": { cat: "Other", modules: [] },
 };
+const allModules = [...new Set(Object.values(profiles).flatMap((p) => p.modules))].sort();
+const listUnder = ["Music", "Conference", "Wedding", "Sports", "Church", "Workshop", "Exhibition", "Charity", "Comedy", "Education"];
 const steps = ["Basics", "Date and place", "Tickets", "Fees and payouts", "Policies", "Review"];
 
 export default function NewEvent() {
@@ -33,6 +36,7 @@ export default function NewEvent() {
   const [contact, setContact] = useState({ name: "Chanda Mulenga", phone: "0966 120 448", email: "events@zedlive.example", whatsapp: "0966 120 448" });
   const [accent, setAccent] = useState("#172033");
   const [err, setErr] = useState("");
+  const [other, setOther] = useState({ name: "", listUnder: "Conference", modules: ["Programme", "Sessions"] as string[] });
   const [feePayer, setFeePayer] = useState<FeePayer>("ORGANISER_ABSORBS");
   const plan = api.billing.subscription().plan;
   const paid = tickets.filter((t) => t.price > 0);
@@ -40,6 +44,7 @@ export default function NewEvent() {
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const p = profiles[profile];
   const next = () => {
+    if (step === 0 && profile === "Something else" && other.name.trim().length < 3) return setErr("Say what kind of event it is, e.g. Graduation ceremony or Car show.");
     if (step === 0 && f.title.trim().length < 4) return setErr("Give the event a name of at least 4 characters.");
     if (step === 1 && f.end <= f.start) return setErr("The end time must be after the start time.");
     if (step === 2 && tickets.some((t) => !t.name || t.qty < 1)) return setErr("Every ticket type needs a name and a quantity.");
@@ -69,7 +74,23 @@ export default function NewEvent() {
                 ))}
               </div>
             </Field>
-            <div className="rounded-lg bg-surface-2 p-3 text-sm"><span className="font-semibold">Included for this type: </span>{p.modules.join(", ")}</div>
+            {profile === "Something else" ? (
+              <div className="space-y-4 rounded-lg border border-line p-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="What kind of event is it?" error={err && !other.name.trim() ? err : undefined}><Input value={other.name} onChange={(e) => { setOther({ ...other, name: e.target.value }); setErr(""); }} placeholder="e.g. Graduation ceremony, Car show" /></Field>
+                  <Field label="Show it under" hint="The category buyers browse in discovery"><Select value={other.listUnder} onChange={(e) => setOther({ ...other, listUnder: e.target.value })} options={listUnder} /></Field>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Which tools do you need?</p>
+                  <p className="mb-2 text-xs text-ink-3">Pick any. Ticketing, check-in and payouts are always included.</p>
+                  <div className="grid gap-x-4 gap-y-2 sm:grid-cols-3">
+                    {allModules.map((m) => <Checkbox key={m} checked={other.modules.includes(m)} onChange={(v) => setOther({ ...other, modules: v ? [...other.modules, m] : other.modules.filter((x) => x !== m) })} label={m} />)}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-surface-2 p-3 text-sm"><span className="font-semibold">Included for this type: </span>{p.modules.join(", ")}</div>
+            )}
             <Field label="Event name"><Input value={f.title} onChange={set("title")} /></Field>
             <Field label="Short tagline" hint="One line under the title"><Input value={f.subtitle} onChange={set("subtitle")} placeholder="e.g. The Copperbelt's biggest night out" /></Field>
             <Field label="Description">
@@ -229,13 +250,13 @@ export default function NewEvent() {
           {step === 5 && (
             <div className="space-y-4 text-sm">
               <dl className="grid gap-3 sm:grid-cols-2">
-                {[["Type", profile], ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Contact", `${contact.name}, ${contact.phone}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
+                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Contact", `${contact.name}, ${contact.phone}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
               </dl>
               <ul className="divide-y divide-line rounded-lg border border-line">{tickets.map((t) => <li key={t.name} className="flex justify-between px-4 py-2"><span>{t.name}, {t.qty}</span><span className="font-semibold">{t.price ? kwacha(t.price) : "Free"}</span></li>)}</ul>
               <p className="text-ink-3">Potential gross if all tickets sell: <strong className="text-ink">{kwacha(tickets.reduce((a, t) => a + t.price * t.qty, 0))}</strong></p>
             </div>
           )}
-          {err && step !== 1 && step !== 2 && <p className="text-sm text-hibiscus">{err}</p>}
+          {err && step !== 1 && step !== 2 && !(step === 0 && profile === "Something else" && !other.name.trim()) && <p className="text-sm text-hibiscus">{err}</p>}
           <div className="flex justify-between border-t border-line pt-4">
             <Button variant="ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>Back</Button>
             {step < 5 ? <Button onClick={next}>Continue</Button> : <Button onClick={() => toast(f.approval ? "Sent for approval. Your manager has been notified." : "Event published")}><Check size={16} /> {f.approval ? "Submit for approval" : "Publish event"}</Button>}
@@ -244,7 +265,7 @@ export default function NewEvent() {
         <div className="space-y-3">
           <p className="text-sm font-semibold text-ink-3">Preview</p>
           <div className="overflow-hidden rounded-xl border border-line bg-surface">
-            <Poster event={{ title: f.title || "Your event", category: p.cat as never, palette: [accent, "#F4A630"], start: f.start + ":00+02:00", city: f.format === "Virtual" ? "Online" : "Kitwe" }} className="aspect-[4/3]" />
+            <Poster event={{ title: f.title || "Your event", category: (profile === "Something else" ? other.name || "Other" : p.cat) as never, palette: [accent, "#F4A630"], start: f.start + ":00+02:00", city: f.format === "Virtual" ? "Online" : "Kitwe" }} className="aspect-[4/3]" />
             <div className="p-4 text-sm">
               <p className="font-semibold">{f.title}</p>
               <p className="text-ink-3">{f.format === "Virtual" ? "Online" : f.venue}</p>

@@ -5,7 +5,7 @@ import { Activity, Building2, CreditCard, FileClock, Gauge, Handshake, Landmark,
 import { PortalShell, type NavGroup } from "@/components/layout/portal-shell";
 import { AdminRoleProvider, useAdminRole } from "@/components/layout/admin-role";
 import { Button, Card } from "@/components/ui";
-import { platformRoleOrder, platformRoles, type PlatformPermission, type PlatformRole } from "@/lib/platform-roles";
+import { type PlatformPermission } from "@/lib/platform-roles";
 
 type Item = NavGroup["items"][number] & { need: PlatformPermission };
 
@@ -41,12 +41,12 @@ const itemFor = (path: string) =>
   allItems.filter((i) => (i.href === "/admin/" ? path === "/admin/" || path === "/admin" : path.startsWith(i.href))).sort((a, b) => b.href.length - a.href.length)[0];
 
 function RolePreview() {
-  const { role, setRole } = useAdminRole();
+  const { role, setRole, roles } = useAdminRole();
   return (
     <label className="flex items-center gap-2 text-sm">
       <span className="hidden text-ink-3 sm:inline">Preview as</span>
-      <select value={role} onChange={(e) => setRole(e.target.value as PlatformRole)} className="rounded-lg border border-line bg-canvas px-2 py-1.5 text-sm font-medium focus:border-kafue focus:outline-none" aria-label="Preview the super admin area as a staff role">
-        {platformRoleOrder.map((r) => <option key={r} value={r}>{platformRoles[r].label}</option>)}
+      <select value={role} onChange={(e) => setRole(e.target.value)} className="rounded-lg border border-line bg-canvas px-2 py-1.5 text-sm font-medium focus:border-kafue focus:outline-none" aria-label="Preview the super admin area as a staff role">
+        {roles.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
       </select>
     </label>
   );
@@ -54,7 +54,7 @@ function RolePreview() {
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   const path = usePathname() ?? "/admin/";
-  const { role, can } = useAdminRole();
+  const { role, can, roleInfo } = useAdminRole();
   const nav: NavGroup[] = groups
     .map((g) => ({ label: g.label, items: g.items.filter((i) => can(i.need)).map(({ href, label, icon, badge }) => ({ href, label, icon, badge })) }))
     .filter((g) => g.items.length);
@@ -63,12 +63,12 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   const home = allItems.find((i) => can(i.need));
 
   return (
-    <PortalShell nav={nav} workspace={{ name: "Eventra platform", sub: "Super administrator" }} user={{ name: platformRoles[role].person, role: platformRoles[role].label }} headerSlot={<RolePreview />}>
+    <PortalShell nav={nav} workspace={{ name: "Eventra platform", sub: "Super administrator" }} user={{ name: roleInfo(role).person, role: roleInfo(role).label }} headerSlot={<RolePreview />}>
       {blocked ? (
         <Card className="mx-auto mt-10 max-w-md text-center">
           <Lock className="mx-auto text-ink-3" size={32} />
           <h1 className="mt-3 text-xl font-semibold">Your role can&rsquo;t open this page</h1>
-          <p className="mt-1 text-sm text-ink-3">{platformRoles[role].label}s can&rsquo;t open {item.label.toLowerCase()}. Ask the platform owner to change your role if you need it.</p>
+          <p className="mt-1 text-sm text-ink-3">{roleInfo(role).label}s can&rsquo;t open {item.label.toLowerCase()}. Ask the platform owner to change your role if you need it.</p>
           {home && <Button href={home.href} variant="secondary" className="mt-5">Go to {home.label.toLowerCase()}</Button>}
         </Card>
       ) : children}

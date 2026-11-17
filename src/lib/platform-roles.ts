@@ -9,7 +9,10 @@
  * page and enforced again by the API and the database.
  */
 
-export type PlatformRole = "owner" | "finance_manager" | "finance_officer" | "customer_success" | "support" | "moderator";
+export type BuiltInPlatformRole = "owner" | "finance_manager" | "finance_officer" | "customer_success" | "support" | "moderator";
+/** A built-in role key, or the key of a custom role ("custom_…"). */
+export type PlatformRole = string;
+export interface PlatformRoleInfo { key: PlatformRole; label: string; summary: string; person: string; custom?: boolean }
 
 export type PlatformPermission =
   | "platform.view"
@@ -56,7 +59,7 @@ export const platformPermissions: { key: PlatformPermission; label: string; grou
 
 const all = platformPermissions.map((p) => p.key);
 
-export const platformRoles: Record<PlatformRole, { label: string; summary: string; person: string; perms: PlatformPermission[] }> = {
+export const platformRoles: Record<BuiltInPlatformRole, { label: string; summary: string; person: string; perms: PlatformPermission[] }> = {
   owner: {
     label: "Platform owner",
     summary: "Runs the platform and the staff. Can't approve settlements, so money always needs finance.",
@@ -95,7 +98,7 @@ export const platformRoles: Record<PlatformRole, { label: string; summary: strin
   },
 };
 
-export const platformRoleOrder: PlatformRole[] = ["owner", "finance_manager", "finance_officer", "customer_success", "support", "moderator"];
+export const platformRoleOrder: BuiltInPlatformRole[] = ["owner", "finance_manager", "finance_officer", "customer_success", "support", "moderator"];
 
 const financeOnly: PlatformPermission[] = ["settlements.approve", "payouts.start"];
 
@@ -103,7 +106,10 @@ const financeOnly: PlatformPermission[] = ["settlements.approve", "payouts.start
  * Cells nobody can change. Returns the fixed value and why, or null if the
  * cell is editable.
  */
+export const builtInPlatformRoleInfo: PlatformRoleInfo[] = platformRoleOrder.map((k) => ({ key: k, label: platformRoles[k].label, summary: platformRoles[k].summary, person: platformRoles[k].person }));
+
 export function lockedCell(role: PlatformRole, perm: PlatformPermission): { on: boolean; why: string } | null {
+  if (role.startsWith("custom_") && perm === "staff.manage") return { on: false, why: "Only the platform owner manages staff." };
   if (role === "owner" && perm === "staff.manage") return { on: true, why: "The platform owner always manages staff." };
   if (perm === "settlements.second") return { on: role === "finance_manager", why: "Second approvals above the threshold always come from the finance manager." };
   if (financeOnly.includes(perm) && role !== "finance_manager" && role !== "finance_officer") return { on: false, why: "Only finance roles can approve settlements or start payouts." };

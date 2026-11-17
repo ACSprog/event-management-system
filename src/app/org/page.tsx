@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Bot, PlusCircle } from "lucide-react";
 import { useOrgRole } from "@/components/layout/org-role";
-import { teamRoles } from "@/lib/roles";
 import { Badge, Button, Card, PageHeader, Progress, SectionTitle, Stat, Stars } from "@/components/ui";
 import { AreaTrend } from "@/components/ui/charts";
 import { api, capacity, gross, sold, statusTone } from "@/lib/api";
 import { compact, fmtDate, kwacha } from "@/lib/brand";
 
 export default function OrgDashboard() {
-  const { can, role } = useOrgRole();
-  const first = teamRoles[role].person.split(" ")[0];
+  const { can, role, roleInfo } = useOrgRole();
+  const first = roleInfo(role).person.split(" ")[0];
   const evs = api.events.forOrg();
   const upcoming = evs.filter((e) => !["Completed", "Draft"].includes(e.status));
   const series = api.finance.salesSeries();
@@ -21,7 +20,7 @@ export default function OrgDashboard() {
     <>
       <PageHeader
         title={`Good afternoon, ${first}`}
-        sub={`Signed in as ${teamRoles[role].label.toLowerCase()}. Here's what's happening across your events.`}
+        sub={`Signed in as ${roleInfo(role).label.toLowerCase()}. Here's what's happening across your events.`}
         actions={<>
           {can("events.edit") && <Button variant="secondary" href="/org/assistant/"><Bot size={16} /> Plan with AI</Button>}
           {can("money.view") && <Button variant="secondary" href="/org/reports/">Reports</Button>}

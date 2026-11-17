@@ -209,7 +209,7 @@ export const financeSettings = {
 export type StaffRole = string;
 export const platformStaff = platformStaffList
   .filter((s) => s.status === "Active")
-  .map((s) => ({ name: s.name, key: s.role, role: platformRoles[s.role].label, limit: s.limit, mfa: s.mfa }));
+  .map((s) => ({ name: s.name, key: s.role, role: platformRoles[s.role as keyof typeof platformRoles].label, limit: s.limit, mfa: s.mfa }));
 
 /* ------------------------------------------------------------------ */
 /* Settlements                                                         */

@@ -15,7 +15,11 @@
  * to EMS's own finance staff (super admin staff roles, see platformStaff).
  */
 
-export type TeamRole = "admin" | "event_manager" | "finance" | "marketing" | "gate";
+export type BuiltInRole = "admin" | "event_manager" | "finance" | "marketing" | "gate";
+/** A built-in role key, or the key of a custom role the organisation created ("custom_…"). */
+export type TeamRole = string;
+
+export interface RoleInfo { key: TeamRole; label: string; summary: string; person: string; custom?: boolean }
 
 export type Permission =
   | "events.view"
@@ -52,7 +56,7 @@ export const permissions: { key: Permission; label: string; group: string }[] = 
   { key: "team.manage", label: "Manage team, roles and settings", group: "Settings" },
 ];
 
-export const teamRoles: Record<TeamRole, { label: string; summary: string; person: string; perms: Permission[] }> = {
+export const teamRoles: Record<BuiltInRole, { label: string; summary: string; person: string; perms: Permission[] }> = {
   admin: {
     label: "Organisation admin",
     summary: "Full control of the workspace, including the team and money.",
@@ -85,8 +89,6 @@ export const teamRoles: Record<TeamRole, { label: string; summary: string; perso
   },
 };
 
-export const roleOrder: TeamRole[] = ["admin", "event_manager", "finance", "marketing", "gate"];
+export const roleOrder: BuiltInRole[] = ["admin", "event_manager", "finance", "marketing", "gate"];
 
-export function roleByLabel(label: string): TeamRole {
-  return (roleOrder.find((r) => teamRoles[r].label === label) ?? "event_manager") as TeamRole;
-}
+export const builtInRoleInfo: RoleInfo[] = roleOrder.map((k) => ({ key: k, label: teamRoles[k].label, summary: teamRoles[k].summary, person: teamRoles[k].person }));
