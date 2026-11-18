@@ -1,71 +1,73 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, CircleDollarSign, Home, Lock, ScanLine, Settings, Users } from "lucide-react";
+import { BadgeCheck, BarChart3, Building2, CalendarDays, CircleDollarSign, CreditCard, FileText, GraduationCap, Handshake, HandCoins, HeartHandshake, History, Home, Landmark, Lock, MapPin, Megaphone, MessageCircleQuestion, MessageSquareText, PiggyBank, Plug, Receipt, RotateCcw, ScanLine, Settings, Star, Truck, UserCog, Users, Wallet } from "lucide-react";
 import { PortalShell, type NavGroup } from "@/components/layout/portal-shell";
 import { OrgRoleProvider, useOrgRole } from "@/components/layout/org-role";
-import { Button, Card, cx } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { type Permission } from "@/lib/roles";
-import { orgBadges } from "@/lib/queues";
+import { orgPageBadges } from "@/lib/queues";
 
 interface Section {
   href: string;
   label: string;
   icon: typeof Home;
   need?: Permission[];
-  tabs?: { href: string; label: string; need?: Permission[]; also?: string[] }[];
+  tabs?: { href: string; label: string; icon: typeof Home; need?: Permission[]; also?: string[] }[];
   also?: string[];
 }
 
-/** Five areas. Everything else lives as a tab inside one of them. */
+/**
+ * The sidebar, arranged like the super admin's: Home, then one group per area listing every page.
+ * A group shows only if the role can use the area; each page also checks its own permission.
+ */
 const sections: Section[] = [
   { href: "/org/", label: "Home", icon: Home, also: ["/org/assistant/"] },
   {
     href: "/org/events/", label: "Events", icon: CalendarDays, need: ["events.view"],
     tabs: [
-      { href: "/org/events/", label: "Events", also: ["/org/checkin/"] },
-      { href: "/org/classrooms/", label: "Classes", need: ["classes.manage"] },
-      { href: "/org/venues/", label: "Venues" },
-      { href: "/org/vendors/", label: "Vendors" },
-      { href: "/org/scan/", label: "Gate scanner", need: ["checkin.scan"] },
+      { href: "/org/events/", label: "Events", icon: CalendarDays, also: ["/org/checkin/"] },
+      { href: "/org/classrooms/", label: "Classes", icon: GraduationCap, need: ["classes.manage"] },
+      { href: "/org/venues/", label: "Venues", icon: MapPin },
+      { href: "/org/vendors/", label: "Vendors", icon: Truck },
+      { href: "/org/scan/", label: "Gate scanner", icon: ScanLine, need: ["checkin.scan"] },
     ],
   },
   {
     href: "/org/customers/", label: "Audience", icon: Users, need: ["audience.view", "campaigns.send"],
     tabs: [
-      { href: "/org/customers/", label: "Customers", need: ["audience.view"] },
-      { href: "/org/marketing/", label: "Campaigns", need: ["campaigns.send"] },
-      { href: "/org/reviews/", label: "Reviews", need: ["audience.view"] },
-      { href: "/org/membership/", label: "Membership", need: ["audience.view"] },
-      { href: "/org/support/", label: "Questions and help", need: ["audience.view"] },
+      { href: "/org/customers/", label: "Customers", icon: Users, need: ["audience.view"] },
+      { href: "/org/marketing/", label: "Campaigns", icon: Megaphone, need: ["campaigns.send"] },
+      { href: "/org/reviews/", label: "Reviews", icon: Star, need: ["audience.view"] },
+      { href: "/org/membership/", label: "Membership", icon: BadgeCheck, need: ["audience.view"] },
+      { href: "/org/support/", label: "Questions and help", icon: MessageCircleQuestion, need: ["audience.view"] },
     ],
   },
   {
     href: "/org/finance/", label: "Money", icon: CircleDollarSign, need: ["money.view"],
     tabs: [
-      { href: "/org/finance/", label: "Overview" },
-      { href: "/org/finance/transactions/", label: "Sales" },
-      { href: "/org/finance/refunds/", label: "Refunds" },
-      { href: "/org/finance/invoices/", label: "Invoices" },
-      { href: "/org/finance/expenses/", label: "Budgets and expenses" },
-      { href: "/org/finance/settlements/", label: "Settlements" },
-      { href: "/org/finance/payouts/", label: "Payouts" },
-      { href: "/org/finance/contributions/", label: "Contributions" },
-      { href: "/org/fundraising/", label: "Donations and sponsors" },
-      { href: "/org/finance/partnerships/", label: "Partnerships" },
-      { href: "/org/reports/", label: "Reports" },
+      { href: "/org/finance/", label: "Money overview", icon: CircleDollarSign },
+      { href: "/org/finance/transactions/", label: "Sales", icon: Receipt },
+      { href: "/org/finance/refunds/", label: "Refunds", icon: RotateCcw },
+      { href: "/org/finance/invoices/", label: "Invoices", icon: FileText },
+      { href: "/org/finance/expenses/", label: "Budgets and expenses", icon: PiggyBank },
+      { href: "/org/finance/settlements/", label: "Settlements", icon: Wallet },
+      { href: "/org/finance/payouts/", label: "Payouts", icon: Landmark },
+      { href: "/org/finance/contributions/", label: "Contributions", icon: HandCoins },
+      { href: "/org/fundraising/", label: "Donations and sponsors", icon: HeartHandshake },
+      { href: "/org/finance/partnerships/", label: "Partnerships", icon: Handshake },
+      { href: "/org/reports/", label: "Reports", icon: BarChart3 },
     ],
   },
   {
     href: "/org/team/", label: "Settings", icon: Settings, need: ["team.manage"],
     tabs: [
-      { href: "/org/team/", label: "Team and roles" },
-      { href: "/org/settings/", label: "Organisation" },
-      { href: "/org/settings/billing/", label: "Plan and billing" },
-      { href: "/org/settings/messages/", label: "Messages to buyers" },
-      { href: "/org/settings/activity/", label: "Activity log" },
-      { href: "/org/integrations/", label: "Integrations" },
+      { href: "/org/team/", label: "Team and roles", icon: UserCog },
+      { href: "/org/settings/", label: "Organisation", icon: Building2 },
+      { href: "/org/settings/billing/", label: "Plan and billing", icon: CreditCard },
+      { href: "/org/settings/messages/", label: "Messages to buyers", icon: MessageSquareText },
+      { href: "/org/settings/activity/", label: "Activity log", icon: History },
+      { href: "/org/integrations/", label: "Integrations", icon: Plug },
     ],
   },
 ];
@@ -112,11 +114,14 @@ function OrgShell({ children }: { children: React.ReactNode }) {
   const section = findSection(path);
   const tab = findTab(path, section);
   // Badges come from the same queue as the Home page, so the two always agree.
-  const badges = orgBadges(can);
-  const nav: NavGroup[] = [{ items: sections.filter((s) => allowed(s.need)).map(({ href, label, icon }) => ({ href, label, icon, badge: badges[href] })) }];
+  const badges = orgPageBadges(can, sections.flatMap((s) => (s.tabs ?? [s]).map((t) => t.href)).filter((h) => h !== "/org/"));
+  const nav: NavGroup[] = sections
+    .filter((s) => allowed(s.need))
+    .map((s) => (s.tabs
+      ? { label: s.label, items: s.tabs.filter((t) => allowed(t.need)).map(({ href, label, icon }) => ({ href, label, icon, badge: badges[href] })) }
+      : { items: [{ href: s.href, label: s.label, icon: s.icon }] }));
   const page = pageNeeds.find(([p]) => path.startsWith(p));
   const blocked = (section && !allowed(section.need)) || (tab && !allowed(tab.need)) || (page && !allowed(page[1]));
-  const visibleTabs = section?.tabs?.filter((t) => allowed(t.need)) ?? [];
 
   // The scanner is part of the organiser workspace but runs full screen, like an app on the gate phone.
   if (path.startsWith("/org/scan")) {
@@ -159,21 +164,12 @@ function OrgShell({ children }: { children: React.ReactNode }) {
   return (
     <PortalShell
       nav={role === "gate" ? [{ items: [{ href: "/org/scan/", label: "Gate scanner", icon: ScanLine }] }] : nav}
-      activeFor={() => section?.href}
+      activeFor={() => (tab ?? section)?.href}
       workspace={{ name: "Zed Live Entertainment", sub: "Event organiser" }}
       workspaces={["Zed Live Entertainment", "Grace Chapel International", "SkillUp Academy"]}
       user={{ name: roleInfo(role).person, role: roleInfo(role).label }}
       headerSlot={<RolePreview />}
     >
-      {role !== "gate" && !blocked && visibleTabs.length > 1 && (
-        <nav className="-mt-2 mb-6 flex gap-1 overflow-x-auto border-b border-line" aria-label={`${section?.label} sections`}>
-          {visibleTabs.map((t) => (
-            <Link key={t.href} href={t.href} className={cx("-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium", tab === t ? "border-kafue text-ink" : "border-transparent text-ink-3 hover:text-ink")} aria-current={tab === t ? "page" : undefined}>
-              {t.label}
-            </Link>
-          ))}
-        </nav>
-      )}
       {body}
     </PortalShell>
   );

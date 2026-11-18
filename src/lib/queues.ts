@@ -101,3 +101,15 @@ export function orgBadges(can: (p: Permission) => boolean): Record<string, strin
   for (const q of orgQueue()) if (q.count && q.need.some(can)) out[area(q.href)] = (out[area(q.href)] ?? 0) + q.count;
   return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, String(v)]));
 }
+
+/** Badges for each organiser page in the grouped sidebar, keyed by the page's address. */
+export function orgPageBadges(can: (p: Permission) => boolean, pages: string[]): Record<string, string> {
+  const out: Record<string, number> = {};
+  for (const q of orgQueue()) {
+    if (!q.count || !q.need.some(can)) continue;
+    // Attach each item to the most specific sidebar page its link sits under.
+    const page = pages.filter((p) => q.href.startsWith(p)).sort((a, b) => b.length - a.length)[0];
+    if (page) out[page] = (out[page] ?? 0) + q.count;
+  }
+  return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, String(v)]));
+}
