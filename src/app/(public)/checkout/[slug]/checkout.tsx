@@ -7,6 +7,8 @@ import { Button, Checkbox, cx, Field, Input } from "@/components/ui";
 import { Poster } from "@/components/poster";
 import { api, bookingFee } from "@/lib/api";
 import { fmtDate, fmtTime, kwacha } from "@/lib/brand";
+import { PhoneInput } from "@/components/phone-input";
+import { formatPhone, phoneError, type Phone } from "@/lib/phone";
 
 const methods = [
   { id: "mtn", name: "MTN MoMo", icon: Smartphone, color: "#FFCB05", hint: "Numbers starting 096, 076" },
@@ -24,7 +26,8 @@ export function Checkout({ slug }: { slug: string }) {
   const [lines, setLines] = useState<{ name: string; qty: number; price: number }[]>([]);
   const [seats, setSeats] = useState<string | null>(null);
   const [method, setMethod] = useState("mtn");
-  const [form, setForm] = useState({ name: "Chanda Mulenga", phone: "0964 471 220", email: "chanda.mulenga@mail.example", code: "" });
+  const [form, setForm] = useState({ name: "Chanda Mulenga", email: "chanda.mulenga@mail.example", code: "" });
+  const [phone, setPhone] = useState<Phone>({ country: "ZM", number: "0964 471 220" });
   const [agree, setAgree] = useState(true);
   const [marketing, setMarketing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -63,8 +66,9 @@ export function Checkout({ slug }: { slug: string }) {
   const pay = () => {
     const err: Record<string, string> = {};
     if (form.name.trim().length < 3) err.name = "Enter your full name as it should appear on the ticket.";
-    const digits = form.phone.replace(/\D/g, "");
-    if (!/^(0|260)?(9[5-7]|7[5-7])\d{7}$/.test(digits)) err.phone = "Enter a Zambian mobile number, for example 0964 123 456.";
+    const phoneErr = phoneError(phone);
+    if (phoneErr) err.phone = phoneErr;
+    else if (["mtn", "airtel", "zamtel"].includes(method) && phone.country !== "ZM") err.phone = "Mobile money needs a Zambian number (+260). Use a card for a number from another country.";
     if (!/^\S+@\S+\.\S+$/.test(form.email)) err.email = "Enter an email address so we can send your tickets.";
     if (!agree) err.agree = "Accept the event terms to continue.";
     setErrors(err);
@@ -83,7 +87,7 @@ export function Checkout({ slug }: { slug: string }) {
         </div>
         <h1 className="mt-6 text-2xl font-semibold">{isMobile ? "Approve the payment on your phone" : "Confirming your payment"}</h1>
         <p className="mt-2 text-ink-2">
-          {isMobile ? <>We sent a {m.name} prompt to <strong>{form.phone}</strong> for <strong>{kwacha(total)}</strong>. Enter your PIN to approve it.</> : "Hold on while your bank confirms the payment."}
+          {isMobile ? <>We sent a {m.name} prompt to <strong>{formatPhone(phone)}</strong> for <strong>{kwacha(total)}</strong>. Enter your PIN to approve it.</> : "Hold on while your bank confirms the payment."}
         </p>
         <p className="mt-4 text-sm text-ink-3">You can close this page. We issue your tickets the moment {m.name} confirms, and send them by SMS and email.</p>
         <div className="mt-8 flex justify-center gap-2">
@@ -109,7 +113,7 @@ export function Checkout({ slug }: { slug: string }) {
             <p className="text-sm text-ink-3">Tickets go to this phone and email. No account needed.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="Full name" error={errors.name}><Input value={form.name} onChange={(x) => setForm({ ...form, name: x.target.value })} autoComplete="name" /></Field>
-              <Field label="Mobile number" error={errors.phone} hint="For your SMS ticket and mobile money prompt"><Input value={form.phone} onChange={(x) => setForm({ ...form, phone: x.target.value })} inputMode="tel" autoComplete="tel" /></Field>
+              <Field label="Mobile number" error={errors.phone} hint="For your SMS ticket and mobile money prompt"><PhoneInput value={phone} onChange={setPhone} invalid={!!errors.phone} /></Field>
               <Field label="Email" error={errors.email}><Input value={form.email} onChange={(x) => setForm({ ...form, email: x.target.value })} type="email" autoComplete="email" /></Field>
             </div>
           </section>

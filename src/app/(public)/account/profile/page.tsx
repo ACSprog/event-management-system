@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Download, ShieldCheck, Trash2 } from "lucide-react";
 import { Avatar, Badge, Button, Card, Field, Input, Modal, PageHeader, SectionTitle, Toggle, useToast } from "@/components/ui";
+import { PhoneInput } from "@/components/phone-input";
+import { emptyPhone, phoneError, type Phone } from "@/lib/phone";
 
 /**
  * Attendee profile and privacy. Phone-first: the mobile number is how the
@@ -14,7 +16,8 @@ export default function Profile() {
   const [f, setF] = useState({ name: "Chanda Mulenga", email: "chanda.m@example.com", city: "Lusaka", birthday: "1994-06-12" });
   const [err, setErr] = useState<{ name?: string; email?: string }>({});
   const [phoneModal, setPhoneModal] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState<Phone>(emptyPhone());
+  const [phoneErr, setPhoneErr] = useState<string>();
   const [del, setDel] = useState(false);
   const [priv, setPriv] = useState({ showName: true, orgMarketing: false, recommend: true, attendance: false });
   const t = (k: keyof typeof priv) => (v: boolean) => setPriv({ ...priv, [k]: v });
@@ -56,7 +59,7 @@ export default function Profile() {
         <Card className="space-y-3">
           <SectionTitle title="Sign-in" />
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-            <div><p className="font-semibold">Mobile number</p><p className="text-ink-3">0971 ••• 567 · you sign in with a 6-digit SMS code</p></div>
+            <div><p className="font-semibold">Mobile number</p><p className="text-ink-3">🇿🇲 +260 97 ••• 567 · you sign in with a 6-digit SMS code</p></div>
             <Button size="sm" variant="secondary" onClick={() => setPhoneModal(true)}>Change number</Button>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3 text-sm">
@@ -87,8 +90,8 @@ export default function Profile() {
         </Card>
       </div>
 
-      <Modal open={phoneModal} onClose={() => setPhoneModal(false)} title="Change mobile number" footer={<><Button variant="ghost" onClick={() => setPhoneModal(false)}>Cancel</Button><Button onClick={() => { if (phone.replace(/\D/g, "").length < 10) return; setPhoneModal(false); setPhone(""); toast("We sent a 6-digit code to the new number. Your tickets move once you confirm it."); }}>Send code</Button></>}>
-        <Field label="New mobile number" error={phone && phone.replace(/\D/g, "").length < 10 ? "Enter a 10-digit mobile number." : undefined}><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" placeholder="0971 234 567" /></Field>
+      <Modal open={phoneModal} onClose={() => setPhoneModal(false)} title="Change mobile number" footer={<><Button variant="ghost" onClick={() => setPhoneModal(false)}>Cancel</Button><Button onClick={() => { const e = phoneError(phone); setPhoneErr(e); if (e) return; setPhoneModal(false); setPhone(emptyPhone()); toast("We sent a 6-digit code to the new number. Your tickets move once you confirm it."); }}>Send code</Button></>}>
+        <Field label="New mobile number" error={phoneErr}><PhoneInput value={phone} onChange={(p) => { setPhone(p); setPhoneErr(undefined); }} invalid={!!phoneErr} /></Field>
       </Modal>
       <Modal open={del} onClose={() => setDel(false)} title="Delete your account?" footer={<><Button variant="ghost" onClick={() => setDel(false)}>Keep my account</Button><Button variant="danger" onClick={() => { setDel(false); toast("Request received. We'll confirm by SMS before anything is deleted."); }}>Delete account</Button></>}>
         <p className="text-sm text-ink-2">Your upcoming tickets stop working and can&rsquo;t be recovered. Transfer them first if someone else will use them. We confirm by SMS before deleting.</p>

@@ -9,6 +9,8 @@ import { ProgrammeEditor, programmeIssues } from "@/components/programme";
 import { Badge, Button, Card, Checkbox, cx, Field, Input, PageHeader, Select, Textarea, useToast } from "@/components/ui";
 import { api, type ProgrammeItem, bookingFee, feePayerLabel, planFee, type FeePayer } from "@/lib/api";
 import { kwacha } from "@/lib/brand";
+import { PhoneInput } from "@/components/phone-input";
+import { countryOf, formatPhone, parsePhone } from "@/lib/phone";
 
 const profiles: Record<string, { cat: string; modules: string[] }> = {
   "Concert or festival": { cat: "Music", modules: ["Performers and line-up", "Stages", "Gates and zones", "VIP areas"] },
@@ -248,8 +250,8 @@ export default function NewEvent() {
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Contact name"><Input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} /></Field>
               <Field label="Contact email"><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} /></Field>
-              <Field label="Phone"><Input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} inputMode="tel" /></Field>
-              <Field label="WhatsApp"><Input value={contact.whatsapp} onChange={(e) => setContact({ ...contact, whatsapp: e.target.value })} inputMode="tel" /></Field>
+              <Field label="Phone"><PhoneInput value={parsePhone(contact.phone)} onChange={(p) => setContact({ ...contact, phone: p.country === "ZM" ? p.number : `+${countryOf(p.country).dial} ${p.number}` })} /></Field>
+              <Field label="WhatsApp"><PhoneInput value={parsePhone(contact.whatsapp)} onChange={(p) => setContact({ ...contact, whatsapp: p.country === "ZM" ? p.number : `+${countryOf(p.country).dial} ${p.number}` })} /></Field>
             </div>
             <div>
               <p className="mb-2 text-sm font-medium">Event page colour</p>
@@ -263,7 +265,7 @@ export default function NewEvent() {
           {step === 6 && (
             <div className="space-y-4 text-sm">
               <dl className="grid gap-3 sm:grid-cols-2">
-                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Programme", programme.length ? `${programme.length} items over ${new Set(programme.map((x) => x.day)).size} day${new Set(programme.map((x) => x.day)).size > 1 ? "s" : ""}` : "None yet, add it later"], ["Contact", `${contact.name}, ${contact.phone}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
+                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Programme", programme.length ? `${programme.length} items over ${new Set(programme.map((x) => x.day)).size} day${new Set(programme.map((x) => x.day)).size > 1 ? "s" : ""}` : "None yet, add it later"], ["Contact", `${contact.name}, ${formatPhone(parsePhone(contact.phone))}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
               </dl>
               <ul className="divide-y divide-line rounded-lg border border-line">{tickets.map((t) => <li key={t.name} className="flex justify-between px-4 py-2"><span>{t.name}, {t.qty}</span><span className="font-semibold">{t.price ? kwacha(t.price) : "Free"}</span></li>)}</ul>
               <p className="text-ink-3">Potential gross if all tickets sell: <strong className="text-ink">{kwacha(tickets.reduce((a, t) => a + t.price * t.qty, 0))}</strong></p>

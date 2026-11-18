@@ -6,13 +6,15 @@ import { TicketCard } from "@/components/ticket-card";
 import { Button, Field, Input, Modal, PageHeader, Tabs, useToast } from "@/components/ui";
 import { api } from "@/lib/api";
 import { fmtDate } from "@/lib/brand";
+import { PhoneInput } from "@/components/phone-input";
+import { emptyPhone, phoneError, type Phone } from "@/lib/phone";
 
 export default function MyTickets() {
   const toast = useToast();
   const [tab, setTab] = useState("Upcoming");
   const [transfer, setTransfer] = useState<string | null>(null);
   const [history, setHistory] = useState<string | null>(null);
-  const [to, setTo] = useState("");
+  const [to, setTo] = useState<Phone>(emptyPhone());
   const [err, setErr] = useState("");
   const tickets = api.me.tickets();
   const past = api.me.pastTickets();
@@ -59,9 +61,9 @@ export default function MyTickets() {
           {history && api.me.ticketHistory(history).length === 0 && <li className="text-ink-3">Bought in your name. No transfers or changes.</li>}
         </ol>
       </Modal>
-      <Modal open={!!transfer} onClose={() => setTransfer(null)} title="Transfer ticket" footer={<><Button variant="ghost" onClick={() => setTransfer(null)}>Cancel</Button><Button onClick={() => { if (to.replace(/\D/g, "").length < 10) { setErr("Enter their 10-digit mobile number."); return; } setTransfer(null); setTo(""); setErr(""); toast("Ticket transferred. Your old QR code no longer works."); }}>Transfer ticket</Button></>}>
+      <Modal open={!!transfer} onClose={() => setTransfer(null)} title="Transfer ticket" footer={<><Button variant="ghost" onClick={() => setTransfer(null)}>Cancel</Button><Button onClick={() => { const e = phoneError(to); if (e) { setErr(e); return; } setTransfer(null); setTo(emptyPhone()); setErr(""); toast("Ticket transferred. Your old QR code no longer works."); }}>Transfer ticket</Button></>}>
         <p className="text-sm text-ink-2">The new holder gets a fresh QR code by SMS. Your copy of <strong>{transfer}</strong> stops working immediately, so screenshots can&rsquo;t be reused.</p>
-        <div className="mt-4"><Field label="Their mobile number" error={err}><Input value={to} onChange={(e) => setTo(e.target.value)} inputMode="tel" placeholder="0971 234 567" /></Field></div>
+        <div className="mt-4"><Field label="Their mobile number" error={err}><PhoneInput value={to} onChange={setTo} invalid={!!err} /></Field></div>
       </Modal>
     </>
   );
