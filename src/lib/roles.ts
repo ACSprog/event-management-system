@@ -32,6 +32,7 @@ export type Permission =
   | "expenses.approve"
   | "settlements.review"
   | "payouts.account"
+  | "contributions.cashout"
   | "audience.view"
   | "campaigns.send"
   | "reviews.reply"
@@ -53,6 +54,7 @@ export const permissions: { key: Permission; label: string; group: string }[] = 
   { key: "expenses.approve", label: "Approve expenses and vendor bills", group: "Money" },
   { key: "settlements.review", label: "Accept or dispute settlement statements", group: "Money" },
   { key: "payouts.account", label: "Change the payout account", group: "Money" },
+  { key: "contributions.cashout", label: "Cash out contributions (small amounts are released automatically)", group: "Money" },
   { key: "team.manage", label: "Manage team, roles and settings", group: "Settings" },
 ];
 
@@ -73,7 +75,7 @@ export const teamRoles: Record<BuiltInRole, { label: string; summary: string; pe
     label: "Finance officer",
     summary: "Sales, costs, refunds and settlement statements. Cannot change events or the payout account.",
     person: "Precious Nyirenda",
-    perms: ["events.view", "money.view", "refunds.issue", "expenses.approve", "settlements.review"],
+    perms: ["events.view", "money.view", "refunds.issue", "expenses.approve", "settlements.review", "contributions.cashout"],
   },
   marketing: {
     label: "Marketing officer",

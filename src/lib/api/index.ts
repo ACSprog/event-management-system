@@ -10,6 +10,7 @@ import * as mock from "@/lib/mock/data";
 import * as commerce from "@/lib/mock/commerce";
 import * as programme from "@/lib/mock/programme";
 import * as ops from "@/lib/mock/operations";
+import * as dash from "@/lib/mock/dashboards";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -173,6 +174,20 @@ export const api = {
     pastTickets: () => mock.pastTickets,
     /** GET /v1/me/notifications */
     notifications: () => mock.notifications,
+    /** GET /v1/me/pending (transfers to accept, postponement choices, waitlist offers) */
+    pending: () => dash.myPending,
+    /** GET /v1/me/saved-events */
+    saved: () => dash.mySaved,
+    /** GET /v1/me/following */
+    following: () => dash.myFollowing,
+    /** GET /v1/me/contributions */
+    contributions: () => dash.myContributions,
+    /** GET /v1/me/referral (a discount code, not points) */
+    referral: () => dash.myReferral,
+    /** GET /v1/discovery/events?near=me&weekend=true */
+    nearby: () => dash.myNearby,
+    /** GET /v1/me/activity */
+    activity: () => dash.myActivity,
   },
   platform: {
     /** GET /v1/admin/transactions (every organiser) */
@@ -223,6 +238,32 @@ export const api = {
     /** GET /v1/admin/licences */
     licences: () => commerce.eventLicences,
   },
+  contributions: {
+    /** GET /v1/admin/contribution-cashouts, or GET /v1/orgs/:orgId/contribution-cashouts */
+    cashouts: (orgId?: string) => (orgId ? dash.cashouts.filter((c) => c.orgId === orgId) : dash.cashouts),
+    /** GET /v1/admin/finance-settings/cashouts */
+    settings: () => dash.cashoutSettings,
+    /** GET /v1/orgs/:orgId/contributions/balance (pledged is a record only; available = cleared minus cashouts) */
+    balance: () => dash.orgContributions,
+  },
+  dashboards: {
+    /** GET /v1/admin/payments/unmatched (charged, no callback) */
+    missingCallbacks: () => dash.missingCallbacks,
+    /** GET /v1/admin/finance-settings/pending */
+    pendingFinanceChanges: () => dash.pendingFinanceChanges,
+    /** GET /v1/admin/live */
+    platformNow: () => dash.platformNow,
+    /** GET /v1/status/providers (public, also shown to organisers) */
+    serviceStatus: () => dash.serviceStatus,
+    /** GET /v1/admin/audit-logs?limit=5 */
+    adminActivity: () => dash.adminActivity,
+    /** GET /v1/orgs/:orgId/live */
+    orgNow: (eventDay: boolean) => (eventDay ? dash.orgNow.eventDay : dash.orgNow.normal),
+    /** GET /v1/orgs/:orgId/disruptions/open */
+    disruptionChoices: () => dash.disruptionChoices,
+    /** GET /v1/orgs/:orgId/tasks?due=week */
+    tasks: () => dash.orgTasksToday,
+  },
   settlements: {
     /** GET /v1/events/:id/commercial (frozen terms) */
     termsFor: (eventId: string) => commerce.termsFor(eventId),
@@ -253,3 +294,4 @@ export type { Arrangement, Collection, FeePayer, Settlement, SettlementStatus, P
 export { programmeKinds } from "@/lib/mock/programme";
 export type { ProgrammeItem } from "@/lib/mock/programme";
 export type { RefundRequest } from "@/lib/mock/operations";
+export type { Cashout, CashoutStatus, CashoutSettings } from "@/lib/mock/dashboards";
