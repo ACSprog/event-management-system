@@ -5,6 +5,8 @@ import { CalendarHeart, CheckCircle2, Repeat } from "lucide-react";
 import { Button, Checkbox, cx, Field, Input, Select, Textarea } from "@/components/ui";
 import { api, feeText } from "@/lib/api";
 import { kwacha } from "@/lib/brand";
+import { PhoneInput } from "@/components/phone-input";
+import { emptyPhone, type Phone } from "@/lib/phone";
 
 type Kind = "regular" | "oneoff";
 const stepsFor: Record<Kind, string[]> = {
@@ -20,6 +22,7 @@ export default function RegisterOrg() {
   const [i, setI] = useState(0);
   const [done, setDone] = useState(false);
   const [f, setF] = useState({ name: "", type: "Concert promoter", city: "Lusaka", pacra: "", about: "", admin: "", email: "", phone: "", payout: "MTN MoMo business wallet", account: "", start: startOptions[0], event: "", occasion: "Wedding", date: "", guests: "150", pkg: "Standard", payer: false, payWith: "MTN MoMo", otherType: "", otherOccasion: "", otherCity: "" });
+  const [phone, setPhone] = useState<Phone>(emptyPhone());
   const [err, setErr] = useState<Record<string, string>>({});
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const steps = stepsFor[kind];
@@ -124,7 +127,7 @@ export default function RegisterOrg() {
         {i === 2 && (<>
           <Field label="Your full name" error={err.admin}><Input value={f.admin} onChange={set("admin")} /></Field>
           <Field label="Email" error={err.email}><Input value={f.email} onChange={set("email")} type="email" /></Field>
-          <Field label="Mobile number" hint="Used for sign-in codes"><Input value={f.phone} onChange={set("phone")} inputMode="tel" /></Field>
+          <Field label="Mobile number" hint="Used for sign-in codes"><PhoneInput value={phone} onChange={setPhone} /></Field>
         </>)}
         {i === 3 && kind === "regular" && (<>
           <Field label="Where should we pay your ticket money?"><Select value={f.payout} onChange={set("payout")} options={["MTN MoMo business wallet", "Airtel Money business wallet", "Zamtel Kwacha business wallet", "Bank account (Zanaco, Stanbic, FNB, Absa…)"]} /></Field>
