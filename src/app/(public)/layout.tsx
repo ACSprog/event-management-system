@@ -23,7 +23,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <Link href="/for-organisers/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 lg:block">For organisers</Link>
             <Link href="/login/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 sm:block">Sign in</Link>
             <Link href="/account/notifications/" aria-label="Notifications" className="rounded-md p-2 hover:bg-surface-2"><Bell size={18} /></Link>
-            <Link href="/account/" className="hidden items-center gap-2 rounded-full bg-ink px-4 py-2 text-canvas hover:opacity-90 md:flex"><Ticket size={16} /> My tickets</Link>
+            <Link href="/account/tickets/" className="hidden items-center gap-2 rounded-full bg-ink px-4 py-2 text-canvas hover:opacity-90 md:flex"><Ticket size={16} /> My tickets</Link>
           </nav>
         </div>
       </header>

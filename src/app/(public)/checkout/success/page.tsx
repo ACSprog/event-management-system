@@ -45,7 +45,7 @@ export default function Success() {
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         {tickets.map((t) => <TicketCard key={t.number} e={e} t={t} venueName={venue.name} />)}
       </div>
-      <p className="mt-6 text-sm text-ink-3">Each ticket has its own QR code. Forward the second ticket to your guest from <a href="/account/" className="font-semibold text-kafue">My tickets</a>, so you don&rsquo;t need to arrive together.</p>
+      <p className="mt-6 text-sm text-ink-3">Each ticket has its own QR code. Forward the second ticket to your guest from <a href="/account/tickets/" className="font-semibold text-kafue">My tickets</a>, so you don&rsquo;t need to arrive together.</p>
     </div>
   );
 }

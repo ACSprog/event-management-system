@@ -1,30 +1,32 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Activity, Receipt, Building2, CreditCard, FileClock, Gauge, Handshake, Landmark, LifeBuoy, Lock, Mail, ShieldAlert, Layers, SlidersHorizontal, UserCog, Wallet } from "lucide-react";
+import { Activity, HandCoins, Receipt, Building2, CreditCard, FileClock, Gauge, Handshake, Landmark, LifeBuoy, Lock, Mail, ShieldAlert, Layers, SlidersHorizontal, UserCog, Wallet } from "lucide-react";
 import { PortalShell, type NavGroup } from "@/components/layout/portal-shell";
 import { AdminRoleProvider, useAdminRole } from "@/components/layout/admin-role";
 import { Button, Card } from "@/components/ui";
 import { type PlatformPermission } from "@/lib/platform-roles";
+import { adminBadges } from "@/lib/queues";
 
 type Item = NavGroup["items"][number] & { need: PlatformPermission };
 
 const groups: { label?: string; items: Item[] }[] = [
   { items: [{ href: "/admin/", label: "Platform overview", icon: Gauge, need: "platform.view" }] },
   { label: "Customers", items: [
-    { href: "/admin/organisations/", label: "Organisations", icon: Building2, badge: "1", need: "orgs.view" },
+    { href: "/admin/organisations/", label: "Organisations", icon: Building2, need: "orgs.view" },
     { href: "/admin/plans/", label: "Plans and packages", icon: Layers, need: "plans.manage" },
-    { href: "/admin/support/", label: "Support", icon: LifeBuoy, badge: "3", need: "support.handle" },
+    { href: "/admin/support/", label: "Support", icon: LifeBuoy, need: "support.handle" },
   ] },
   { label: "Money", items: [
     { href: "/admin/transactions/", label: "Transactions", icon: Receipt, need: "settlements.view" },
-    { href: "/admin/settlements/", label: "Settlements", icon: Wallet, badge: "5", need: "settlements.view" },
+    { href: "/admin/settlements/", label: "Settlements", icon: Wallet, need: "settlements.view" },
+    { href: "/admin/cashouts/", label: "Contribution cashouts", icon: HandCoins, need: "settlements.view" },
     { href: "/admin/partnerships/", label: "Partnerships", icon: Handshake, need: "partnerships.manage" },
     { href: "/admin/finance-settings/", label: "Finance settings", icon: Landmark, need: "finance.settings" },
   ] },
   { label: "Platform", items: [
     { href: "/admin/payments/", label: "Payments and fees", icon: CreditCard, need: "payments.manage" },
-    { href: "/admin/moderation/", label: "Review moderation", icon: ShieldAlert, badge: "2", need: "moderation.manage" },
+    { href: "/admin/moderation/", label: "Review moderation", icon: ShieldAlert, need: "moderation.manage" },
     { href: "/admin/templates/", label: "Notification templates", icon: Mail, need: "templates.manage" },
     { href: "/admin/settings/", label: "Platform settings", icon: SlidersHorizontal, need: "settings.manage" },
   ] },
@@ -56,8 +58,10 @@ function RolePreview() {
 function AdminShell({ children }: { children: React.ReactNode }) {
   const path = usePathname() ?? "/admin/";
   const { role, can, roleInfo } = useAdminRole();
+  // Badges come from the same queue as the home page, so the two always agree.
+  const badges = adminBadges(can);
   const nav: NavGroup[] = groups
-    .map((g) => ({ label: g.label, items: g.items.filter((i) => can(i.need)).map(({ href, label, icon, badge }) => ({ href, label, icon, badge })) }))
+    .map((g) => ({ label: g.label, items: g.items.filter((i) => can(i.need)).map(({ href, label, icon }) => ({ href, label, icon, badge: badges[href] })) }))
     .filter((g) => g.items.length);
   const item = itemFor(path);
   const blocked = item && !can(item.need);

@@ -7,6 +7,7 @@ import { PortalShell, type NavGroup } from "@/components/layout/portal-shell";
 import { OrgRoleProvider, useOrgRole } from "@/components/layout/org-role";
 import { Button, Card, cx } from "@/components/ui";
 import { type Permission } from "@/lib/roles";
+import { orgBadges } from "@/lib/queues";
 
 interface Section {
   href: string;
@@ -50,6 +51,7 @@ const sections: Section[] = [
       { href: "/org/finance/expenses/", label: "Budgets and expenses" },
       { href: "/org/finance/settlements/", label: "Settlements" },
       { href: "/org/finance/payouts/", label: "Payouts" },
+      { href: "/org/finance/contributions/", label: "Contributions" },
       { href: "/org/fundraising/", label: "Donations and sponsors" },
       { href: "/org/finance/partnerships/", label: "Partnerships" },
       { href: "/org/reports/", label: "Reports" },
@@ -109,7 +111,9 @@ function OrgShell({ children }: { children: React.ReactNode }) {
   const allowed = (need?: Permission[]) => !need || need.some(can);
   const section = findSection(path);
   const tab = findTab(path, section);
-  const nav: NavGroup[] = [{ items: sections.filter((s) => allowed(s.need)).map(({ href, label, icon }) => ({ href, label, icon })) }];
+  // Badges come from the same queue as the Home page, so the two always agree.
+  const badges = orgBadges(can);
+  const nav: NavGroup[] = [{ items: sections.filter((s) => allowed(s.need)).map(({ href, label, icon }) => ({ href, label, icon, badge: badges[href] })) }];
   const page = pageNeeds.find(([p]) => path.startsWith(p));
   const blocked = (section && !allowed(section.need)) || (tab && !allowed(tab.need)) || (page && !allowed(page[1]));
   const visibleTabs = section?.tabs?.filter((t) => allowed(t.need)) ?? [];

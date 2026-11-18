@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, GraduationCap, Receipt, Settings, Star, Ticket, Trophy } from "lucide-react";
+import { Bell, GraduationCap, LayoutDashboard, Receipt, Settings, Star, Ticket, Trophy } from "lucide-react";
 import { Avatar, cx } from "@/components/ui";
 
 const items = [
-  { href: "/account/", label: "My tickets", icon: Ticket },
+  { href: "/account/", label: "Overview", icon: LayoutDashboard },
+  { href: "/account/tickets/", label: "My tickets", icon: Ticket },
   { href: "/account/orders/", label: "Orders and refunds", icon: Receipt },
   { href: "/account/courses/", label: "My courses", icon: GraduationCap },
   { href: "/account/reviews/", label: "Reviews", icon: Star },

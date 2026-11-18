@@ -8,8 +8,8 @@ import { cx } from "@/components/ui";
 const items = [
   { href: "/", label: "Home", icon: Home, match: (p: string) => p === "/" },
   { href: "/events/", label: "Discover", icon: Compass, match: (p: string) => p.startsWith("/events") || p.startsWith("/organisers") },
-  { href: "/account/", label: "Tickets", icon: Ticket, match: (p: string) => p === "/account/" || p === "/account" },
-  { href: "/account/preferences/", label: "Account", icon: UserRound, match: (p: string) => p.startsWith("/account/") && p !== "/account/" },
+  { href: "/account/tickets/", label: "Tickets", icon: Ticket, match: (p: string) => p.startsWith("/account/tickets") },
+  { href: "/account/", label: "Account", icon: UserRound, match: (p: string) => p.startsWith("/account") && !p.startsWith("/account/tickets") },
 ];
 
 /** Phone-only navigation for attendees: the four places they go most. */
