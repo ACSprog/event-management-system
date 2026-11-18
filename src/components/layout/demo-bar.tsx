@@ -7,7 +7,8 @@ import { useEffect, useState } from "react";
 import { cx } from "@/components/ui";
 
 export const portals = [
-  { href: "/", label: "Attendee site", match: (p: string) => !/^\/(org|admin)/.test(p) },
+  { href: "/", label: "Attendee site", match: (p: string) => !/^\/(org|admin|account)/.test(p) },
+  { href: "/account/", label: "Attendee account", match: (p: string) => p.startsWith("/account") },
   { href: "/org/", label: "Event organiser", match: (p: string) => p.startsWith("/org") },
   { href: "/admin/", label: "Super admin", match: (p: string) => p.startsWith("/admin") },
 ];
