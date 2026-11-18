@@ -7,6 +7,7 @@ import { Avatar, cx } from "@/components/ui";
 
 const items = [
   { href: "/account/", label: "Overview", icon: LayoutDashboard },
+  { href: "/account/profile/", label: "Profile and privacy", icon: UserRound },
   { href: "/account/tickets/", label: "My tickets", icon: Ticket },
   { href: "/account/orders/", label: "Orders and refunds", icon: Receipt },
   { href: "/account/courses/", label: "My courses", icon: GraduationCap },
@@ -14,7 +15,6 @@ const items = [
   { href: "/account/rewards/", label: "Rewards and membership", icon: Trophy },
   { href: "/account/notifications/", label: "Notifications", icon: Bell },
   { href: "/account/preferences/", label: "Location and alerts", icon: Settings },
-  { href: "/account/profile/", label: "Profile and privacy", icon: UserRound },
 ];
 
 export function AccountNav() {

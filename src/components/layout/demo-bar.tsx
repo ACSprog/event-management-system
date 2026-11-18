@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 import { cx } from "@/components/ui";
 
 export const portals = [
-  { href: "/", label: "Attendee site", match: (p: string) => !/^\/(org|admin|account)/.test(p) },
-  { href: "/account/", label: "Attendee account", match: (p: string) => p.startsWith("/account") },
+  // The attendee view opens on the attendee's own account (profile and tickets).
+  // The public marketplace is one click away through the logo and "Discover".
+  { href: "/account/", label: "Attendee", match: (p: string) => !/^\/(org|admin)/.test(p) },
   { href: "/org/", label: "Event organiser", match: (p: string) => p.startsWith("/org") },
   { href: "/admin/", label: "Super admin", match: (p: string) => p.startsWith("/admin") },
 ];
