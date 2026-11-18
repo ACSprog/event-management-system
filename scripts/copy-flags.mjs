@@ -4,10 +4,12 @@
 import { cpSync, mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const src = join(dirname(require.resolve("country-flag-icons/package.json")), "3x2");
-const dest = new URL("../public/flags/", import.meta.url).pathname;
+// fileURLToPath gives a proper path on Windows too (C:\...), unlike URL.pathname (/C:/...).
+const dest = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "flags");
 mkdirSync(dest, { recursive: true });
 cpSync(src, dest, { recursive: true });
 console.log("Flags copied to public/flags/");
