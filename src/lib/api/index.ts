@@ -11,6 +11,7 @@ import * as commerce from "@/lib/mock/commerce";
 import * as programme from "@/lib/mock/programme";
 import * as ops from "@/lib/mock/operations";
 import * as dash from "@/lib/mock/dashboards";
+import * as places from "@/lib/mock/places";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -238,6 +239,23 @@ export const api = {
     /** GET /v1/admin/licences */
     licences: () => commerce.eventLicences,
   },
+  location: {
+    /**
+     * POST /v1/locations/resolve-link. The server opens a short Google Maps link
+     * (maps.app.goo.gl) and returns the pin. In this preview every short link
+     * resolves to the same sample place.
+     */
+    resolveShortLink: async (url: string) => {
+      void url;
+      await new Promise((r) => setTimeout(r, 500));
+      return { ...places.sampleShortLinks.default, sample: true as const };
+    },
+    /** GET /v1/locations/search?q= (places used on Eventra first, then Google Places in the live system) */
+    search: (q: string) => {
+      const s = q.trim().toLowerCase();
+      return s ? places.knownPlaces.filter((p) => p.name.toLowerCase().includes(s) || p.area.toLowerCase().includes(s) || p.eventTypes.some((t) => t.toLowerCase().includes(s))) : places.knownPlaces;
+    },
+  },
   contributions: {
     /** GET /v1/admin/contribution-cashouts, or GET /v1/orgs/:orgId/contribution-cashouts */
     cashouts: (orgId?: string) => (orgId ? dash.cashouts.filter((c) => c.orgId === orgId) : dash.cashouts),
@@ -294,4 +312,5 @@ export type { Arrangement, Collection, FeePayer, Settlement, SettlementStatus, P
 export { programmeKinds } from "@/lib/mock/programme";
 export type { ProgrammeItem } from "@/lib/mock/programme";
 export type { RefundRequest } from "@/lib/mock/operations";
+export type { KnownPlace } from "@/lib/mock/places";
 export type { Cashout, CashoutStatus, CashoutSettings } from "@/lib/mock/dashboards";

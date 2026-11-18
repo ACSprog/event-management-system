@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { BadgeCheck, Calendar, Clock, MapPin, Share2, Star, Video, Bus, Accessibility } from "lucide-react";
+import { BadgeCheck, Calendar, Clock, MapPin, Share2, Star, Video, Bus, Accessibility, Navigation } from "lucide-react";
+import { LocationMap } from "@/components/location-map";
+import { directionsLinks, plusCodeFor } from "@/lib/location";
 import { Poster } from "@/components/poster";
 import { TicketPicker } from "@/components/ticket-picker";
 import { api } from "@/lib/api";
@@ -18,6 +20,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const e = api.events.bySlug(slug)!;
   const venue = api.venues.get(e.venueId);
+  const landmarks = api.location.search(venue.name).find((p) => p.name === venue.name)?.directions;
+  const dir = directionsLinks(venue);
   const org = api.orgs.get(e.orgId);
   const programme = api.events.programme(e.id).length
     ? api.events.programme(e.id)
@@ -78,19 +82,19 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             <section className="mt-10">
               <h2 className="text-xl font-semibold">Getting there</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-[1.2fr_1fr]">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-xl border border-line bg-[#e7efe9] dark:bg-[#18262a]">
-                  <svg viewBox="0 0 320 200" className="absolute inset-0 h-full w-full" aria-hidden>
-                    <path d="M0 120 L320 110 M150 0 L170 200 M0 30 L320 190" stroke="#fff" strokeOpacity=".8" strokeWidth="6" />
-                    <g transform="translate(162 112)"><path d="M0 0 C-10 -12 -10 -26 0 -28 C10 -26 10 -12 0 0Z" fill="var(--hibiscus)" /><circle cy="-18" r="4" fill="#fff" /></g>
-                  </svg>
-                  <span className="absolute bottom-2 left-2 rounded bg-surface px-2 py-1 text-xs">{venue.lat.toFixed(4)}, {venue.lng.toFixed(4)}</span>
-                </div>
+                <LocationMap lat={venue.lat} lng={venue.lng} height={260} />
                 <div className="space-y-3 text-sm">
                   <p className="font-semibold">{venue.name}</p>
                   <p className="text-ink-3">{venue.address}</p>
+                  {landmarks && <p className="flex gap-2"><Navigation size={16} className="shrink-0 text-kafue" /> {landmarks}</p>}
                   <p className="flex gap-2"><Bus size={16} className="shrink-0 text-kafue" /> Free shuttles from Manda Hill and East Park every 20 minutes from 15:00.</p>
                   <p className="flex gap-2"><Accessibility size={16} className="shrink-0 text-kafue" /> Step-free entrance at Gate A. Tell us at checkout if you need help.</p>
-                  <a href={`https://www.google.com/maps?q=${venue.lat},${venue.lng}`} className="inline-block font-semibold text-kafue hover:underline">Open in Google Maps</a>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <a href={dir.google} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold bg-kafue text-white hover:opacity-90"><Navigation size={14} /> Google Maps</a>
+                    <a href={dir.apple} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold border border-line bg-surface hover:border-kafue">Apple Maps</a>
+                    <a href={dir.waze} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold border border-line bg-surface hover:border-kafue">Waze</a>
+                  </div>
+                  <p className="text-xs text-ink-3">Plus code: {plusCodeFor(venue.lat, venue.lng)}</p>
                 </div>
               </div>
             </section>

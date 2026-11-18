@@ -11,6 +11,8 @@ import { api, type ProgrammeItem, bookingFee, feePayerLabel, planFee, type FeePa
 import { kwacha } from "@/lib/brand";
 import { PhoneInput } from "@/components/phone-input";
 import { countryOf, formatPhone, parsePhone } from "@/lib/phone";
+import { LocationPicker } from "@/components/location-picker";
+import type { EventLocation } from "@/lib/location";
 
 const profiles: Record<string, { cat: string; modules: string[] }> = {
   "Concert or festival": { cat: "Music", modules: ["Performers and line-up", "Stages", "Gates and zones", "VIP areas"] },
@@ -36,6 +38,7 @@ export default function NewEvent() {
   const [moreFor, setMoreFor] = useState<number | null>(null);
   const [gallery, setGallery] = useState<{ url: string; name: string }[]>([]);
   const galleryInput = useRef<HTMLInputElement>(null);
+  const [location, setLocation] = useState<EventLocation | null>({ lat: -12.8024, lng: 28.2132, name: "Garden Court Kitwe Ballroom", area: "Kitwe", source: "SEARCH", directions: "Freedom Avenue, next to the Kitwe Civic Centre. Parking at the back.", privateHome: false });
   const [sessions, setSessions] = useState<{ title: string; start: string; venue: string }[]>([]);
   const [contact, setContact] = useState({ name: "Chanda Mulenga", phone: "0966 120 448", email: "events@zedlive.example", whatsapp: "0966 120 448" });
   const [accent, setAccent] = useState("#172033");
@@ -52,6 +55,7 @@ export default function NewEvent() {
     if (step === 0 && profile === "Something else" && other.name.trim().length < 3) return setErr("Say what kind of event it is, e.g. Graduation ceremony or Car show.");
     if (step === 0 && f.title.trim().length < 4) return setErr("Give the event a name of at least 4 characters.");
     if (step === 1 && f.end <= f.start) return setErr("The end time must be after the start time.");
+    if (step === 1 && f.format !== "Virtual" && !location) return setErr("Confirm where the event is: choose \"Yes, use this place\" under the map.");
     if (step === 2 && programmeIssues(programme).length) return setErr("Fix the programme items marked above, or remove them. You can also leave the programme empty and add it later.");
     if (step === 3 && tickets.some((t) => !t.name || t.qty < 1)) return setErr("Every ticket type needs a name and a quantity.");
     setErr("");
@@ -128,11 +132,18 @@ export default function NewEvent() {
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Starts"><Input type="datetime-local" value={f.start} onChange={set("start")} /></Field>
-              <Field label="Ends" error={err && step === 1 ? err : undefined}><Input type="datetime-local" value={f.end} onChange={set("end")} /></Field>
+              <Field label="Ends" error={err && step === 1 && f.end <= f.start ? err : undefined}><Input type="datetime-local" value={f.end} onChange={set("end")} /></Field>
               <Field label="Time zone"><Select options={["Africa/Lusaka (CAT, UTC+2)", "Africa/Johannesburg (SAST)", "Europe/London"]} /></Field>
               <Field label="Repeats"><Select value={f.recurring} onChange={set("recurring")} options={["Does not repeat", "Every week", "Every month", "Custom dates"]} /></Field>
             </div>
-            {f.format !== "Virtual" && <SelectOther label="Venue" hint="From your venues, or request a booking from the venue directory" options={api.venues.list().map((v) => v.name)} other="Another venue (not in the list)" prompt="Venue name and address" placeholder="e.g. Chilenje Community Hall, Lusaka" onChange={(c, t) => setF({ ...f, venue: c.startsWith("Another") ? t || "Another venue" : c })} />}
+            {f.format !== "Virtual" && (
+              <div>
+                <p className="mb-1 text-sm font-medium">Where is it?</p>
+                <p className="mb-3 text-xs text-ink-3">Paste a map link, drop a pin, search places used on Eventra, use where you are, or type a plus code. You contact and book the venue yourself.</p>
+                <LocationPicker value={location} onChange={(l) => { setLocation(l); setF({ ...f, venue: l?.name ?? "" }); if (l) setErr(""); }} />
+                {err && step === 1 && f.end > f.start && <p className="mt-2 text-sm text-hibiscus">{err}</p>}
+              </div>
+            )}
             {f.format !== "Physical" && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Streaming"><Select value={f.stream} onChange={set("stream")} options={["YouTube", "Facebook Live", "Zoom (registered attendees)", "Other link"]} /></Field>
@@ -265,7 +276,7 @@ export default function NewEvent() {
           {step === 6 && (
             <div className="space-y-4 text-sm">
               <dl className="grid gap-3 sm:grid-cols-2">
-                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Programme", programme.length ? `${programme.length} items over ${new Set(programme.map((x) => x.day)).size} day${new Set(programme.map((x) => x.day)).size > 1 ? "s" : ""}` : "None yet, add it later"], ["Contact", `${contact.name}, ${formatPhone(parsePhone(contact.phone))}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : f.venue], ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
+                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Programme", programme.length ? `${programme.length} items over ${new Set(programme.map((x) => x.day)).size} day${new Set(programme.map((x) => x.day)).size > 1 ? "s" : ""}` : "None yet, add it later"], ["Contact", `${contact.name}, ${formatPhone(parsePhone(contact.phone))}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : location ? `${location.name}, ${location.area}${location.privateHome ? " (private home: exact pin for guests only)" : ""}` : "Not set"], ...(f.format !== "Virtual" && location?.directions ? [["Directions", location.directions]] : []), ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
               </dl>
               <ul className="divide-y divide-line rounded-lg border border-line">{tickets.map((t) => <li key={t.name} className="flex justify-between px-4 py-2"><span>{t.name}, {t.qty}</span><span className="font-semibold">{t.price ? kwacha(t.price) : "Free"}</span></li>)}</ul>
               <p className="text-ink-3">Potential gross if all tickets sell: <strong className="text-ink">{kwacha(tickets.reduce((a, t) => a + t.price * t.qty, 0))}</strong></p>
