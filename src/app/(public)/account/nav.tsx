@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, GraduationCap, LayoutDashboard, Receipt, Settings, Star, Ticket, Trophy } from "lucide-react";
+import { Bell, GraduationCap, LayoutDashboard, UserRound, Receipt, Settings, Star, Ticket, Trophy } from "lucide-react";
 import { Avatar, cx } from "@/components/ui";
 
 const items = [
   { href: "/account/", label: "Overview", icon: LayoutDashboard },
+  { href: "/account/profile/", label: "Profile and privacy", icon: UserRound },
   { href: "/account/tickets/", label: "My tickets", icon: Ticket },
   { href: "/account/orders/", label: "Orders and refunds", icon: Receipt },
   { href: "/account/courses/", label: "My courses", icon: GraduationCap },
@@ -23,8 +24,8 @@ export function AccountNav() {
       <div className="mb-4 flex items-center gap-3">
         <Avatar name="Chanda Mulenga" size={40} />
         <div>
-          <p className="font-semibold">Chanda Mulenga</p>
-          <p className="text-xs text-ink-3">Silver member, 3,420 points</p>
+          <Link href="/account/profile/" className="font-semibold hover:text-kafue">Chanda Mulenga</Link>
+          <p className="text-xs text-ink-3">0971 ••• 567 · signed in by SMS code</p>
         </div>
       </div>
       <nav className="flex gap-1 overflow-x-auto lg:flex-col">
