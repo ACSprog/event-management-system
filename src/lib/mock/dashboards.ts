@@ -111,7 +111,7 @@ export const orgNow = {
     ["Check-ins, last 15 minutes", "412"],
     ["Scanners online", "8 of 8, last scan 4 s ago"],
     ["Gate B (VIP)", "Queue about 6 minutes"],
-    ["Incidents open", "1: lost wristband table"],
+    ["Help requests open", "4 (1 waiting over 2 minutes)"],
   ],
 } as const;
 

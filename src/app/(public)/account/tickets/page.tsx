@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { History, Send, UserPen, ListOrdered } from "lucide-react";
+import { History, Send, UserPen, ListOrdered, LifeBuoy } from "lucide-react";
 import { TicketCard } from "@/components/ticket-card";
 import { Button, Field, Input, Modal, PageHeader, Tabs, useToast } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -34,6 +34,7 @@ export default function MyTickets() {
                   <Button size="sm" variant="ghost" onClick={() => setTransfer(t.number)}><Send size={14} /> Transfer</Button>
                   <Button size="sm" variant="ghost" onClick={() => toast("Name change request sent to the organiser")}><UserPen size={14} /> Change name</Button>
                   <Button size="sm" variant="ghost" onClick={() => setHistory(t.number)}><History size={14} /> History</Button>
+                  <Button size="sm" variant="ghost" href={`/events/${e.slug}/help/`}><LifeBuoy size={14} /> Request help</Button>
                 </div>
               </div>
             );

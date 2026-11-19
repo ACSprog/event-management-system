@@ -12,13 +12,15 @@ import { NoEarlyPayouts, SettlementBadge, SettlementTimeline } from "@/component
 import { useOrgRole } from "@/components/layout/org-role";
 import { compact, fmtDate, fmtTime, kwacha } from "@/lib/brand";
 import { pct, showCount } from "@/lib/gender";
+import { MessagesPanel } from "./messages-panel";
+import { RequestsPanel } from "./requests-panel";
 
 
 export function EventManage({ slug }: { slug: string }) {
   const toast = useToast();
   const { can } = useOrgRole();
   const [status, setStatus] = useState(api.events.bySlug(slug)!.status);
-  const tabsList = ["Overview", "Programme", "Tickets", "Attendees", ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), "Check-in and gates", "Tasks and logistics", ...(can("money.view") ? ["Budget", "Money and settlement"] : []), ...(can("events.edit") ? ["Staff and shifts"] : [])];
+  const tabsList = ["Overview", "Programme", "Tickets", "Attendees", ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), "Check-in and gates", ...(can("messages.send") ? ["Help requests", "Event messages"] : []), "Tasks and logistics", ...(can("money.view") ? ["Budget", "Money and settlement"] : []), ...(can("events.edit") ? ["Staff and shifts"] : [])];
   const next: Record<string, { label: string; to: typeof status; need: "events.publish" | "events.edit"; msg: string } | undefined> = {
     "Pending approval": { label: "Approve", to: "Approved", need: "events.publish", msg: "Event approved. Publish it when you're ready." },
     Approved: { label: "Publish now", to: "Registration open", need: "events.publish", msg: "Published. Tickets are on sale." },
@@ -164,6 +166,9 @@ export function EventManage({ slug }: { slug: string }) {
           <div className="mt-6"><Table rows={api.events.gates()} columns={[{ key: "name", label: "Gate", render: (g) => <span className="font-semibold">{g.name}</span> }, { key: "allowed", label: "Accepts" }, { key: "scanners", label: "Scanners", align: "right" }, { key: "staff", label: "Staff", align: "right" }, { key: "scanned", label: "Scanned", align: "right", render: (g) => g.scanned.toLocaleString() }, { key: "rate", label: "Per minute", align: "right" }]} /></div>
         </>
       )}
+
+      {tab === "Help requests" && <RequestsPanel />}
+      {tab === "Event messages" && <MessagesPanel />}
 
       {tab === "Online attendees" && (
         <>
