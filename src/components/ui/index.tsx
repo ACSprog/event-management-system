@@ -112,37 +112,66 @@ export interface Column<T> {
   align?: "left" | "right";
   className?: string;
 }
-export function Table<T extends object>({ columns, rows, onRow, empty = "Nothing here yet." }: { columns: Column<T>[]; rows: T[]; onRow?: (r: T) => void; empty?: string }) {
+/**
+ * Data table. Mobile first: on phones (under 640px) each row becomes a card,
+ * with the first column as its title and the others as label and value lines;
+ * columns without a label (actions) go at the bottom. Tablets and up get a
+ * normal table, which scrolls inside its own box if it is still too wide.
+ * Pass mobile="scroll" to keep the table on phones too (e.g. dense grids).
+ */
+export function Table<T extends object>({ columns, rows, onRow, empty = "Nothing here yet.", mobile = "cards" }: { columns: Column<T>[]; rows: T[]; onRow?: (r: T) => void; empty?: string; mobile?: "cards" | "scroll" }) {
   if (!rows.length) return <EmptyState title={empty} />;
+  const cell = (c: Column<T>, r: T) => (c.render ? c.render(r) : String((r as Record<string, unknown>)[c.key] ?? ""));
+  const [first, ...rest] = columns;
   return (
-    <div className="overflow-x-auto rounded-xl border border-line bg-surface">
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-line text-ink-3">
-            {columns.map((c) => (
-              <th key={c.key} className={cx("px-4 py-3 font-medium", c.align === "right" && "text-right")}>
-                {c.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
+    <>
+      {mobile === "cards" && (
+        <ul className="space-y-2 sm:hidden">
           {rows.map((r, i) => (
-            <tr
-              key={i}
-              onClick={onRow ? () => onRow(r) : undefined}
-              className={cx("border-b border-line last:border-0", onRow && "cursor-pointer hover:bg-surface-2")}
-            >
+            <li key={i} onClick={onRow ? () => onRow(r) : undefined} className={cx("rounded-xl border border-line bg-surface p-4 text-sm", onRow && "cursor-pointer active:bg-surface-2")}>
+              <div className="min-w-0 break-words">{cell(first, r)}</div>
+              <dl className="mt-2 space-y-1.5">
+                {rest.filter((c) => c.label).map((c) => (
+                  <div key={c.key} className="flex items-start justify-between gap-3">
+                    <dt className="shrink-0 text-ink-3">{c.label}</dt>
+                    <dd className={cx("min-w-0 break-words text-right", c.align === "right" && "tabular-nums")}>{cell(c, r)}</dd>
+                  </div>
+                ))}
+              </dl>
+              {rest.some((c) => !c.label) && <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-line pt-3">{rest.filter((c) => !c.label).map((c) => <div key={c.key}>{cell(c, r)}</div>)}</div>}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className={cx("overflow-x-auto rounded-xl border border-line bg-surface", mobile === "cards" && "hidden sm:block")}>
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-line text-ink-3">
               {columns.map((c) => (
-                <td key={c.key} className={cx("px-4 py-3 align-middle", c.align === "right" && "text-right tabular-nums", c.className)}>
-                  {c.render ? c.render(r) : String((r as Record<string, unknown>)[c.key] ?? "")}
-                </td>
+                <th key={c.key} className={cx("px-4 py-3 font-medium", c.align === "right" && "text-right")}>
+                  {c.label}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr
+                key={i}
+                onClick={onRow ? () => onRow(r) : undefined}
+                className={cx("border-b border-line last:border-0", onRow && "cursor-pointer hover:bg-surface-2")}
+              >
+                {columns.map((c) => (
+                  <td key={c.key} className={cx("px-4 py-3 align-middle", c.align === "right" && "text-right tabular-nums", c.className)}>
+                    {cell(c, r)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 

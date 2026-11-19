@@ -130,8 +130,11 @@ phone layout; `sm:`, `md:`, `lg:` and `xl:` add to it for larger screens.
 | Laptop and desktop | 1024px and up | Fixed sidebar in the account, organiser and super admin views; no hamburger |
 
 Rules:
-- No page scrolls sideways. Wide tables scroll inside their own box; grid
-  children may shrink (see `globals.css`).
+- No page scrolls sideways; grid children may shrink (see `globals.css`).
+- Data tables (`Table` in `src/components/ui`) turn into stacked cards on
+  phones: first column as the title, the rest as label and value lines, actions
+  at the bottom. Tablets and up get the normal table. Use `mobile="scroll"` only
+  for dense grids that must stay tabular.
 - Touch targets are at least 40px; phone inputs use 16px text so iOS does not zoom.
 - The attendee account sections are defined once (`src/components/layout/account-menu.tsx`)
   and shown in the sidebar on laptops and in the menu on phones and tablets.

@@ -8,10 +8,10 @@ import { cx } from "@/components/ui";
 
 export const portals = [
   // The public marketplace that anyone can browse without signing in.
-  { href: "/", label: "Public site", match: (p: string) => !/^\/(org|admin|account)/.test(p) },
+  { href: "/", label: "Public site", match: (p: string) => !/^\/(org|admin|account)(\/|$)/.test(p) },
   // A signed-in attendee's own account: overview, profile, tickets, orders.
   { href: "/account/", label: "Attendee", match: (p: string) => p.startsWith("/account") },
-  { href: "/org/", label: "Event organiser", match: (p: string) => p.startsWith("/org") },
+  { href: "/org/", label: "Event organiser", match: (p: string) => p === "/org" || p.startsWith("/org/") },
   { href: "/admin/", label: "Super admin", match: (p: string) => p.startsWith("/admin") },
 ];
 
