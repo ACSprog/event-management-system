@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarPlus, Copy, LifeBuoy, MessageCircle, Send } from "lucide-react";
+import { CalendarPlus, Copy, LifeBuoy, MessageCircle, Send, Ticket as TicketIcon } from "lucide-react";
 import { ActivityFeed, KeyList } from "@/components/dashboard";
 import { QrScanButton } from "@/components/qr-scan-button";
 import { TicketCard } from "@/components/ticket-card";
@@ -25,6 +25,9 @@ export default function AccountOverview() {
   const past = api.me.pastTickets().filter((p) => !p.reviewed);
   const refunds = api.refunds.requests("org1").filter((r) => r.buyer === "Chipo Zulu");
   const next = tickets[0];
+  const allEvents = api.events.discover();
+  const liveMine = Array.from(new Set(tickets.map((t) => t.eventId))).map((id) => allEvents.find((e) => e.id === id)).filter((e): e is NonNullable<typeof e> => !!e && isLive(e));
+  const liveNear = allEvents.filter((e) => isLive(e) && !liveMine.some((m) => m.id === e.id));
   const nextEvent = api.events.bySlug(api.events.discover().find((x) => x.id === next.eventId)!.slug)!;
   const events = new Set(tickets.map((t) => t.eventId)).size;
   const daysToGo = Math.round((new Date(nextEvent.start).getTime() - new Date("2026-11-18T12:00:00+02:00").getTime()) / 86_400_000);
@@ -49,16 +52,47 @@ export default function AccountOverview() {
       </div>
 
       {/* At an event now: the quickest way to ask for help */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-kafue bg-kafue-soft p-5">
-        <div>
-          <p className="flex items-center gap-2 font-semibold"><LifeBuoy size={18} className="text-kafue" /> At {nextEvent.title} now?</p>
-          <p className="text-sm text-ink-2">Ask for an usher, security, first aid and more. Or scan the QR code on your table or pew.</p>
+      {liveMine[0] && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-hibiscus/40 bg-hibiscus-soft p-5">
+          <div>
+            <p className="flex items-center gap-2 font-semibold"><span className="h-2.5 w-2.5 rounded-full bg-hibiscus motion-safe:animate-pulse" /> {liveMine[0].title} is on now</p>
+            <p className="text-sm text-ink-2">You have a ticket. Show it at the gate, or ask the team for an usher, security, first aid and more.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button href="/account/tickets/" variant="secondary"><TicketIcon size={16} /> Show my ticket</Button>
+            <Button href={`/events/${liveMine[0].slug}/help/`}><LifeBuoy size={16} /> Request help</Button>
+            <QrScanButton />
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button href={`/events/${nextEvent.slug}/help/`}><LifeBuoy size={16} /> Request help</Button>
-          <QrScanButton />
-        </div>
-      </div>
+      )}
+
+      {/* Happening now: events you have tickets for, then others near you */}
+      <Card className="mt-6">
+        <SectionTitle title="Happening now" action={<Link href="/events/?when=now" className="text-sm font-semibold text-kafue">See all</Link>} />
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">Your tickets</p>
+        {liveMine.length === 0 ? <p className="py-3 text-sm text-ink-3">None of your events are on right now.</p> : (
+          <ul className="divide-y divide-line text-sm">
+            {liveMine.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <span className="min-w-0"><span className="flex items-center gap-2 font-semibold"><span className="h-2 w-2 shrink-0 rounded-full bg-hibiscus motion-safe:animate-pulse" />{e.title}</span><span className="block text-xs text-ink-3">{api.venues.get(e.venueId).name} · until {fmtDate(e.end, { weekday: "short", hour: "2-digit", minute: "2-digit" })} · {tickets.filter((t) => t.eventId === e.id).map((t) => t.type).join(", ")}</span></span>
+                <span className="flex gap-2"><Button size="sm" variant="secondary" href="/account/tickets/">Show ticket</Button><Button size="sm" href={`/events/${e.slug}/help/`}>Request help</Button></span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-ink-3">Near you</p>
+        <ul className="divide-y divide-line text-sm">
+          {liveNear.map((e) => (
+            <li key={e.id}>
+              <Link href={`/events/${e.slug}/`} className="flex items-center justify-between gap-3 py-3 hover:text-kafue">
+                <span className="min-w-0"><span className="flex items-center gap-2 font-semibold"><span className="h-2 w-2 shrink-0 rounded-full bg-hibiscus motion-safe:animate-pulse" />{e.title}</span><span className="block text-xs text-ink-3">{api.venues.get(e.venueId).name} · {e.distanceKm} km · until {fmtDate(e.end, { weekday: "short", hour: "2-digit", minute: "2-digit" })}</span></span>
+                <span className="shrink-0 font-semibold">{fromPrice(e) === 0 ? "Free entry" : `From ${kwacha(fromPrice(e))}`}</span>
+              </Link>
+            </li>
+          ))}
+          {liveNear.length === 0 && <li className="py-3 text-ink-3">Nothing else on nearby right now.</li>}
+        </ul>
+      </Card>
 
       {/* 2 and 3. Needs your attention, and your next ticket */}
       <div className="mt-6 grid gap-6 2xl:grid-cols-[1.2fr_1fr]">
@@ -124,21 +158,6 @@ export default function AccountOverview() {
           <p className="mt-3 text-xs text-ink-3">Your device location is only used when you ask for it.</p>
         </Card>
       </div>
-
-      {/* Happening now near you */}
-      <Card className="mt-6">
-        <SectionTitle title="Happening now near you" action={<Link href="/events/?when=now" className="text-sm font-semibold text-kafue">See all</Link>} />
-        <ul className="divide-y divide-line text-sm">
-          {api.events.discover().filter((e) => isLive(e)).map((e) => (
-            <li key={e.id}>
-              <Link href={`/events/${e.slug}/`} className="flex items-center justify-between gap-3 py-3 hover:text-kafue">
-                <span className="min-w-0"><span className="flex items-center gap-2 font-semibold"><span className="h-2 w-2 shrink-0 rounded-full bg-hibiscus motion-safe:animate-pulse" />{e.title}</span><span className="block text-xs text-ink-3">{api.venues.get(e.venueId).name} · {e.distanceKm} km · until {fmtDate(e.end, { hour: "2-digit", minute: "2-digit" })}</span></span>
-                <span className="shrink-0 font-semibold">{fromPrice(e) === 0 ? "Free entry" : `From ${kwacha(fromPrice(e))}`}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Card>
 
       {/* 6. Recent activity */}
       <div className="mt-6"><ActivityFeed rows={api.me.activity()} /></div>

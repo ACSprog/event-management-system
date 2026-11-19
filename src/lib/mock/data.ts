@@ -592,6 +592,7 @@ export const myTickets = [
   { id: "mt2", eventId: "e1", type: "Standard", holder: "Mwila Banda", ref: "EVT-8K2Q9M", number: "TKT-000481-B", status: "Valid", gate: "Gate A or B" },
   { id: "mt3", eventId: "e3", type: "Meal pack (4 days)", holder: "Chanda Mulenga", ref: "EVT-3PZ7LA", number: "TKT-120044-A", status: "Valid", gate: "Main entrance" },
   { id: "mt4", eventId: "e5", type: "Full course", holder: "Chanda Mulenga", ref: "EVT-9QW1XE", number: "TKT-550010-A", status: "Valid", gate: "Online" },
+  { id: "mt5", eventId: "e30", type: "Week pass", holder: "Chanda Mulenga", ref: "EVT-7XP026", number: "TKT-883102-A", status: "Valid", gate: "North gate" },
 ];
 
 export const pastTickets = [
