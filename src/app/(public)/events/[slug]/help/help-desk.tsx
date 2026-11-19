@@ -7,6 +7,7 @@ import { PhoneInput } from "@/components/phone-input";
 import { QrScanButton } from "@/components/qr-scan-button";
 import { Badge, Button, Field, Textarea, cx } from "@/components/ui";
 import { api } from "@/lib/api";
+import { nextCaseNumber } from "@/lib/cases";
 import { ESCALATE_AFTER_SECONDS, flow, statusLabel, type Duty, type RequestStatus } from "@/lib/assist";
 import { emptyPhone, phoneError, type Phone as PhoneValue } from "@/lib/phone";
 
@@ -54,7 +55,7 @@ export function HelpDesk({ slug }: { slug: string }) {
     if (!where.trim()) return setErr("Say where you are, for example \"Table 6\" or \"near the stage\".");
     if (anonymous && phone.number && phoneError(phone)) return setErr(phoneError(phone)!);
     setErr("");
-    const id = `RQ-${1035 + Math.floor(note.length % 50)}`;
+    const id = nextCaseNumber();
     const match = staff.find((s) => s.duty === duty.key && s.status === "available") ?? staff.find((s) => s.duty === duty.key);
     setSent({ id, duty, where, note, status: "SUBMITTED", chat: [] });
     const step = (ms: number, status: RequestStatus, assignee?: string) => timers.current.push(setTimeout(() => setSent((x) => (x && x.status !== "CANCELLED" && x.status !== "COMPLETED" ? { ...x, status, assignee: assignee ?? x.assignee } : x)), ms));
@@ -147,7 +148,7 @@ export function HelpDesk({ slug }: { slug: string }) {
         </>
       ) : (
         <div className="mt-6 rounded-xl border border-line bg-surface p-4">
-          <p className="text-xs text-ink-3">Request {sent.id} · {sent.duty.ask}</p>
+          <p className="flex flex-wrap items-center gap-2 text-xs text-ink-3"><span className="rounded-md bg-surface-2 px-2 py-0.5 font-mono font-semibold text-ink">Case {sent.id}</span> {sent.duty.ask}</p>
           <p className="mt-1 text-lg font-semibold">
             {sent.status === "SUBMITTED" && "Sent. Finding someone for you…"}
             {sent.status === "ASSIGNED" && `${sent.assignee} has your request`}
@@ -185,6 +186,7 @@ export function HelpDesk({ slug }: { slug: string }) {
               <Button variant="secondary" onClick={() => setSent({ ...sent, status: "COMPLETED" })}><CheckCircle2 size={16} /> It&rsquo;s sorted</Button>
               <Button variant="ghost" onClick={() => setSent({ ...sent, status: "CANCELLED" })}>Cancel request</Button>
             </>}
+            <Button variant="ghost" href={`/account/messages/?case=CS-2611-0409`}>Open in Messages</Button>
             {(sent.status === "COMPLETED" || sent.status === "CANCELLED") && <Button variant="secondary" onClick={() => { setSent(null); setDuty(null); setNote(""); setPhoto(""); }}>Make another request</Button>}
           </div>
         </div>

@@ -17,14 +17,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <input name="q" placeholder="Search events, artists or venues" className="w-full rounded-full border border-line bg-canvas py-2 pl-9 pr-4 text-sm focus:border-kafue focus:outline-none" />
             </label>
           </form>
-          <nav className="ml-auto flex items-center gap-1 text-sm font-medium">
+          <nav className="ml-auto flex items-center gap-2 text-sm font-medium">
             <Link href="/events/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 sm:block">Discover</Link>
             <Link href="/fundraising/school-feeding-2027/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 lg:block">Give</Link>
             <Link href="/for-organisers/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 lg:block">For organisers</Link>
             <Link href="/login/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 sm:block">Sign in</Link>
-            <Link href="/account/notifications/" aria-label="Notifications" className="rounded-md p-2 hover:bg-surface-2"><Bell size={18} /></Link>
-            <Link href="/account/tickets/" className="hidden items-center gap-2 rounded-full bg-ink px-4 py-2 text-canvas hover:opacity-90 md:flex"><Ticket size={16} /> My tickets</Link>
-            <Link href="/account/" aria-label="My account" title="My account" className="rounded-full p-2 hover:bg-surface-2"><UserRound size={18} /></Link>
+            <Link href="/account/notifications/" aria-label="Notifications" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-2"><Bell size={18} /></Link>
+            <Link href="/account/tickets/" className="hidden h-10 items-center gap-2 rounded-full bg-ink px-4 text-canvas hover:opacity-90 md:flex"><Ticket size={16} /> My tickets</Link>
+            <Link href="/account/" aria-label="My account" title="My account" className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface hover:border-ink-3"><UserRound size={18} /></Link>
           </nav>
         </div>
       </header>

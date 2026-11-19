@@ -5,7 +5,6 @@ import { Bell, LifeBuoy, Phone } from "lucide-react";
 import { QrScanButton } from "@/components/qr-scan-button";
 import { Badge, Button, Card, PageHeader, SectionTitle } from "@/components/ui";
 import { api } from "@/lib/api";
-import { statusLabel } from "@/lib/assist";
 import { fmtDate } from "@/lib/brand";
 import { isLive } from "@/lib/date-ranges";
 
@@ -47,10 +46,12 @@ export default function HelpAtEvents() {
         <Card>
           <SectionTitle title="Your requests" />
           <ul className="divide-y divide-line text-sm">
-            {api.assist.mine().map((r) => (
-              <li key={r.id} className="flex items-start justify-between gap-3 py-3">
-                <span><span className="block font-semibold">{r.what}</span><span className="block text-xs text-ink-3">{r.event} · {r.where} · {r.at} · handled by {r.by}</span></span>
-                <Badge tone="green">{statusLabel[r.status]}</Badge>
+            {api.cases.mine().filter((c) => c.type === "Help request" || c.type === "Lost and found").map((c) => (
+              <li key={c.number}>
+                <Link href={`/account/messages/?case=${c.number}`} className="flex items-start justify-between gap-3 py-3 hover:text-kafue">
+                  <span><span className="block font-semibold">{c.subject}</span><span className="block text-xs text-ink-3"><span className="font-mono">{c.number}</span> · {c.event}</span></span>
+                  <Badge tone={c.status === "Closed" ? "grey" : "green"}>{c.status === "Answered" ? "Done" : c.status}</Badge>
+                </Link>
               </li>
             ))}
           </ul>

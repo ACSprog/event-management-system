@@ -13,6 +13,7 @@ import * as ops from "@/lib/mock/operations";
 import * as dash from "@/lib/mock/dashboards";
 import * as places from "@/lib/mock/places";
 import * as assist from "@/lib/mock/assist";
+import * as cases from "@/lib/mock/cases";
 import { churchDuties as churchDutiesConst, defaultDuties as defaultDutiesConst } from "@/lib/assist";
 const churchDutiesList = () => churchDutiesConst;
 const defaultDutiesList = () => defaultDutiesConst;
@@ -243,6 +244,12 @@ export const api = {
     /** GET /v1/admin/licences */
     licences: () => commerce.eventLicences,
   },
+  cases: {
+    /** GET /v1/me/cases (the attendee's conversations, newest first) */
+    mine: () => cases.myCases,
+    /** GET /v1/orgs/:orgId/cases (buyer conversations for the organiser's team) */
+    forOrg: () => cases.orgCases,
+  },
   assist: {
     /** GET /v1/events/:id/assist/settings (assignment mode, on-site hotline, whether staff are on duty) */
     settings: () => assist.assistSettings,
@@ -341,5 +348,6 @@ export { programmeKinds } from "@/lib/mock/programme";
 export type { ProgrammeItem } from "@/lib/mock/programme";
 export type { RefundRequest } from "@/lib/mock/operations";
 export type { KnownPlace } from "@/lib/mock/places";
+export type { Case, CaseMessage, CaseStatus, CaseType } from "@/lib/cases";
 export type { HelpRequest, StaffOnDuty, SentMessage, AudienceCell } from "@/lib/mock/assist";
 export type { Cashout, CashoutStatus, CashoutSettings } from "@/lib/mock/dashboards";

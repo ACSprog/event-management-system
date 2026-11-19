@@ -4,7 +4,8 @@ import { useState } from "react";
 import { MessageSquarePlus, Send } from "lucide-react";
 import { Avatar, Badge, Button, Card, cx, Field, Input, Modal, PageHeader, Tabs, Textarea, useToast } from "@/components/ui";
 import { SelectOther } from "@/components/select-other";
-import { api } from "@/lib/api";
+import { CaseThread } from "@/components/case-thread";
+import { api, type Case } from "@/lib/api";
 
 export default function Support() {
   const toast = useToast();
@@ -14,7 +15,12 @@ export default function Support() {
   const [reply, setReply] = useState("");
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState("");
-  const list = threads.filter((t) => (tab === "Questions from buyers" ? t.with !== "EMS support" : t.with === "EMS support"));
+  const [cases, setCases] = useState<Case[]>(api.cases.forOrg());
+  const [caseSel, setCaseSel] = useState(cases[0]?.number);
+  const [q, setQ] = useState("");
+  const buyerCases = cases.filter((c) => !q.trim() || `${c.number} ${c.subject} ${(c as Case & { buyer?: string }).buyer ?? ""}`.toLowerCase().includes(q.trim().toLowerCase()));
+  const curCase = cases.find((c) => c.number === caseSel);
+  const list = threads.filter((t) => t.with === "EMS support");
   const cur = threads.find((t) => t.id === (sel ?? list[0]?.id));
 
   const send = () => {
@@ -28,6 +34,25 @@ export default function Support() {
     <>
       <PageHeader title="Help and support" sub="Answer questions from your buyers, and get help from EMS." actions={<Button onClick={() => setOpen(true)}><MessageSquarePlus size={15} /> Ask EMS for help</Button>} />
       <Tabs tabs={["Questions from buyers", "Your requests to EMS"]} value={tab} onChange={(t) => { setTab(t); setSel(null); }} />
+      {tab === "Questions from buyers" ? (
+        <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+          <Card pad={false}>
+            <div className="border-b border-line p-3"><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by case number, name or subject" aria-label="Search cases" /></div>
+            <ul className="divide-y divide-line">
+              {buyerCases.map((c) => (
+                <li key={c.number}>
+                  <button onClick={() => setCaseSel(c.number)} className={cx("w-full px-4 py-3 text-left", curCase?.number === c.number ? "bg-kafue-soft" : "hover:bg-surface-2")}>
+                    <div className="flex items-center justify-between gap-2"><p className="truncate font-semibold">{c.subject}</p><Badge tone={c.status === "Open" ? "gold" : c.status === "Closed" || c.status === "Expired" ? "grey" : "green"}>{c.status === "Open" ? "Needs reply" : c.status === "Waiting for you" ? "Replied" : c.status}</Badge></div>
+                    <p className="text-xs text-ink-3"><span className="font-mono">{c.number}</span> · {(c as Case & { buyer?: string }).buyer} · {c.type}</p>
+                  </button>
+                </li>
+              ))}
+              {!buyerCases.length && <li className="p-4 text-sm text-ink-3">No case matches &ldquo;{q}&rdquo;.</li>}
+            </ul>
+          </Card>
+          {curCase && <Card pad={false} className="min-h-[520px]"><CaseThread c={curCase} side="team" onChange={(n) => setCases(cases.map((x) => (x.number === n.number ? n : x)))} /></Card>}
+        </div>
+      ) : (
       <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
         <Card pad={false}>
           <ul className="divide-y divide-line">
@@ -61,6 +86,7 @@ export default function Support() {
           </Card>
         )}
       </div>
+      )}
 
       <Modal open={open} onClose={() => setOpen(false)} title="Ask EMS for help" footer={<><Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { if (subject.trim().length < 5) return; setThreads([{ id: "SUP-3320", orgId: "org1", with: "EMS support", subject, status: "Waiting for EMS", updated: "Now", messages: [{ from: "You", at: "Now", text: subject }] }, ...threads]); setTab("Your requests to EMS"); setSel("SUP-3320"); setOpen(false); setSubject(""); toast("Request sent. EMS usually replies within 4 working hours."); }}>Send request</Button></>}>
         <div className="space-y-4">
