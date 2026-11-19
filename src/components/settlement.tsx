@@ -84,13 +84,17 @@ export function StatementTable({ s, disputable, onDispute }: { s: Settlement; di
             const disputed = s.dispute?.status === "Open" && s.dispute.line === l.label;
             return (
               <tr key={l.key} className={disputed ? "bg-hibiscus-soft/50" : undefined}>
-                <td className="px-5 py-3">
+                <td className="px-4 py-3 sm:px-5">
                   <p className={l.key === "gross" ? "font-semibold" : undefined}>{l.label}</p>
                   {l.note && <p className="text-xs text-ink-3">{l.note}</p>}
                   {disputed && <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-hibiscus"><AlertTriangle size={12} /> Disputed: {kwacha(s.dispute!.amount)} held until resolved</p>}
                 </td>
-                <td className="whitespace-nowrap px-5 py-3 text-right tabular-nums">{money(l.amount)}</td>
-                {disputable && <td className="w-24 pr-3 text-right">{l.amount < 0 && <Button size="sm" variant="ghost" onClick={() => onDispute?.(l.label, -l.amount)}>Dispute</Button>}</td>}
+                <td className="whitespace-nowrap px-3 py-3 text-right align-top tabular-nums sm:px-5">
+                  {money(l.amount)}
+                  {/* Phones: Dispute sits under the amount instead of in its own column. */}
+                  {disputable && l.amount < 0 && <div className="mt-1 sm:hidden"><Button size="sm" variant="ghost" onClick={() => onDispute?.(l.label, -l.amount)}>Dispute</Button></div>}
+                </td>
+                {disputable && <td className="hidden w-24 pr-3 text-right sm:table-cell">{l.amount < 0 && <Button size="sm" variant="ghost" onClick={() => onDispute?.(l.label, -l.amount)}>Dispute</Button>}</td>}
               </tr>
             );
           })}
@@ -100,13 +104,13 @@ export function StatementTable({ s, disputable, onDispute }: { s: Settlement; di
             <tr className="border-t border-line text-ink-2">
               <td className="px-5 py-2">Held while the dispute is resolved</td>
               <td className="px-5 py-2 text-right tabular-nums">({kwacha(held)})</td>
-              {disputable && <td />}
+              {disputable && <td className="hidden sm:table-cell" />}
             </tr>
           )}
           <tr className="border-t-2 border-ink/20 bg-surface-2">
             <td className="px-5 py-3 font-semibold">{s.status === "SETTLED" ? `Paid to ${s.payTo}` : `Payable to ${s.payTo}`}</td>
-            <td className="font-display whitespace-nowrap px-5 py-3 text-right text-xl font-bold tabular-nums">{kwacha(total - held)}</td>
-            {disputable && <td />}
+            <td className="font-display whitespace-nowrap px-3 py-3 text-right text-lg font-bold tabular-nums sm:px-5 sm:text-xl">{kwacha(total - held)}</td>
+            {disputable && <td className="hidden sm:table-cell" />}
           </tr>
         </tfoot>
       </table>

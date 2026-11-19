@@ -66,13 +66,14 @@ export default function StaffAndRoles() {
             {people.map((p, i) => (
               <li key={p.email} className="flex flex-wrap items-center gap-3 px-5 py-3">
                 <Avatar name={p.name} />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 basis-[calc(100%-52px)] sm:basis-auto">
                   <p className="font-semibold">{p.name} {p.status === "Invited" && <Badge tone="gold" className="ml-1">Invited</Badge>}</p>
                   <p className="text-xs text-ink-3">{p.email}{p.lastActive !== "—" ? `, active ${p.lastActive.toLowerCase()}` : ""}</p>
                 </div>
-                {p.role === "finance_officer" && <span className="text-sm text-ink-2">Approves alone up to {kwacha(p.limit ?? 0)}</span>}
+                {/* Phones: the limit, 2-step badge and role picker wrap under the name. */}
+                {p.role === "finance_officer" && <span className="basis-full text-sm text-ink-2 sm:basis-auto">Approves alone up to {kwacha(p.limit ?? 0)}</span>}
                 {p.mfa ? <Badge tone="green"><ShieldCheck size={11} /> 2-step on</Badge> : <Badge tone="red">2-step off</Badge>}
-                <div className="w-48 shrink-0"><Select
+                <div className="w-full shrink-0 sm:w-48"><Select
                   aria-label={`Role for ${p.name}`}
                   disabled={p.role === "owner" && owners === 1}
                   value={label(p.role)}
