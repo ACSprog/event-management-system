@@ -156,3 +156,17 @@ export const myActivity = [
   { what: "Followed Kafue Events", at: "9 Nov" },
   { what: "Refund of K250 paid to MTN MoMo ending 4471", at: "15 Nov" },
 ];
+
+/* Who came: gender of checked-in attendees (from account and per-ticket answers). */
+export const genderReport = {
+  event: "Lusaka Summer Jam (sample figures)",
+  checkedIn: { female: 14_820, male: 13_310, notStated: 910 },
+  sold: { female: 15_960, male: 14_180, notStated: 1_020 },
+  byTicket: [
+    { ticket: "Standard", female: 11_204, male: 10_015, notStated: 702 },
+    { ticket: "Early bird", female: 2_310, male: 2_188, notStated: 140 },
+    { ticket: "VIP", female: 1_212, male: 1_049, notStated: 61 },
+    { ticket: "VVIP table of 8", female: 94, male: 58, notStated: 7 },
+  ],
+  previous: { event: "Zed Live Sessions: October", femalePct: 49, malePct: 47 },
+};

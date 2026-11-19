@@ -279,6 +279,8 @@ export const api = {
     orgNow: (eventDay: boolean) => (eventDay ? dash.orgNow.eventDay : dash.orgNow.normal),
     /** GET /v1/orgs/:orgId/disruptions/open */
     disruptionChoices: () => dash.disruptionChoices,
+    /** GET /v1/events/:id/reports/gender (totals only; groups under 10 are hidden) */
+    genderReport: () => dash.genderReport,
     /** GET /v1/orgs/:orgId/tasks?due=week */
     tasks: () => dash.orgTasksToday,
   },

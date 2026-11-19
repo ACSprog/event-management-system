@@ -9,6 +9,7 @@ import { api, bookingFee } from "@/lib/api";
 import { fmtDate, fmtTime, kwacha } from "@/lib/brand";
 import { PhoneInput } from "@/components/phone-input";
 import { formatPhone, phoneError, type Phone } from "@/lib/phone";
+import { genderPurpose, genders, type Gender } from "@/lib/gender";
 
 const methods = [
   { id: "mtn", name: "MTN MoMo", icon: Smartphone, color: "#FFCB05", hint: "Numbers starting 096, 076" },
@@ -27,6 +28,8 @@ export function Checkout({ slug }: { slug: string }) {
   const [seats, setSeats] = useState<string | null>(null);
   const [method, setMethod] = useState("mtn");
   const [form, setForm] = useState({ name: "Chanda Mulenga", email: "chanda.mulenga@mail.example", code: "" });
+  // One holder per ticket: the buyer says who each ticket is for, including gender.
+  const [holders, setHolders] = useState<{ name: string; gender: Gender | "" }[]>([]);
   const [phone, setPhone] = useState<Phone>({ country: "ZM", number: "0964 471 220" });
   const [agree, setAgree] = useState(true);
   const [marketing, setMarketing] = useState(false);
@@ -63,8 +66,14 @@ export function Checkout({ slug }: { slug: string }) {
     else setErrors({ ...errors, code: "That code isn't valid for this event. Check the spelling or try JAM2026." });
   };
 
+  const holderSlots = lines.flatMap((l) => Array.from({ length: l.qty }, (_, i) => ({ ticket: l.name, n: i + 1 })));
+  const holder = (i: number) => holders[i] ?? { name: i === 0 ? form.name : "", gender: i === 0 ? "Female" : "" };
+  const setHolder = (i: number, h: Partial<{ name: string; gender: Gender | "" }>) => setHolders(holderSlots.map((_, j) => (j === i ? { ...holder(j), ...h } : holder(j))));
+
   const pay = () => {
     const err: Record<string, string> = {};
+    holderSlots.forEach((_, i) => { if (!holder(i).gender) err[`g${i}`] = "Choose an option"; });
+    if (holderSlots.some((_, i) => !holder(i).gender)) err.holders = "Choose the gender for every ticket. \"Prefer not to say\" is fine.";
     if (form.name.trim().length < 3) err.name = "Enter your full name as it should appear on the ticket.";
     const phoneErr = phoneError(phone);
     if (phoneErr) err.phone = phoneErr;
@@ -116,6 +125,28 @@ export function Checkout({ slug }: { slug: string }) {
               <Field label="Mobile number" error={errors.phone} hint="For your SMS ticket and mobile money prompt"><PhoneInput value={phone} onChange={setPhone} invalid={!!errors.phone} /></Field>
               <Field label="Email" error={errors.email}><Input value={form.email} onChange={(x) => setForm({ ...form, email: x.target.value })} type="email" autoComplete="email" /></Field>
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-line bg-surface p-6">
+            <h2 className="text-lg font-semibold">Who are the tickets for?</h2>
+            <p className="text-sm text-ink-3">{genderPurpose} You can add or change names later, or transfer a ticket.</p>
+            <ol className="mt-4 divide-y divide-line">
+              {holderSlots.map((s, i) => (
+                <li key={i} className="grid gap-3 py-3 sm:grid-cols-[150px_1fr_auto] sm:items-end">
+                  <p className="text-sm font-semibold">{s.ticket}{holderSlots.filter((x) => x.ticket === s.ticket).length > 1 ? ` ${s.n}` : ""}{i === 0 && <span className="block text-xs font-normal text-ink-3">Usually you</span>}</p>
+                  <Field label="Name (optional)"><Input value={holder(i).name} onChange={(x) => setHolder(i, { name: x.target.value })} placeholder={i === 0 ? form.name : "Name on the ticket"} /></Field>
+                  <fieldset>
+                    <legend className="mb-1.5 text-sm font-medium">Gender</legend>
+                    <div className="flex flex-wrap gap-1.5" role="radiogroup">
+                      {genders.map((g) => (
+                        <button key={g} type="button" role="radio" aria-checked={holder(i).gender === g} onClick={() => setHolder(i, { gender: g })} className={cx("rounded-lg border px-3 py-2 text-sm", holder(i).gender === g ? "border-kafue bg-kafue-soft font-semibold text-kafue-ink" : errors[`g${i}`] ? "border-hibiscus" : "border-line hover:border-ink-3")}>{g}</button>
+                      ))}
+                    </div>
+                  </fieldset>
+                </li>
+              ))}
+            </ol>
+            {errors.holders && <p className="mt-2 text-sm text-hibiscus">{errors.holders}</p>}
           </section>
 
           <section className="rounded-2xl border border-line bg-surface p-6">

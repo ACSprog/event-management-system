@@ -11,6 +11,7 @@ import { Toggle } from "@/components/ui";
 import { NoEarlyPayouts, SettlementBadge, SettlementTimeline } from "@/components/settlement";
 import { useOrgRole } from "@/components/layout/org-role";
 import { compact, fmtDate, fmtTime, kwacha } from "@/lib/brand";
+import { pct, showCount } from "@/lib/gender";
 
 
 export function EventManage({ slug }: { slug: string }) {
@@ -159,6 +160,7 @@ export function EventManage({ slug }: { slug: string }) {
             <Stat label="Scanners offline" value="1" hint="Gate B #6, last sync 2 min ago" />
           </div>
           <Card className="mt-6"><SectionTitle title="Arrivals by gate" sub="Every 30 minutes" /><Bars data={api.events.checkinSeries()} x="time" keys={["gateA", "gateB", "vip"]} labels={["Gate A", "Gate B", "VIP gate"]} stacked /></Card>
+          <WhoCame />
           <div className="mt-6"><Table rows={api.events.gates()} columns={[{ key: "name", label: "Gate", render: (g) => <span className="font-semibold">{g.name}</span> }, { key: "allowed", label: "Accepts" }, { key: "scanners", label: "Scanners", align: "right" }, { key: "staff", label: "Staff", align: "right" }, { key: "scanned", label: "Scanned", align: "right", render: (g) => g.scanned.toLocaleString() }, { key: "rate", label: "Per minute", align: "right" }]} /></div>
         </>
       )}
@@ -281,5 +283,34 @@ export function EventManage({ slug }: { slug: string }) {
         </div>
       </Modal>
     </>
+  );
+}
+
+/** Who came, by gender. Totals only, never a list of people; groups under 10 show as "fewer than 10". */
+function WhoCame() {
+  const r = api.dashboards.genderReport();
+  const c = r.checkedIn;
+  const total = c.female + c.male + c.notStated;
+  const known = Math.round(((c.female + c.male) / total) * 100);
+  const bar = [{ k: "Female", n: c.female, cls: "bg-kafue" }, { k: "Male", n: c.male, cls: "bg-marigold" }, { k: "Not stated", n: c.notStated, cls: "bg-line" }];
+  return (
+    <Card className="mt-6">
+      <SectionTitle title="Who came" sub={`${total.toLocaleString()} checked in. Based on the ${known}% whose gender is known (from their account or the ticket).`} />
+      <div className="flex h-4 overflow-hidden rounded-full" role="img" aria-label={`Female ${pct(c.female, total)}, male ${pct(c.male, total)}, not stated ${pct(c.notStated, total)}`}>
+        {bar.map((b) => <span key={b.k} className={b.cls} style={{ width: `${(b.n / total) * 100}%` }} />)}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+        {bar.map((b) => <span key={b.k} className="flex items-center gap-2"><span className={`h-2.5 w-2.5 rounded-full ${b.cls}`} />{b.k}: <strong className="tabular-nums">{showCount(b.n)}</strong> ({pct(b.n, total)})</span>)}
+      </div>
+      <div className="mt-5 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead><tr className="text-left text-xs text-ink-3"><th className="py-2 font-semibold">Ticket type</th><th className="py-2 text-right font-semibold">Female</th><th className="py-2 text-right font-semibold">Male</th><th className="py-2 text-right font-semibold">Not stated</th></tr></thead>
+          <tbody className="divide-y divide-line">
+            {r.byTicket.map((t) => <tr key={t.ticket}><td className="py-2">{t.ticket}</td><td className="py-2 text-right tabular-nums">{showCount(t.female)}</td><td className="py-2 text-right tabular-nums">{showCount(t.male)}</td><td className="py-2 text-right tabular-nums">{showCount(t.notStated)}</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-xs text-ink-3">Tickets sold: female {r.sold.female.toLocaleString()}, male {r.sold.male.toLocaleString()}, not stated {r.sold.notStated.toLocaleString()}. Last event ({r.previous.event}): {r.previous.femalePct}% female, {r.previous.malePct}% male. Figures are totals only; no one&rsquo;s individual answer is shown.</p>
+    </Card>
   );
 }
