@@ -5,6 +5,7 @@ import { Download, ShieldCheck, Trash2 } from "lucide-react";
 import { Avatar, Badge, Button, Card, Field, Input, Modal, PageHeader, SectionTitle, Toggle, useToast } from "@/components/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { emptyPhone, phoneError, type Phone } from "@/lib/phone";
+import { genderPurpose, genders, type Gender } from "@/lib/gender";
 
 /**
  * Attendee profile and privacy. Phone-first: the mobile number is how the
@@ -13,7 +14,7 @@ import { emptyPhone, phoneError, type Phone } from "@/lib/phone";
  */
 export default function Profile() {
   const toast = useToast();
-  const [f, setF] = useState({ name: "Chanda Mulenga", email: "chanda.m@example.com", city: "Lusaka", birthday: "1994-06-12" });
+  const [f, setF] = useState({ name: "Chanda Mulenga", email: "chanda.m@example.com", city: "Lusaka", birthday: "1994-06-12", gender: "Female" as Gender });
   const [err, setErr] = useState<{ name?: string; email?: string }>({});
   const [phoneModal, setPhoneModal] = useState(false);
   const [phone, setPhone] = useState<Phone>(emptyPhone());
@@ -50,6 +51,7 @@ export default function Profile() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Name on tickets" error={err.name}><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
             <Field label="Email (optional)" hint="For receipts and ticket copies" error={err.email}><Input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
+            <Field label="Gender" hint={genderPurpose}><select value={f.gender} onChange={(e) => setF({ ...f, gender: e.target.value as Gender })} className="w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm">{genders.map((g) => <option key={g}>{g}</option>)}</select></Field>
             <Field label="Home city"><Input value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} /></Field>
             <Field label="Birthday (optional)" hint="Only used for age-restricted events and birthday offers you opt into"><Input type="date" value={f.birthday} onChange={(e) => setF({ ...f, birthday: e.target.value })} /></Field>
           </div>
