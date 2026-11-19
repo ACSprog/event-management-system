@@ -45,7 +45,7 @@ export default function AccountOverview() {
       <PageHeader title="Hello, Chanda" sub="Your tickets, orders and saved events in one place. Signed in with an SMS code on 0971 ••• 567." />
 
       {/* 1. Key figures */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Upcoming tickets" value={tickets.length} hint={`for ${events} events`} />
         <Stat label="Next event" value={`${daysToGo} days`} hint={nextEvent.title} />
         <Stat label="Saved events" value={saved.length} hint={`${saved.filter((s) => s.availability === "Limited").length} with limited tickets`} />

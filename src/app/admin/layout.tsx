@@ -46,9 +46,10 @@ const itemFor = (path: string) =>
 function RolePreview() {
   const { role, setRole, roles } = useAdminRole();
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="hidden text-ink-3 sm:inline">Preview as</span>
-      <select value={role} onChange={(e) => setRole(e.target.value)} className="rounded-lg border border-line bg-canvas px-2 py-1.5 text-sm font-medium focus:border-kafue focus:outline-none" aria-label="Preview the super admin area as a staff role">
+    <label className="flex min-w-0 items-center gap-2 text-sm">
+      {/* Label hidden on phones and tablets so the bar fits; the select keeps its aria-label. */}
+      <span className="hidden whitespace-nowrap text-ink-3 xl:inline">Preview as</span>
+      <select value={role} onChange={(e) => setRole(e.target.value)} className="h-10 w-full max-w-[9.5rem] truncate rounded-lg border border-line bg-canvas px-2 text-sm font-medium focus:border-kafue focus:outline-none sm:max-w-[13rem]" aria-label="Preview the super admin area as a staff role">
         {roles.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
       </select>
     </label>

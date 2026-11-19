@@ -47,13 +47,13 @@ export function Badge({ tone = "grey", children, className }: { tone?: Tone; chi
 
 /* Surfaces --------------------------------------------------------------- */
 export function Card({ children, className, pad = true }: { children: ReactNode; className?: string; pad?: boolean }) {
-  return <div className={cx("rounded-xl border border-line bg-surface", pad && "p-5", className)}>{children}</div>;
+  return <div className={cx("rounded-xl border border-line bg-surface", pad && "p-4 sm:p-5", className)}>{children}</div>;
 }
 
 export function SectionTitle({ title, action, sub }: { title: string; action?: ReactNode; sub?: string }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-4">
-      <div>
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+      <div className="min-w-0">
         <h2 className="text-lg font-semibold">{title}</h2>
         {sub && <p className="text-sm text-ink-3">{sub}</p>}
       </div>
@@ -64,14 +64,14 @@ export function SectionTitle({ title, action, sub }: { title: string; action?: R
 
 export function PageHeader({ title, sub, actions, back }: { title: string; sub?: ReactNode; actions?: ReactNode; back?: { href: string; label: string } }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
       <div className="min-w-0">
         {back && (
           <Link href={back.href} className="mb-1 inline-block text-sm text-ink-3 hover:text-kafue">
             ‹ {back.label}
           </Link>
         )}
-        <h1 className="text-[26px] font-semibold leading-tight">{title}</h1>
+        <h1 className="text-[22px] font-semibold leading-tight sm:text-[26px]">{title}</h1>
         {sub && <div className="mt-1 text-sm text-ink-3">{sub}</div>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
@@ -82,8 +82,9 @@ export function PageHeader({ title, sub, actions, back }: { title: string; sub?:
 export function Stat({ label, value, delta, hint, tone }: { label: string; value: ReactNode; delta?: string; hint?: string; tone?: "up" | "down" }) {
   return (
     <Card>
-      <p className="text-sm text-ink-3">{label}</p>
-      <p className="font-display mt-1 text-[28px] font-semibold leading-none tabular-nums">{value}</p>
+      <p className="text-xs text-ink-3 sm:text-sm">{label}</p>
+      {/* Smaller on phones so two figures fit side by side. */}
+      <p className="font-display mt-1 break-words text-[22px] font-semibold leading-tight tabular-nums sm:text-[28px] sm:leading-none">{value}</p>
       {(delta || hint) && (
         <p className="mt-2 text-xs text-ink-3">
           {delta && <span className={cx("mr-1 font-semibold", tone === "down" ? "text-hibiscus" : "text-leaf")}>{delta}</span>}
@@ -279,17 +280,18 @@ export function Modal({ open, onClose, title, children, footer }: { open: boolea
     return () => window.removeEventListener("keydown", k);
   }, [open, onClose]);
   if (!open) return null;
+  // Phones: a bottom sheet across the full width. Tablets and up: a centred dialog.
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={onClose}>
-      <div role="dialog" aria-modal aria-label={title} className="w-full max-w-lg rounded-2xl bg-surface shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4" onClick={onClose}>
+      <div role="dialog" aria-modal aria-label={title} className="flex max-h-[92dvh] w-full max-w-lg flex-col rounded-t-2xl bg-surface pb-[env(safe-area-inset-bottom)] shadow-xl sm:max-h-[85vh] sm:rounded-2xl sm:pb-0" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} aria-label="Close" className="rounded p-1 text-ink-3 hover:bg-surface-2">
+          <button onClick={onClose} aria-label="Close" className="-mr-2 flex h-10 w-10 items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2">
             <X size={18} />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="flex justify-end gap-2 border-t border-line px-5 py-3">{footer}</div>}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line px-5 py-3">{footer}</div>}
       </div>
     </div>
   );

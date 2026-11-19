@@ -25,7 +25,7 @@ export default function Settlements() {
   return (
     <>
       <PageHeader title="Settlements" sub="One statement and one payment for every event, after it has happened." />
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
         <Stat label="Held for upcoming events" value={kwacha(held)} hint="Estimated, after fees and charges" />
         <Stat label="Being settled now" value={kwacha(open.reduce((a, s) => a + payable(s) - heldAmount(s), 0))} hint={`${open.length} events`} />
         <Stat label="Paid out this year" value={kwacha(paidYear)} />

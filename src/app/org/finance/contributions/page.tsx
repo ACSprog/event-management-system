@@ -40,7 +40,7 @@ export default function Contributions() {
   return (
     <>
       <PageHeader title="Contributions" sub={`${b.occasion}. Contributions are separate from ticket money and can be cashed out before the event.`} actions={can("contributions.cashout") ? <Button onClick={() => setOpen(true)} disabled={!available}>Cash out</Button> : undefined} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Pledged" value={kwacha(b.pledged)} hint="A record only; can't be cashed out" />
         <Stat label="Paid" value={kwacha(b.paid)} />
         <Stat label="Still clearing" value={kwacha(b.clearing)} hint={`Card payments clear after ${settings.cardClearingDays} business days`} />

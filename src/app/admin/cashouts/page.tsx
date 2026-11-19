@@ -39,7 +39,7 @@ export default function Cashouts() {
   return (
     <>
       <PageHeader title="Contribution cashouts" sub="Contributions are kept apart from ticket money and can be cashed out before the event. Ticket money still follows post-event settlement." />
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
         <Stat label="Waiting for finance" value={waiting.length} hint={kwacha(waiting.reduce((a, c) => a + c.amount, 0))} />
         <Stat label="Released automatically, last 7 days" value={rows.filter((r) => r.route === "AUTOMATIC" && r.status === "RELEASED").length} />
         <Stat label="Automatic limit per organisation" value={kwacha(settings.dailyLimit)} hint="Per day" />

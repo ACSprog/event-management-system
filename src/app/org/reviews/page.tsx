@@ -46,7 +46,7 @@ export default function OrgReviews() {
   return (
     <>
       <PageHeader title="Reviews and feedback" sub="Zed Live Sessions: October" actions={<Select className="w-64" options={compare.map((c) => c.event)} aria-label="Event" />} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Average rating" value={now.overall} delta={`+${(now.overall - prev.overall).toFixed(1)}`} hint="vs previous event" />
         <Stat label="Reviews received" value={now.reviews} hint="from 1,189 checked in" />
         <Stat label="Would recommend" value={`${now.recommend}%`} hint="7% not sure, 5% no" />

@@ -68,7 +68,7 @@ export function EventManage({ slug }: { slug: string }) {
 
       {tab === "Overview" && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             <Stat label="Tickets sold" value={sold(e).toLocaleString()} hint={`of ${capacity(e).toLocaleString()} (${Math.round((sold(e) / capacity(e)) * 100)}%)`} />
             {can("money.view") ? <Stat label="Gross sales" value={kwacha(gross(e))} delta="+K412k" hint="this week" /> : <Stat label="Sold this week" value="1,648" />}
             <Stat label="Page views to buyers" value="6.8%" hint="41,200 views" />
@@ -155,7 +155,7 @@ export function EventManage({ slug }: { slug: string }) {
 
       {tab === "Check-in and gates" && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             <Stat label="Checked in" value="29,040" hint="of 31,160 sold (93%)" />
             <Stat label="Scans per minute" value="89" hint="across 24 scanners" />
             <Stat label="Duplicate attempts blocked" value="47" tone="down" delta="47" hint="screenshots or forwarded tickets" />
@@ -172,7 +172,7 @@ export function EventManage({ slug }: { slug: string }) {
 
       {tab === "Online attendees" && (
         <>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
             <Stat label="Online passes" value={e.tickets.filter((t) => /virtual|course|session|instal/i.test(t.name)).reduce((a, t) => a + t.sold, 0).toLocaleString()} />
             <Stat label="Joined the last session" value="72%" />
             <Stat label="Average watch time" value="58 min" />
@@ -208,7 +208,7 @@ export function EventManage({ slug }: { slug: string }) {
 
       {tab === "Budget" && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             <Stat label="Ticket income" value={kwacha(gross(e))} />
             <Stat label="Sponsorship" value={kwacha(940_000)} />
             <Stat label="Costs so far" value={kwacha(spent)} hint={`of ${kwacha(1_450_000)} budget`} />

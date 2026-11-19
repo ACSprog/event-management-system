@@ -81,6 +81,20 @@ body {
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.55;
+  /* Mobile first: no sideways scrolling on any screen; text never zooms on rotate. */
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
+
+/*
+  Grid children may shrink below their content width. Without this a wide
+  table or tab row inside a one-column grid (phones and tablets) stretches the
+  whole page sideways instead of scrolling inside its own box.
+*/
+@layer base {
+  .grid > * {
+    min-width: 0;
+  }
 }
 
 h1,

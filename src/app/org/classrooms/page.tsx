@@ -11,7 +11,7 @@ export default function OrgClassrooms() {
   return (
     <>
       <PageHeader title="Classes" sub="Online courses run on your connected Zoom account. Give a team member the Event manager role to let them teach and grade." actions={<><Button variant="secondary" href="/org/classrooms/grading/">Grading (3)</Button><Button href="/org/classrooms/new/"><Plus size={15} /> New course</Button></>} />
-      <div className="mb-6 grid gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <Stat label="Students enrolled" value="175" />
         <Stat label="Course revenue, year" value={kwacha(181_800)} />
         <Stat label="Attendance rate" value="84%" />

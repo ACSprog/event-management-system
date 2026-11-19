@@ -26,7 +26,7 @@ export default function Invoices() {
   return (
     <>
       <PageHeader title="Invoices" sub="Bills you send to sponsors and corporate buyers. Each has a payment link for mobile money, card or bank transfer." actions={can("expenses.approve") ? <Button onClick={() => setOpen(true)}><Plus size={15} /> New invoice</Button> : undefined} />
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
         <Stat label="Outstanding" value={kwacha(outstanding)} />
         <Stat label="Overdue" value={kwacha(rows.filter((r) => r.status === "Overdue").reduce((a, r) => a + r.amount, 0))} tone="down" />
         <Stat label="Paid this year" value={kwacha(rows.filter((r) => r.status === "Paid").reduce((a, r) => a + r.amount, 0))} />

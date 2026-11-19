@@ -3,15 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Bell, ChevronDown, Menu, Search, X, type LucideIcon } from "lucide-react";
+import { Bell, ChevronDown, Search, X, type LucideIcon } from "lucide-react";
 import { Avatar, cx } from "@/components/ui";
 import { Logo } from "./logo";
+import { Drawer, MenuButton } from "./drawer";
 
 export interface NavGroup {
   label?: string;
   items: { href: string; label: string; icon: LucideIcon; badge?: string }[];
 }
 
+/**
+ * Shell for the organiser workspace and the super admin.
+ *
+ * Mobile first, three sizes:
+ * - Phones (under 640px): hamburger menu, search behind an icon, full-width page.
+ * - Tablets (640–1023px): hamburger menu, search box in the header.
+ * - Laptops and larger (1024px+): fixed sidebar, no hamburger.
+ * The same sidebar content is used in the drawer and the fixed sidebar.
+ */
 export function PortalShell({
   nav,
   workspace,
@@ -33,6 +43,7 @@ export function PortalShell({
   const path = usePathname() ?? "";
   const [open, setOpen] = useState(false);
   const [switcher, setSwitcher] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const all = nav.flatMap((g) => g.items);
   const active = activeFor?.(path) ?? all
     .filter((i) => path === i.href || (i.href.split("/").length > 3 && path.startsWith(i.href)))
@@ -97,29 +108,38 @@ export function PortalShell({
   return (
     <div className="flex min-h-[calc(100vh-37px)]">
       <aside className="sticky top-[37px] hidden h-[calc(100vh-37px)] w-64 shrink-0 border-r border-line bg-surface lg:block">{sidebar}</aside>
-      {open && (
-        <div className="fixed inset-0 z-50 bg-black/40 lg:hidden" onClick={() => setOpen(false)}>
-          <aside className="h-full w-72 bg-surface" onClick={(e) => e.stopPropagation()}>
-            <button className="absolute right-3 top-3 rounded p-2 text-white" onClick={() => setOpen(false)} aria-label="Close menu"><X /></button>
-            {sidebar}
-          </aside>
-        </div>
-      )}
+      <Drawer open={open} onClose={() => setOpen(false)} label={workspace.name}>{sidebar}</Drawer>
       <div className="min-w-0 flex-1">
-        <header className="sticky top-[37px] z-30 flex items-center gap-3 border-b border-line bg-surface/95 px-4 py-2.5 backdrop-blur lg:px-8">
-          <button className="rounded p-1.5 lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20} /></button>
-          <label className="relative max-w-md flex-1">
-            <span className="sr-only">Search</span>
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
-            <input placeholder="Search events, people, bookings" className="w-full rounded-lg border border-line bg-canvas py-1.5 pl-9 pr-3 text-sm focus:border-kafue focus:outline-none" />
-          </label>
-          {headerSlot && <div className="ml-auto">{headerSlot}</div>}
-          <button className={cx("relative rounded-lg p-2 hover:bg-surface-2", !headerSlot && "ml-auto")} aria-label="Notifications, 3 unread">
-            <Bell size={18} />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-hibiscus" />
-          </button>
+        <header className="sticky top-[37px] z-30 border-b border-line bg-surface/95 backdrop-blur">
+          <div className="flex items-center gap-2 px-4 py-2 sm:gap-3 lg:px-8">
+            <MenuButton onClick={() => setOpen(true)} />
+            {/* Phones and tablets: logo in the bar (the sidebar has it on laptops). Phones: search behind an icon; tablets and up: search box. */}
+            <div className="lg:hidden"><Logo href="/" /></div>
+            <label className="relative hidden max-w-md flex-1 sm:block">
+              <span className="sr-only">Search</span>
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
+              <input placeholder="Search events, people, bookings" className="w-full rounded-lg border border-line bg-canvas py-2 pl-9 pr-3 text-sm focus:border-kafue focus:outline-none" />
+            </label>
+            <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
+              <button onClick={() => setSearchOpen(!searchOpen)} className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-surface-2 sm:hidden" aria-label="Search" aria-expanded={searchOpen}>{searchOpen ? <X size={18} /> : <Search size={18} />}</button>
+              {headerSlot && <div className="min-w-0">{headerSlot}</div>}
+              <button className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg hover:bg-surface-2" aria-label="Notifications, 3 unread">
+                <Bell size={18} />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-hibiscus" />
+              </button>
+            </div>
+          </div>
+          {searchOpen && (
+            <div className="px-4 pb-2.5 sm:hidden">
+              <label className="relative block">
+                <span className="sr-only">Search</span>
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
+                <input autoFocus placeholder="Search events, people, bookings" className="w-full rounded-lg border border-line bg-canvas py-2.5 pl-9 pr-3 text-base focus:border-kafue focus:outline-none" />
+              </label>
+            </div>
+          )}
         </header>
-        <main className="px-4 py-6 lg:px-8">{children}</main>
+        <main className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">{children}</main>
       </div>
     </div>
   );

@@ -55,7 +55,8 @@ export default function Preferences() {
             <Toggle checked={p.marketing} onChange={t("marketing")} label="Offers and promotions from organisers" />
           </div>
         </Card>
-        <div className="flex justify-between">
+        {/* Phones: Save on top, full width; tablets and up: side by side. */}
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
           <Button variant="ghost" className="text-hibiscus">Download or delete my data</Button>
           <Button onClick={() => toast("Preferences saved")}>Save preferences</Button>
         </div>

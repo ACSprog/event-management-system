@@ -22,7 +22,7 @@ export default function AdminSettlements() {
   return (
     <>
       <PageHeader title="Settlements" sub="Every event paid out once, after it has happened. Approvals are separated: above the threshold, two different finance staff must approve." />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Held for organisers" value={kwacha(unsettled.reduce((a, s) => a + payable(s), 0))} hint="Owed to organisers, not EMS income" />
         <Stat label="Waiting for approval" value={all.filter((s) => s.status === "AWAITING_APPROVAL" || s.status === "AWAITING_SECOND_APPROVAL").length} />
         <Stat label="Disputes and failed payouts" value={all.filter((s) => s.status === "DISPUTED" || s.status === "FAILED").length} />
