@@ -18,6 +18,8 @@ export function EventCard({ e, showDistance = true }: { e: EventItem; showDistan
           {e.status === "Sold out" && <Badge tone="red" className="bg-white text-hibiscus">Sold out</Badge>}
           {e.status !== "Sold out" && pct > 0.8 && <Badge className="bg-white text-[#7a4b00]">Selling fast</Badge>}
           {e.format !== "Physical" && <Badge className="bg-white/90 text-ink">{e.format}</Badge>}
+          {e.audience === "18+" && <Badge className="bg-ink text-canvas">18+</Badge>}
+          {e.audience === "Family-friendly" && <Badge className="bg-white/90 text-ink">Family</Badge>}
         </div>
       </div>
       <div className="mt-3">
