@@ -14,6 +14,7 @@ import * as dash from "@/lib/mock/dashboards";
 import * as places from "@/lib/mock/places";
 import * as assist from "@/lib/mock/assist";
 import * as cases from "@/lib/mock/cases";
+import * as day from "@/lib/mock/event-day";
 import { churchDuties as churchDutiesConst, defaultDuties as defaultDutiesConst } from "@/lib/assist";
 const churchDutiesList = () => churchDutiesConst;
 const defaultDutiesList = () => defaultDutiesConst;
@@ -33,7 +34,7 @@ export async function http<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   events: {
     /** GET /v1/discovery/events?lat&lng&radiusKm&category */
-    discover: () => mock.events.filter((e) => e.category !== "Wedding"),
+    discover: () => mock.events.filter((e) => e.category !== "Wedding" && e.listing !== "Unlisted"),
     /** GET /v1/me/recommendations (events plus the reason each was picked) */
     recommended: () => ["e7", "e1", "e9", "e3"].map((id) => ({ event: mock.events.find((e) => e.id === id)!, reason: mock.recommendationReasons[id] })),
     /** GET /v1/events/:slug */
@@ -244,6 +245,31 @@ export const api = {
     /** GET /v1/admin/licences */
     licences: () => commerce.eventLicences,
   },
+  /** Event-day tools. Rules in src/lib/event-day.ts. */
+  eventDay: {
+    /** GET /v1/events/:id/setup (entry mode, allowances per ticket type, stations, menu and giving switches) */
+    setup: (eventId: string) => day.setupFor(eventId),
+    /** GET /v1/events/:id/attendance (open entry: RSVPs, app check-ins, usher counts, meals) */
+    attendance: (eventId: string) => day.attendance[eventId],
+    /** GET /v1/events/:id/allowances/usage */
+    allowanceUse: (eventId: string) => day.allowanceUse[eventId] ?? [],
+    /** GET /v1/events/:id/menu (items with stock) */
+    menu: (eventId: string) => day.menus[eventId] ?? [],
+    /** GET /v1/events/:id/orders */
+    orders: (eventId: string) => day.orders[eventId] ?? [],
+    /** GET /v1/events/:id/attendants (amounts each attendant must hand in) */
+    attendants: (eventId: string) => day.attendants[eventId] ?? [],
+  },
+  giving: {
+    /** GET /v1/giving/:slug (public giving page) */
+    page: (slug: string) => day.givingPages.find((g) => g.slug === slug),
+    /** All giving pages (static export) */
+    all: () => day.givingPages,
+    /** GET /v1/orgs/:orgId/giving/:slug/totals (per fund, current service or event) */
+    totals: (slug: string) => day.givingTotals[slug] ?? [],
+    /** GET /v1/orgs/:orgId/giving/:slug/gifts?limit=20 */
+    recent: (slug: string) => day.recentGifts[slug] ?? [],
+  },
   cases: {
     /** GET /v1/me/cases (the attendee's conversations, newest first) */
     mine: () => cases.myCases,
@@ -349,5 +375,6 @@ export type { ProgrammeItem } from "@/lib/mock/programme";
 export type { RefundRequest } from "@/lib/mock/operations";
 export type { KnownPlace } from "@/lib/mock/places";
 export type { Case, CaseMessage, CaseStatus, CaseType } from "@/lib/cases";
+export type { EventDaySetup } from "@/lib/mock/event-day";
 export type { HelpRequest, StaffOnDuty, SentMessage, AudienceCell } from "@/lib/mock/assist";
 export type { Cashout, CashoutStatus, CashoutSettings } from "@/lib/mock/dashboards";

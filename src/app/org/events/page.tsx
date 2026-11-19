@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlusCircle } from "lucide-react";
@@ -25,6 +26,13 @@ export default function OrgEvents() {
   return (
     <>
       <PageHeader title="Events" sub={`${all.length} events in this workspace`} actions={can("events.edit") ? <Button href="/org/events/new/"><PlusCircle size={16} /> Create event</Button> : undefined} />
+      {/* Showcase only: event-day examples from other workspaces. */}
+      <p className="mb-4 rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-2">
+        Showcase examples from other workspaces:{" "}
+        <Link href="/org/events/grace-chapel-midweek-service/" className="font-semibold text-kafue">church service (no tickets, check-in, tithes)</Link>,{" "}
+        <Link href="/org/events/funeral-joseph-mwansa/" className="font-semibold text-kafue">funeral (I&rsquo;m coming, meal pass, contributions)</Link>,{" "}
+        <Link href="/org/events/zambia-trade-and-farm-expo/" className="font-semibold text-kafue">expo (week pass includes lunch)</Link>. Summer Jam shows food and merchandise sales.
+      </p>
       <div className="mb-4 flex flex-wrap gap-2">
         {["All", "Happening now", "Live and upcoming", "Drafts", "Past", "Archived"].map((x) => (
           <button key={x} onClick={() => setTab(x)} aria-pressed={tab === x} className={cx("flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium", tab === x ? "border-ink bg-ink text-canvas" : x === "Happening now" ? "border-hibiscus/50 bg-hibiscus-soft text-hibiscus" : "border-line bg-surface")}>

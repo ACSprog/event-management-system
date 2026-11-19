@@ -11,6 +11,7 @@ import { ReviewsBlock } from "./reviews-block";
 import { AddToCalendar } from "@/components/add-to-calendar";
 import { WatchOnline } from "./watch-online";
 import { ProgrammeView } from "@/components/programme";
+import { EventDayCards } from "./event-day-cards";
 
 export function generateStaticParams() {
   return [...events, ...orgEventsExtra].map((e) => ({ slug: e.slug }));
@@ -29,7 +30,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const sameDay = new Date(e.start).toDateString() === new Date(e.end).toDateString();
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <Link href="/events/" className="text-sm text-ink-3 hover:text-kafue">‹ All events</Link>
       <div className="mt-3 grid gap-10 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0">
@@ -120,12 +121,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
-          <TicketPicker e={e} />
+          {/* Open-entry events (church services, funerals) have no tickets. */}
+          {api.eventDay.setup(e.id).entry !== "OPEN" && <TicketPicker e={e} />}
+          <EventDayCards e={e} />
           <Link href={`/organisers/${org.slug}/`} className="flex items-center justify-between rounded-2xl border border-line bg-surface p-5 hover:border-kafue">
             <div>
               <p className="text-sm text-ink-3">Organised by</p>
               <p className="flex items-center gap-1.5 font-semibold">{org.name} {org.verified && <BadgeCheck size={16} className="text-kafue" aria-label="Verified" />}</p>
-              <p className="mt-1 flex items-center gap-1 text-sm text-ink-3"><Star size={13} className="fill-marigold text-marigold" /> 4.6 across {org.events} events</p>
+              {org.events > 2 ? <p className="mt-1 flex items-center gap-1 text-sm text-ink-3"><Star size={13} className="fill-marigold text-marigold" /> 4.6 across {org.events} events</p> : <p className="mt-1 text-sm text-ink-3">{org.type}</p>}
             </div>
             <span className="rounded-full border border-line px-3 py-1.5 text-sm font-semibold">Follow</span>
           </Link>

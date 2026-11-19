@@ -77,6 +77,8 @@ export interface EventItem {
   palette: [string, string];
   /** Defaults to "All ages" when not set. */
   audience?: Audience;
+  /** Unlisted events (funerals, private functions) open by link only, never in discovery. */
+  listing?: "Public" | "Unlisted";
 }
 
 export interface Organisation {
@@ -116,6 +118,7 @@ export const organisations: Organisation[] = [
   { id: "org4", slug: "skillup-academy", name: "SkillUp Academy", type: "Training provider", city: "Ndola", plan: "Starter", status: "Active", joined: "2026-01-11", events: 22, revenue: 186_300, followers: 3_140, verified: false, about: "Short courses in digital skills, bookkeeping and project management, online and in Ndola." },
   { id: "org5", slug: "chipolopolo-sports", name: "Chipolopolo Sports Events", type: "Sports organiser", city: "Ndola", plan: "Professional", status: "Active", joined: "2025-11-08", events: 12, revenue: 2_018_000, followers: 14_700, verified: true, about: "Football tournaments, marathons and community sports days." },
   { id: "org6", slug: "hope-foundation", name: "Hope Children's Foundation", type: "Charity", city: "Livingstone", plan: "Free", status: "Trial", joined: "2026-10-28", events: 3, revenue: 94_500, followers: 1_210, verified: false, about: "Raising funds for school feeding and bursaries in Southern Province." },
+  { id: "org8", slug: "mwansa-family", name: "The Mwansa family", type: "Family", city: "Lusaka", plan: "Free", status: "Active", joined: "2026-11-15", events: 1, revenue: 0, followers: 0, verified: true, about: "Funeral arrangements for the late Joseph Mwansa. Verified by NRC and a test payment." },
   { id: "org7", slug: "laugh-out-lusaka", name: "Laugh Out Lusaka", type: "Comedy collective", city: "Lusaka", plan: "Free", status: "Pending", joined: "2026-11-12", events: 0, revenue: 0, followers: 0, verified: false, about: "Stand-up comedy nights." },
 ];
 
@@ -266,8 +269,15 @@ export const events: EventItem[] = [
   {
     id: "e31", slug: "grace-chapel-midweek-service", title: "Grace Chapel Midweek Service", subtitle: "Prayer and the Word, every Wednesday", category: "Church", status: "In progress", format: "Hybrid", orgId: "org3", venueId: "v7",
     start: "2026-11-18T11:00:00+02:00", end: "2026-11-18T13:00:00+02:00", city: "Lusaka", distanceKm: 5.1, seating: "General", palette: ["#5B2A86", "#F4A630"], audience: "All ages",
-    description: "Midweek prayer and teaching. Free to attend in person or online. Ushers and protocol are on duty.",
-    tickets: [t("t43", "Free registration", 0, 1500, 640)],
+    description: "Midweek prayer and teaching. Open to everyone, in person or online, no ticket needed. Scan the check-in code at the entrance so we can count everyone. Ushers and protocol are on duty.",
+    // Open entry: no tickets (see setups in src/lib/mock/event-day.ts).
+    tickets: [],
+  },
+  {
+    id: "e32", slug: "funeral-joseph-mwansa", title: "Funeral of the late Joseph Mwansa", subtitle: "Church service, burial and gathering", category: "Church", status: "Registration open", format: "Physical", orgId: "org8", venueId: "v7", listing: "Unlisted",
+    start: "2026-11-21T08:00:00+02:00", end: "2026-11-21T17:00:00+02:00", city: "Lusaka", distanceKm: 5.1, seating: "General", palette: ["#172033", "#7B8496"], audience: "All ages",
+    description: "Church service at 08:00 at Grace Chapel, burial at Leopards Hill Memorial Park at 11:30, then a meal at the Fellowship hall. Please tap \"I'm coming\" so the family can plan the meal, and scan the check-in code when you arrive.",
+    tickets: [],
   },
 ];
 
@@ -654,6 +664,7 @@ export function gross(e: EventItem) {
   return e.tickets.reduce((a, t) => a + t.sold * t.price, 0);
 }
 export function fromPrice(e: EventItem) {
+  if (!e.tickets.length) return 0; // open entry: no tickets, free to attend
   const open = e.tickets.filter((t) => t.sold < t.capacity);
   return Math.min(...(open.length ? open : e.tickets).map((t) => t.price));
 }

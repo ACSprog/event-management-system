@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import Link from "next/link";
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, Star, X, AlertTriangle, Info, CheckCircle2 } from "lucide-react";
 
 export const cx = clsx;
@@ -158,10 +158,18 @@ export function EmptyState({ title, body, action }: { title: string; body?: stri
 
 /* Tabs ------------------------------------------------------------------- */
 export function Tabs({ tabs, value, onChange }: { tabs: string[]; value: string; onChange: (t: string) => void }) {
+  const row = useRef<HTMLDivElement>(null);
+  // On phones the row scrolls sideways: keep the selected tab in view (without scrolling the page).
+  useEffect(() => {
+    const r = row.current;
+    const el = r?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!r || !el) return;
+    if (el.offsetLeft < r.scrollLeft || el.offsetLeft + el.offsetWidth > r.scrollLeft + r.clientWidth) r.scrollTo({ left: el.offsetLeft - 16, behavior: "smooth" });
+  }, [value]);
   return (
     // The line under the tabs is drawn with an inset shadow (not a border plus a negative margin), so the row never
     // overflows vertically and Windows doesn't show scroll arrows. Tab text lines up with the page heading.
-    <div className="mb-5 flex gap-6 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-line)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
+    <div ref={row} className="mb-5 flex gap-6 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-line)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
       {tabs.map((t) => (
         <button
           key={t}
