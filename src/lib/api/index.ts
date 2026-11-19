@@ -262,6 +262,8 @@ export const api = {
     sent: () => assist.sentMessages,
     /** GET /v1/me/events/:id/messages (what the attendee sees in the app) */
     inbox: () => assist.inbox,
+    /** GET /v1/me/requests */
+    mine: () => assist.myRequests,
   },
   location: {
     /**

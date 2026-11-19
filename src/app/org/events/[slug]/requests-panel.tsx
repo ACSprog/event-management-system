@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { AlertTriangle, Printer, QrCode } from "lucide-react";
-import { Badge, Button, Card, SectionTitle, Stat, cx, useToast } from "@/components/ui";
+import { QRCodeSVG } from "qrcode.react";
+import { Badge, Button, Card, Field, Input, Modal, SectionTitle, Stat, cx, useToast } from "@/components/ui";
 import { api, type HelpRequest } from "@/lib/api";
 import { churchDuties, defaultDuties, statusLabel, type AssignMode, type Duty } from "@/lib/assist";
 
@@ -14,13 +15,17 @@ const waited = (s: number) => (s >= 60 ? `${Math.floor(s / 60)} min ${s % 60 ? `
  * Organiser's live view of help requests. Each event chooses how requests
  * reach staff; the organiser can assign or reassign any request at any time.
  */
-export function RequestsPanel() {
+export function RequestsPanel({ slug }: { slug: string }) {
   const toast = useToast();
   const staff = api.assist.staff();
   const [mode, setMode] = useState<AssignMode>(api.assist.settings().mode);
   const [rows, setRows] = useState<HelpRequest[]>(api.assist.requests());
   const [duties, setDuties] = useState<Duty[]>(defaultDuties);
   const [pick, setPick] = useState<Record<string, string>>({});
+  const [qrOpen, setQrOpen] = useState(false);
+  const [spots, setSpots] = useState("Main entrance, Table 1, Table 2, Table 3, Table 4, Table 5, Table 6, VIP terrace, Toilets");
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const helpUrl = (spot: string) => `${origin}/events/${slug}/help/?spot=${encodeURIComponent(spot)}`;
   const open = rows.filter((r) => !["COMPLETED", "CANCELLED"].includes(r.status));
   const team = (k: string) => duties.find((d) => d.key === k)?.team ?? k;
 
@@ -124,10 +129,24 @@ export function RequestsPanel() {
             <SectionTitle title="QR codes for tables, pews and posters" />
             <p className="text-sm text-ink-2">Each code opens the help page with the spot filled in, for example &ldquo;Table 12&rdquo; or &ldquo;Pew 4, left side&rdquo;. It works for people without a ticket too.</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm" variant="secondary" onClick={() => toast("PDF with 40 table codes is downloading")}><QrCode size={14} /> Table codes</Button>
-              <Button size="sm" variant="secondary" href="/events/grace-chapel-convention/help/?spot=Pew%204%2C%20left%20side"><Printer size={14} /> Try a pew code</Button>
+              <Button size="sm" onClick={() => setQrOpen(true)}><QrCode size={14} /> Make QR codes</Button>
+              <Button size="sm" variant="secondary" href="/events/grace-chapel-convention/help/?spot=Pew%204%2C%20left%20side">Try a church pew code</Button>
             </div>
           </Card>
+
+          <Modal open={qrOpen} onClose={() => setQrOpen(false)} title="QR codes for help requests" footer={<><Button variant="ghost" onClick={() => setQrOpen(false)}>Close</Button><Button onClick={() => window.print()}><Printer size={14} /> Print</Button></>}>
+            <Field label="Spots, separated by commas" hint="One code per table, pew, section or poster. Each code fills in the spot for the attendee."><Input value={spots} onChange={(e) => setSpots(e.target.value)} /></Field>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 print:grid-cols-3">
+              {spots.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 60).map((spot) => (
+                <div key={spot} className="rounded-xl border border-line bg-white p-3 text-center text-[#172033]">
+                  <QRCodeSVG value={helpUrl(spot)} size={120} className="mx-auto" />
+                  <p className="mt-2 text-sm font-semibold">{spot}</p>
+                  <p className="text-[11px]">Scan for an usher, security or first aid</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-ink-3">Scan one with your phone&rsquo;s camera to try it: it opens the attendee&rsquo;s help page on this site.</p>
+          </Modal>
 
           <Card>
             <SectionTitle title="Last event summary" sub="Zed Live Sessions: October" />

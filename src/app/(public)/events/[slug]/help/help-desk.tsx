@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bell, Camera, CheckCircle2, ChevronRight, MessageCircle, Phone, ShieldAlert } from "lucide-react";
 import { PhoneInput } from "@/components/phone-input";
+import { QrScanButton } from "@/components/qr-scan-button";
 import { Badge, Button, Field, Textarea, cx } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ESCALATE_AFTER_SECONDS, flow, statusLabel, type Duty, type RequestStatus } from "@/lib/assist";
@@ -107,6 +108,12 @@ export function HelpDesk({ slug }: { slug: string }) {
       {!sent ? (
         <>
           {!settings.staffed && <p className="mt-4 rounded-lg bg-marigold-soft px-3 py-2 text-sm">No team is on duty at this event. Your request goes straight to the organiser by SMS.</p>}
+          {!spot && (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3">
+              <p className="text-sm text-ink-2">Is there a QR code on your table or pew? Scan it so the team knows exactly where you are.</p>
+              <QrScanButton size="sm" label="Scan it" />
+            </div>
+          )}
           <h2 className="mt-6 font-semibold">What do you need?</h2>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {duties.map((d) => (

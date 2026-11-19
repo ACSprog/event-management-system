@@ -167,7 +167,7 @@ export function EventManage({ slug }: { slug: string }) {
         </>
       )}
 
-      {tab === "Help requests" && <RequestsPanel />}
+      {tab === "Help requests" && <RequestsPanel slug={e.slug} />}
       {tab === "Event messages" && <MessagesPanel />}
 
       {tab === "Online attendees" && (

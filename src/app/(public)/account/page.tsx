@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CalendarPlus, Copy, LifeBuoy, MessageCircle, Send } from "lucide-react";
 import { ActivityFeed, KeyList } from "@/components/dashboard";
+import { QrScanButton } from "@/components/qr-scan-button";
 import { TicketCard } from "@/components/ticket-card";
 import { Badge, Button, Card, PageHeader, SectionTitle, Stat, useToast } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -44,6 +45,18 @@ export default function AccountOverview() {
         <Stat label="Next event" value={`${daysToGo} days`} hint={nextEvent.title} />
         <Stat label="Saved events" value={saved.length} hint={`${saved.filter((s) => s.availability === "Limited").length} with limited tickets`} />
         <Stat label="Following" value={following.length} hint="organisers" />
+      </div>
+
+      {/* At an event now: the quickest way to ask for help */}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-kafue bg-kafue-soft p-5">
+        <div>
+          <p className="flex items-center gap-2 font-semibold"><LifeBuoy size={18} className="text-kafue" /> At {nextEvent.title} now?</p>
+          <p className="text-sm text-ink-2">Ask for an usher, security, first aid and more. Or scan the QR code on your table or pew.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button href={`/events/${nextEvent.slug}/help/`}><LifeBuoy size={16} /> Request help</Button>
+          <QrScanButton />
+        </div>
       </div>
 
       {/* 2 and 3. Needs your attention, and your next ticket */}

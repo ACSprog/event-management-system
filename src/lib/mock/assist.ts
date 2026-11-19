@@ -98,3 +98,9 @@ export const inbox = [
   { at: "19:30", title: "Headline acts start at 21:00", body: "Grab your spot early. Food courts stay open until midnight.", urgent: false },
   { at: "18:45", title: "Gate B is closed, please use Gate A", body: "Gate B is closed for safety. Follow the stewards to Gate A. Your ticket works at either gate.", urgent: true },
 ];
+
+/** The signed-in attendee's own requests (Chanda Mulenga). */
+export const myRequests = [
+  { id: "RQ-1029", event: "Lusaka Summer Jam", eventSlug: "lusaka-summer-jam-2026", what: "Ticket or entry problem", where: "Gate A", at: "Today 19:52", status: "COMPLETED" as const, by: "Kelvin (gate team)" },
+  { id: "RQ-0874", event: "Zed Live Sessions: October", eventSlug: "lusaka-summer-jam-2026", what: "Lost and found", where: "General area", at: "18 Oct, 21:40", status: "COMPLETED" as const, by: "Chileshe (lost and found)" },
+];
