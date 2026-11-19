@@ -7,6 +7,7 @@ import { Badge, Button, Card, PageHeader, SectionTitle } from "@/components/ui";
 import { api } from "@/lib/api";
 import { statusLabel } from "@/lib/assist";
 import { fmtDate } from "@/lib/brand";
+import { isLive } from "@/lib/date-ranges";
 
 /**
  * Help at events: where an attendee starts a request from their account, or
@@ -16,8 +17,8 @@ export default function HelpAtEvents() {
   const tickets = api.me.tickets();
   const eventIds = Array.from(new Set(tickets.map((t) => t.eventId)));
   const events = eventIds.map((id) => api.events.discover().find((e) => e.id === id) ?? null).filter((e): e is NonNullable<typeof e> => !!e && e.format !== "Virtual");
-  const now = events[0];
-  const later = events.slice(1);
+  const now = events.find((e) => isLive(e));
+  const later = events.filter((e) => e !== now);
   const settings = api.assist.settings();
 
   return (
@@ -28,7 +29,7 @@ export default function HelpAtEvents() {
         <Card className="border-kafue ring-1 ring-kafue">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <Badge tone="green"><span className="h-2 w-2 animate-pulse rounded-full bg-leaf motion-reduce:animate-none" /> On now (preview)</Badge>
+              <Badge tone="red"><span className="h-2 w-2 rounded-full bg-hibiscus motion-safe:animate-pulse" /> On now</Badge>
               <p className="mt-2 text-lg font-semibold">{now.title}</p>
               <p className="text-sm text-ink-3">{api.venues.get(now.venueId).name}</p>
             </div>
@@ -59,7 +60,7 @@ export default function HelpAtEvents() {
           <ul className="space-y-2 text-sm">
             {api.assist.inbox().map((m) => (
               <li key={m.at} className={m.urgent ? "rounded-lg bg-marigold-soft p-3" : "rounded-lg bg-surface-2 p-3"}>
-                <p className="font-semibold">{m.urgent && "Urgent: "}{m.title} <span className="font-normal text-ink-3">· {now?.title}, {m.at}</span></p>
+                <p className="font-semibold">{m.urgent && "Urgent: "}{m.title} <span className="font-normal text-ink-3">· {m.at}</span></p>
                 <p className="text-ink-2">{m.body}</p>
               </li>
             ))}

@@ -8,24 +8,29 @@ import { api } from "@/lib/api";
 import { fmtDate } from "@/lib/brand";
 import { PhoneInput } from "@/components/phone-input";
 import { emptyPhone, phoneError, type Phone } from "@/lib/phone";
+import { isLive } from "@/lib/date-ranges";
 
 export default function MyTickets() {
   const toast = useToast();
-  const [tab, setTab] = useState("Upcoming");
+  const all = api.events.discover();
+  const eventOf = (t: { eventId: string }) => api.events.bySlug(all.find((x) => x.id === t.eventId)!.slug)!;
+  const live = api.me.tickets().filter((t) => isLive(eventOf(t)));
+  const [tab, setTab] = useState(live.length ? "On now" : "Upcoming");
   const [transfer, setTransfer] = useState<string | null>(null);
   const [history, setHistory] = useState<string | null>(null);
   const [to, setTo] = useState<Phone>(emptyPhone());
   const [err, setErr] = useState("");
-  const tickets = api.me.tickets();
+  const tickets = api.me.tickets().filter((t) => (tab === "On now" ? isLive(eventOf(t)) : !isLive(eventOf(t))));
   const past = api.me.pastTickets();
   return (
     <>
       <PageHeader title="My tickets" sub="Show the QR code at the gate. It works without data once this page has loaded." />
-      <Tabs tabs={["Upcoming", "Past"]} value={tab} onChange={setTab} />
-      {tab === "Upcoming" ? (
+      <Tabs tabs={[...(live.length ? [`On now (${live.length})`] : []), "Upcoming", "Past"]} value={tab.startsWith("On now") && live.length ? `On now (${live.length})` : tab} onChange={(v) => setTab(v.startsWith("On now") ? "On now" : v)} />
+      {tab === "On now" && <p className="mb-4 flex items-center gap-2 rounded-lg bg-hibiscus-soft px-3 py-2 text-sm"><span className="h-2 w-2 rounded-full bg-hibiscus motion-safe:animate-pulse" /> These events are happening now. Show the QR code at the gate, or tap Request help if you need the team.</p>}
+      {tab !== "Past" ? (
         <div className="grid gap-6 xl:grid-cols-2">
           {tickets.map((t) => {
-            const e = api.events.bySlug(api.events.discover().find((x) => x.id === t.eventId)!.slug)!;
+            const e = eventOf(t);
             return (
               <div key={t.id}>
                 <TicketCard e={e} t={t} venueName={api.venues.get(e.venueId).name} />
@@ -34,7 +39,7 @@ export default function MyTickets() {
                   <Button size="sm" variant="ghost" onClick={() => setTransfer(t.number)}><Send size={14} /> Transfer</Button>
                   <Button size="sm" variant="ghost" onClick={() => toast("Name change request sent to the organiser")}><UserPen size={14} /> Change name</Button>
                   <Button size="sm" variant="ghost" onClick={() => setHistory(t.number)}><History size={14} /> History</Button>
-                  <Button size="sm" variant="ghost" href={`/events/${e.slug}/help/`}><LifeBuoy size={14} /> Request help</Button>
+                  <Button size="sm" variant={tab === "On now" ? "primary" : "ghost"} href={`/events/${e.slug}/help/`}><LifeBuoy size={14} /> Request help</Button>
                 </div>
               </div>
             );
