@@ -257,8 +257,10 @@ export const api = {
     menu: (eventId: string) => day.menus[eventId] ?? [],
     /** GET /v1/events/:id/orders */
     orders: (eventId: string) => day.orders[eventId] ?? [],
-    /** GET /v1/events/:id/attendants (amounts each attendant must hand in) */
+    /** GET /v1/events/:id/attendants (amounts each attendant must hand in, stock issued to them) */
     attendants: (eventId: string) => day.attendants[eventId] ?? [],
+    /** GET /v1/me/food-orders (the attendee's food and merchandise orders, all events) */
+    myOrders: () => day.myFoodOrders,
   },
   giving: {
     /** GET /v1/giving/:slug (public giving page) */

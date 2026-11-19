@@ -592,6 +592,8 @@ export const assignments = [
 export const submissions = people.slice(0, 8).map((name, i) => ({ student: name, title: "Monthly cash book", submitted: `2026-11-${String(10 + i).padStart(2, "0")}`, grade: i < 5 ? [78, 91, 64, 85, 72][i] : null, late: i === 6 }));
 
 export const notifications = [
+  { id: "n5", title: "Order A-0229 is ready", body: "Collect at Food court A, or an usher brings it to VIP table 6. Pay K135 by card.", time: "Just now", kind: "order" },
+  { id: "n4", title: "Reminder: funeral of the late Joseph Mwansa is tomorrow", body: "Church service at 08:00 at Grace Chapel. You said 1 person is coming. Scan the check-in code when you arrive.", time: "Yesterday 18:00", kind: "reminder" },
   { id: "n1", title: "Lusaka Summer Jam is 26 days away", body: "Your 2 Standard tickets are in your wallet.", time: "2 h ago", kind: "ticket" },
   { id: "n2", title: "Near you on Friday", body: "Laugh Out Loud Friday at Levy Park, 2.1 km away.", time: "Yesterday", kind: "nearby" },
   { id: "n3", title: "Refund processed", body: "K250 was returned to your MTN MoMo number ending 4471.", time: "3 days ago", kind: "money" },

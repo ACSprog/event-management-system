@@ -37,6 +37,19 @@
  * and buyer. EMS earns either a fixed sales-tracking package paid up front or a
  * commission on recorded sales invoiced after the event; the organiser chooses per
  * event, like choosing a licence or a revenue-share partnership for tickets.
+ *
+ * More rules (built 19 Nov, second round):
+ * - Re-entry: off by default; when on, a second gate scan lets the person back in
+ *   if they were scanned out, and logs it.
+ * - Buying an extra at the station: the organiser can let people whose ticket
+ *   doesn't include it (e.g. Standard at the VIP dinner) buy one there; the
+ *   attendant records the payment like a quick sale.
+ * - "I'm coming" reminder: sent the day before (push, SMS backup from the
+ *   organiser's credits for people without the app).
+ * - Orders can be collected in parts ("2 of 3 items given"); payment is recorded
+ *   at the first handover. A kitchen or bar screen shows orders as they arrive.
+ * - Stock can be issued to an attendant; at the end they return what's unsold
+ *   and any difference shows against them.
  */
 
 export type EntryMode = "TICKETS" | "REGISTRATION" | "OPEN";
@@ -53,7 +66,7 @@ export const entryModes: { key: EntryMode; label: string; sub: string; examples:
 export interface Allowance { key: string; label: string; window?: string; afterEntry?: boolean }
 
 export type StationKind = "GATE" | "ALLOWANCE" | "ORDERS" | "HEADCOUNT";
-export interface Station { key: string; kind: StationKind; label: string; sub: string; allowance?: string }
+export interface Station { key: string; kind: StationKind; label: string; sub: string; allowance?: string; eventId?: string }
 
 /* Food and merchandise ------------------------------------------------------ */
 
@@ -77,16 +90,23 @@ export interface MenuItem {
   counted?: number;
   paused?: boolean;
   note?: string;
+  /** Placeholder picture until the organiser uploads a photo: an icon and two colours. */
+  art?: { icon: MenuArt; from: string; to: string };
+  /** Photo uploaded by the organiser (object URL in the showcase). */
+  photo?: string;
 }
+
+export type MenuArt = "chicken" | "burger" | "beef" | "water" | "soda" | "beer" | "shirt" | "cap" | "soup" | "snack";
 
 export const left = (m: MenuItem) => m.opening + m.restocked - m.sold - m.writtenOff;
 
-export type OrderStatus = "Waiting" | "Preparing" | "Ready" | "Collected" | "Cancelled";
+export type OrderStatus = "Waiting" | "Preparing" | "Ready" | "Part collected" | "Collected" | "Cancelled";
 export interface Order {
   number: string;
   at: string;
   buyer: string;
-  lines: { item: string; qty: number }[];
+  /** given: how many of this line have been handed over (orders can be collected in parts). */
+  lines: { item: string; qty: number; given?: number }[];
   /** How the buyer said they would pay. */
   method: PayMethod;
   status: OrderStatus;
@@ -113,6 +133,11 @@ export interface Attendant {
   mobileRefs: number;
   /** Cash handed in at the end of the shift; undefined until handed in. */
   handedIn?: number;
+  /**
+   * Stock handed to this attendant to sell (e.g. 40 T-shirts). What they sold is
+   * counted from their orders; unsold items are returned and counted back.
+   */
+  issued?: { item: string; issued: number; sold: number; returned?: number }[];
 }
 
 /** A pay-on-collection order is cancelled and its stock released after this. */
@@ -141,5 +166,8 @@ export interface GivingPage {
   eventSlug?: string;
   palette: [string, string];
 }
+
+/** Items still to hand over on an order collected in parts. */
+export const toGive = (o: { lines: { qty: number; given?: number }[] }) => o.lines.reduce((a, l) => a + l.qty - (l.given ?? 0), 0);
 
 export const orderTotal = (o: Order, menu: MenuItem[]) => o.lines.reduce((a, l) => a + (menu.find((m) => m.id === l.item)?.price ?? 0) * l.qty, 0);

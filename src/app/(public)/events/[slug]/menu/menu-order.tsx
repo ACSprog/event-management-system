@@ -6,6 +6,7 @@ import { Banknote, CreditCard, Minus, Plus, ShoppingBag, Smartphone } from "luci
 import { Badge, Button, Card, cx, Field, Input } from "@/components/ui";
 import { api } from "@/lib/api";
 import { kwacha } from "@/lib/brand";
+import { MenuPicture } from "@/components/menu-picture";
 import { left, MAX_OPEN_UNPAID, payLabel, payShort, UNPAID_ORDER_MINUTES, type MenuItem, type PayMethod } from "@/lib/event-day";
 
 type Placed = { number: string; lines: { item: MenuItem; qty: number }[]; method: PayMethod; total: number; table: string; step: number };
@@ -20,7 +21,8 @@ const payIcon = { CASH: Banknote, CARD: CreditCard, MOBILE_MONEY: Smartphone };
  * organiser's number) and gets an order QR code showing the amount to pay. The
  * attendant scans it, hands over the order and records the payment. Unpaid
  * orders are cancelled after UNPAID_ORDER_MINUTES and one phone can have at most
- * MAX_OPEN_UNPAID open. Items at zero stock show as sold out.
+ * MAX_OPEN_UNPAID open. Items at zero stock show as sold out. Orders also appear
+ * in the attendee's account (Orders and refunds › Food and merchandise).
  */
 export function MenuOrder({ slug }: { slug: string }) {
   const e = api.events.bySlug(slug)!;
@@ -69,7 +71,7 @@ export function MenuOrder({ slug }: { slug: string }) {
             {steps.map((s, i) => <li key={s}><div className={cx("h-1.5 rounded-full", i <= cur.step ? "bg-kafue" : "bg-line")} /><p className={cx("mt-1", i === cur.step ? "font-semibold text-ink" : "text-ink-3")}>{s}</p></li>)}
           </ol>
           <ul className="mt-5 divide-y divide-line text-left text-sm">
-            {cur.lines.map((l) => <li key={l.item.id} className="flex justify-between py-2"><span>{l.qty} × {l.item.name}</span><span className="tabular-nums">{kwacha(l.qty * l.item.price)}</span></li>)}
+            {cur.lines.map((l) => <li key={l.item.id} className="flex items-center justify-between gap-2 py-2"><span className="flex items-center gap-2"><MenuPicture item={l.item} className="h-8 w-8" />{l.qty} × {l.item.name}</span><span className="tabular-nums">{kwacha(l.qty * l.item.price)}</span></li>)}
           </ul>
           <p className="mt-3 text-sm text-ink-2">{cur.step === 2 ? `Ready at ${cur.lines[0].item.point}${cur.table ? `, or an usher brings it to ${cur.table}` : ""}.` : `Collect at ${cur.lines[0].item.point}. We'll notify you when it's ready.`} Show this code and pay the attendant.</p>
           <p className="mt-2 text-xs text-ink-3">Unpaid orders are cancelled after {UNPAID_ORDER_MINUTES} minutes. Payment goes to the organiser, not EMS; ask them about refunds.</p>
@@ -101,8 +103,9 @@ export function MenuOrder({ slug }: { slug: string }) {
           const out = left(m) <= 0 || m.paused;
           const q = cart[m.id] ?? 0;
           return (
-            <li key={m.id} className={cx("flex items-center justify-between gap-3 rounded-xl border border-line bg-surface p-4", out && "opacity-60")}>
-              <div className="min-w-0">
+            <li key={m.id} className={cx("flex items-center gap-3 rounded-xl border border-line bg-surface p-3", out && "opacity-60")}>
+              <MenuPicture item={m} className="h-16 w-16" />
+              <div className="min-w-0 flex-1">
                 <p className="font-semibold">{m.name}</p>
                 <p className="text-sm text-ink-3">{kwacha(m.price)} · {m.point}</p>
                 {m.note && <p className="text-xs text-ink-3">{m.note}</p>}
