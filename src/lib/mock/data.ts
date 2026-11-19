@@ -11,7 +11,18 @@ export type Category =
   | "Exhibition"
   | "Charity"
   | "Comedy"
-  | "Education";
+  | "Education"
+  | "Arts and theatre"
+  | "Film"
+  | "Food and drink"
+  | "Family and kids"
+  | "Nightlife"
+  | "Business"
+  | "Technology"
+  | "Fitness";
+
+/** Who an event is suitable for. Shown on the card and used by the Audience filter. */
+export type Audience = "All ages" | "Family-friendly" | "18+";
 
 export type EventStatus =
   | "Draft"
@@ -64,6 +75,8 @@ export interface EventItem {
   schedule?: { time: string; title: string; detail?: string }[];
   faqs?: { q: string; a: string }[];
   palette: [string, string];
+  /** Defaults to "All ages" when not set. */
+  audience?: Audience;
 }
 
 export interface Organisation {
@@ -144,13 +157,13 @@ export const events: EventItem[] = [
   },
   {
     id: "e3", slug: "grace-chapel-convention", title: "Grace Chapel National Convention", subtitle: "Four days of worship, word and fellowship", category: "Church", status: "Registration open", format: "Hybrid", orgId: "org3", venueId: "v7",
-    start: "2026-12-27T09:00:00+02:00", end: "2026-12-30T21:00:00+02:00", city: "Lusaka", distanceKm: 9.8, seating: "General", palette: ["#5B2A86", "#F4A630"], rating: 4.9, reviews: 1_240,
+    start: "2026-12-27T09:00:00+02:00", end: "2026-12-30T21:00:00+02:00", city: "Lusaka", distanceKm: 9.8, seating: "General", palette: ["#5B2A86", "#F4A630"], rating: 4.9, reviews: 1_240, audience: "Family-friendly",
     description: "Our annual convention, with guest speakers, a youth track and a children's programme. Registration is free; meal packs are optional. Online attendees can join the livestream.",
     tickets: [t("t9", "Free registration", 0, 4000, 2_870, "All sessions"), t("t10", "Meal pack (4 days)", 200, 1500, 1_022, "Lunch each day"), t("t11", "Youth camp", 350, 400, 388, "Accommodation and meals, ages 13–19")],
   },
   {
     id: "e4", slug: "zambia-super-league-derby", title: "Lusaka Derby: Zesco vs Power Dynamos", subtitle: "Super League, matchday 14", category: "Sports", status: "Registration open", format: "Physical", orgId: "org5", venueId: "v5",
-    start: "2026-11-29T15:00:00+02:00", end: "2026-11-29T17:00:00+02:00", city: "Ndola", distanceKm: 320, seating: "Reserved", palette: ["#1F9D55", "#172033"], rating: 4.1, reviews: 302,
+    start: "2026-11-29T15:00:00+02:00", end: "2026-11-29T17:00:00+02:00", city: "Ndola", distanceKm: 320, seating: "Reserved", palette: ["#1F9D55", "#172033"], rating: 4.1, reviews: 302, audience: "Family-friendly",
     description: "Matchday 14 of the Super League. Reserved seating in all stands. Home and away sections are separated; please buy in your team's section.",
     tickets: [t("t12", "Open stand", 50, 30000, 18_420), t("t13", "Covered stand", 120, 12000, 9_870), t("t14", "VIP stand", 400, 1500, 1_204, "", 4)],
   },
@@ -168,7 +181,7 @@ export const events: EventItem[] = [
   },
   {
     id: "e7", slug: "laugh-out-loud-friday", title: "Laugh Out Loud Friday", subtitle: "Stand-up night with six comedians", category: "Comedy", status: "Sold out", format: "Physical", orgId: "org1", venueId: "v3",
-    start: "2026-11-27T19:30:00+02:00", end: "2026-11-27T22:30:00+02:00", city: "Lusaka", distanceKm: 2.1, seating: "Reserved", palette: ["#D62F45", "#F4A630"], rating: 4.5, reviews: 154,
+    start: "2026-11-27T19:30:00+02:00", end: "2026-11-27T22:30:00+02:00", city: "Lusaka", distanceKm: 2.1, seating: "Reserved", palette: ["#D62F45", "#F4A630"], rating: 4.5, reviews: 154, audience: "18+",
     description: "Six of Lusaka's funniest comedians, hosted by MC Kaluba. Recommended for ages 18 and over.",
     tickets: [t("t20", "Standard", 200, 1800, 1800), t("t21", "Front rows", 400, 300, 300)],
   },
@@ -189,6 +202,54 @@ export const events: EventItem[] = [
     start: "2027-04-17T14:00:00+02:00", end: "2027-04-17T23:00:00+02:00", city: "Livingstone", distanceKm: 476, seating: "Tables", palette: ["#5B2A86", "#E9C8D0"],
     description: "Ceremony at 14:00 followed by the reception on the riverside lawn. Please RSVP by 1 March and tell us your meal choice.",
     tickets: [t("t26", "Invited guest", 0, 250, 182)],
+  },
+  {
+    id: "e11", slug: "lusaka-tech-meetup-ai", title: "Lusaka Tech Meetup: AI for Small Business", subtitle: "Talks, demos and networking", category: "Technology", status: "Registration open", format: "Hybrid", orgId: "org4", venueId: "v2",
+    start: "2026-11-18T17:30:00+02:00", end: "2026-11-18T20:00:00+02:00", city: "Lusaka", distanceKm: 7.5, seating: "General", palette: ["#172033", "#2BB3AA"],
+    description: "Three short talks on using AI tools for bookkeeping, marketing and customer service, then networking. Join in person or online.",
+    tickets: [t("t27", "Free registration", 0, 200, 141, "In person or online")],
+  },
+  {
+    id: "e12", slug: "food-truck-friday-lusaka", title: "Food Truck Friday", subtitle: "Twenty food trucks, live music, free entry", category: "Food and drink", status: "Registration open", format: "Physical", orgId: "org1", venueId: "v3",
+    start: "2026-11-20T16:00:00+02:00", end: "2026-11-20T22:00:00+02:00", city: "Lusaka", distanceKm: 2.1, seating: "General", palette: ["#F4A630", "#D62F45"], audience: "Family-friendly",
+    description: "Nshima to burgers to Ethiopian coffee: twenty local food trucks, a DJ and a kids' corner. Free entry; pay the trucks with cash or mobile money.",
+    tickets: [t("t28", "Free entry", 0, 3000, 1_208)],
+  },
+  {
+    id: "e13", slug: "kids-saturday-fun-day", title: "Kids' Saturday Fun Day", subtitle: "Bouncy castles, face painting and a magic show", category: "Family and kids", status: "Registration open", format: "Physical", orgId: "org6", venueId: "v3",
+    start: "2026-11-21T10:00:00+02:00", end: "2026-11-21T15:00:00+02:00", city: "Lusaka", distanceKm: 2.1, seating: "General", palette: ["#2BB3AA", "#F4A630"], audience: "Family-friendly",
+    description: "A morning for children aged 3 to 12. Every ticket includes a juice and a snack. Parents get in free with a child's ticket.",
+    tickets: [t("t29", "Child (3 to 12)", 50, 400, 263, "Parents free")],
+  },
+  {
+    id: "e14", slug: "afro-house-night", title: "Afro House Night", subtitle: "Three DJs till late", category: "Nightlife", status: "Registration open", format: "Physical", orgId: "org1", venueId: "v3",
+    start: "2026-11-21T21:00:00+02:00", end: "2026-11-22T03:00:00+02:00", city: "Lusaka", distanceKm: 2.1, seating: "General", palette: ["#5B2A86", "#D62F45"], audience: "18+",
+    description: "Afro house and amapiano with three resident DJs. ID checked at the door: 18 and over only.",
+    tickets: [t("t30", "Early entry (before 22:00)", 100, 300, 300), t("t31", "General", 150, 700, 412)],
+  },
+  {
+    id: "e18", slug: "sme-finance-breakfast", title: "SME Finance Breakfast", subtitle: "Banks and investors meet small business owners", category: "Business", status: "Registration open", format: "Physical", orgId: "org2", venueId: "v4",
+    start: "2026-11-26T07:00:00+02:00", end: "2026-11-26T10:00:00+02:00", city: "Kitwe", distanceKm: 312, seating: "Tables", palette: ["#0B7A75", "#172033"], audience: "18+",
+    description: "Breakfast, a panel on borrowing for growth, and one-to-one time with lenders. Bring your business registration.",
+    tickets: [t("t38", "Breakfast seat", 350, 120, 64)],
+  },
+  {
+    id: "e15", slug: "the-lion-and-the-jewel", title: "The Lion and the Jewel", subtitle: "Wole Soyinka's comedy, staged in Lusaka", category: "Arts and theatre", status: "Registration open", format: "Physical", orgId: "org1", venueId: "v3",
+    start: "2026-12-04T19:00:00+02:00", end: "2026-12-04T21:30:00+02:00", city: "Lusaka", distanceKm: 2.1, seating: "Reserved", palette: ["#C77C3A", "#172033"], audience: "All ages",
+    description: "A new production of the classic comedy by a Lusaka theatre company. Runs about two and a half hours with an interval.",
+    tickets: [t("t32", "Standard", 120, 400, 188), t("t33", "Student", 60, 100, 71, "Student ID at the door")],
+  },
+  {
+    id: "e16", slug: "lusaka-10k-fun-run", title: "Lusaka 10K Fun Run", subtitle: "5 km and 10 km routes for every level", category: "Fitness", status: "Registration open", format: "Physical", orgId: "org5", venueId: "v1",
+    start: "2026-12-06T06:00:00+02:00", end: "2026-12-06T11:00:00+02:00", city: "Lusaka", distanceKm: 4.2, seating: "General", palette: ["#1F9D55", "#0B7A75"], audience: "Family-friendly",
+    description: "Start and finish at Heroes Stadium. Every finisher gets a medal; the 5 km route is buggy-friendly.",
+    tickets: [t("t34", "10 km", 200, 1500, 902), t("t35", "5 km", 150, 1500, 1_140), t("t36", "Child under 12 (5 km)", 0, 500, 233)],
+  },
+  {
+    id: "e17", slug: "cinema-under-the-stars", title: "Cinema Under the Stars", subtitle: "A Zambian film night on the lawn", category: "Film", status: "Registration open", format: "Physical", orgId: "org6", venueId: "v6",
+    start: "2026-12-11T19:00:00+02:00", end: "2026-12-11T22:00:00+02:00", city: "Livingstone", distanceKm: 476, seating: "General", palette: ["#172033", "#F4A630"], audience: "All ages",
+    description: "An outdoor screening of new Zambian short films, with popcorn and blankets. Proceeds go to school feeding.",
+    tickets: [t("t37", "Lawn ticket", 80, 300, 96)],
   },
 ];
 
