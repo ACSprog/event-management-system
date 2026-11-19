@@ -4,6 +4,7 @@ import { Poster } from "@/components/poster";
 import { Badge } from "@/components/ui";
 import { api, capacity, fromPrice, sold, type EventItem } from "@/lib/api";
 import { fmtDate, fmtTime, kwacha } from "@/lib/brand";
+import { isLive } from "@/lib/date-ranges";
 
 export function EventCard({ e, showDistance = true }: { e: EventItem; showDistance?: boolean }) {
   const venue = api.venues.get(e.venueId);
@@ -18,6 +19,7 @@ export function EventCard({ e, showDistance = true }: { e: EventItem; showDistan
           {e.status === "Sold out" && <Badge tone="red" className="bg-white text-hibiscus">Sold out</Badge>}
           {e.status !== "Sold out" && pct > 0.8 && <Badge className="bg-white text-[#7a4b00]">Selling fast</Badge>}
           {e.format !== "Physical" && <Badge className="bg-white/90 text-ink">{e.format}</Badge>}
+          {isLive(e) && <span className="inline-flex items-center gap-1.5 rounded-full bg-[#c42539] px-2.5 py-0.5 text-xs font-semibold text-white"><span className="h-1.5 w-1.5 rounded-full bg-white motion-safe:animate-pulse" /> Live now</span>}
           {e.audience === "18+" && <Badge className="bg-ink text-canvas">18+</Badge>}
           {e.audience === "Family-friendly" && <Badge className="bg-white/90 text-ink">Family</Badge>}
         </div>

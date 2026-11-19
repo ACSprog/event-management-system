@@ -11,7 +11,7 @@ import { dateRangeLabels, overlaps, rangeFor, type DateRangeKey } from "@/lib/da
 
 const cats = ["All", "Music", "Nightlife", "Comedy", "Arts and theatre", "Film", "Food and drink", "Family and kids", "Church", "Sports", "Fitness", "Conference", "Business", "Technology", "Education", "Workshop", "Exhibition", "Charity"];
 const radii = [5, 10, 25, 50, 100];
-const dateKeys: DateRangeKey[] = ["any", "today", "tomorrow", "weekend", "this-week", "next-week", "this-month", "next-month", "custom"];
+const dateKeys: DateRangeKey[] = ["any", "now", "today", "tomorrow", "weekend", "this-week", "next-week", "this-month", "next-month", "custom"];
 const sorts = { soonest: "Soonest first", nearest: "Nearest first", cheapest: "Lowest price", popular: "Most popular" } as const;
 type SortKey = keyof typeof sorts;
 type Format = "any" | "in-person" | "online";
@@ -191,6 +191,9 @@ export default function Discover() {
       </div>
 
       <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
+        <button onClick={() => set("when", f.when === "now" ? "any" : "now")} aria-pressed={f.when === "now"} className={cx("flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold", f.when === "now" ? "border-hibiscus bg-hibiscus text-white" : "border-hibiscus/50 bg-hibiscus-soft text-hibiscus hover:border-hibiscus")}>
+          <span className={cx("h-2 w-2 rounded-full motion-safe:animate-pulse", f.when === "now" ? "bg-white" : "bg-hibiscus")} /> Happening now <span className="tabular-nums opacity-80">{counts.now}</span>
+        </button>
         {cats.map((c) => (
           <button key={c} onClick={() => set("cat", c)} className={cx("shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium", f.cat === c ? "border-ink bg-ink text-canvas" : "border-line bg-surface hover:border-ink-3")}>{c}</button>
         ))}

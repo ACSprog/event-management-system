@@ -7,10 +7,11 @@
 /** The showcase's fixed "now", matching the rest of the sample data. The live system uses the real clock. */
 export const demoNow = new Date("2026-11-18T12:00:00+02:00");
 
-export type DateRangeKey = "any" | "today" | "tomorrow" | "weekend" | "this-week" | "next-week" | "this-month" | "next-month" | "custom";
+export type DateRangeKey = "any" | "now" | "today" | "tomorrow" | "weekend" | "this-week" | "next-week" | "this-month" | "next-month" | "custom";
 
 export const dateRangeLabels: Record<DateRangeKey, string> = {
   any: "Any date",
+  now: "Happening now",
   today: "Today",
   tomorrow: "Tomorrow",
   weekend: "This weekend",
@@ -37,6 +38,7 @@ export function rangeFor(key: DateRangeKey, now = demoNow.getTime(), custom?: { 
   const local = new Date(now + 2 * 3_600_000);
   const firstOfMonth = (y: number, m: number) => Date.UTC(y, m, 1) - 2 * 3_600_000;
   switch (key) {
+    case "now": return [now, now + 1];
     case "today": return [now, today + DAY];
     case "tomorrow": return [today + DAY, today + 2 * DAY];
     case "weekend": {
@@ -58,3 +60,8 @@ export function rangeFor(key: DateRangeKey, now = demoNow.getTime(), custom?: { 
 
 /** An event matches a range if any part of it falls inside the range. */
 export const overlaps = (start: string, end: string, [from, to]: [number, number]) => new Date(start).getTime() < to && new Date(end).getTime() >= from;
+
+/** On now: started, not yet finished, and not cancelled or a draft. */
+export function isLive(e: { start: string; end: string; status: string }, now = demoNow.getTime()) {
+  return !["Cancelled", "Draft", "Pending approval", "Archived"].includes(e.status) && new Date(e.start).getTime() <= now && new Date(e.end).getTime() > now;
+}

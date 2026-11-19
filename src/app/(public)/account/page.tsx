@@ -6,7 +6,8 @@ import { ActivityFeed, KeyList } from "@/components/dashboard";
 import { QrScanButton } from "@/components/qr-scan-button";
 import { TicketCard } from "@/components/ticket-card";
 import { Badge, Button, Card, PageHeader, SectionTitle, Stat, useToast } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, fromPrice } from "@/lib/api";
+import { isLive } from "@/lib/date-ranges";
 import { fmtDate, kwacha } from "@/lib/brand";
 
 /**
@@ -123,6 +124,21 @@ export default function AccountOverview() {
           <p className="mt-3 text-xs text-ink-3">Your device location is only used when you ask for it.</p>
         </Card>
       </div>
+
+      {/* Happening now near you */}
+      <Card className="mt-6">
+        <SectionTitle title="Happening now near you" action={<Link href="/events/?when=now" className="text-sm font-semibold text-kafue">See all</Link>} />
+        <ul className="divide-y divide-line text-sm">
+          {api.events.discover().filter((e) => isLive(e)).map((e) => (
+            <li key={e.id}>
+              <Link href={`/events/${e.slug}/`} className="flex items-center justify-between gap-3 py-3 hover:text-kafue">
+                <span className="min-w-0"><span className="flex items-center gap-2 font-semibold"><span className="h-2 w-2 shrink-0 rounded-full bg-hibiscus motion-safe:animate-pulse" />{e.title}</span><span className="block text-xs text-ink-3">{api.venues.get(e.venueId).name} · {e.distanceKm} km · until {fmtDate(e.end, { hour: "2-digit", minute: "2-digit" })}</span></span>
+                <span className="shrink-0 font-semibold">{fromPrice(e) === 0 ? "Free entry" : `From ${kwacha(fromPrice(e))}`}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Card>
 
       {/* 6. Recent activity */}
       <div className="mt-6"><ActivityFeed rows={api.me.activity()} /></div>

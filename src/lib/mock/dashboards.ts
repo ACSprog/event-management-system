@@ -99,7 +99,7 @@ export const adminActivity = [
 
 export const orgNow = {
   normal: [
-    ["Events live today", "None"],
+    ["Events on now", "Lunchtime Jazz at Arcades, until 14:30"],
     ["Next event", "Lusaka Summer Jam, in 25 days"],
     ["Scanners registered", "8 (ticket lists download the day before)"],
     ["Payment success, last hour", "97.4%"],
