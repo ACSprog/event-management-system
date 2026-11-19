@@ -34,7 +34,7 @@ export default function AdminHome() {
       <PageHeader title="Platform overview" sub={`Signed in as ${roleInfo(role).label.toLowerCase()}. The queue and figures change with your role.`} />
 
       {/* 1. Key figures */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {finance ? (
           <>
             <Stat label="Held for organisers" value={kwacha(held)} hint="Owed to organisers, not EMS income" />

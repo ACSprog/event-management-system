@@ -36,10 +36,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           <Poster event={e} size="lg" className="aspect-[16/8] rounded-2xl" />
           <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-[34px] font-semibold leading-tight">{e.title}</h1>
-              <p className="mt-1 text-lg text-ink-2">{e.subtitle}</p>
+              <h1 className="text-[26px] font-semibold leading-tight sm:text-[34px]">{e.title}</h1>
+              <p className="mt-1 text-base text-ink-2 sm:text-lg">{e.subtitle}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <AddToCalendar title={e.title} start={e.start} end={e.end} location={e.format === "Virtual" ? "Online" : `${venue.name}, ${venue.address}`} details={e.subtitle} />
               <button className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium hover:bg-surface-2"><Share2 size={15} /> Share</button>
               <Link href={`/account/messages/?new=${e.slug}`} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium hover:bg-surface-2"><MessageCircle size={15} /> Message the organiser</Link>

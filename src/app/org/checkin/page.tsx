@@ -13,7 +13,7 @@ export default function LiveCheckin() {
   return (
     <>
       <PageHeader title="Live check-in" sub="Lusaka Summer Jam, Heroes National Stadium" actions={<><Badge tone="red"><Radio size={12} /> Live</Badge><Button variant="secondary" href="/org/scan/">Open scanner</Button></>} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Card><p className="text-sm text-ink-3">Inside the venue</p><p className="font-display mt-1 text-4xl font-bold tabular-nums">{n.toLocaleString()}</p><Progress value={(n / 31_160) * 100} className="mt-3" /><p className="mt-1 text-xs text-ink-3">of 31,160 tickets sold</p></Card>
         <Stat label="Scans per minute" value="89" hint="peak 142 at 18:10" />
         <Stat label="Average scan time" value="0.4 s" hint="offline check on the phone" />

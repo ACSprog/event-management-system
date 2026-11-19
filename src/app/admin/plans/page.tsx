@@ -103,7 +103,7 @@ export default function Plans() {
       </>)}
 
       {tab === "Trials" && (<>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
           <Stat label="Trials started, 90 days" value={conv.started} />
           <Stat label="Became paying" value={conv.converted} />
           <Stat label="Conversion" value={`${conv.last90Days}%`} />

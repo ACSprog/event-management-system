@@ -16,7 +16,7 @@ export default function Customers() {
   return (
     <>
       <PageHeader title="Customers" sub="People who bought tickets, registered or donated with you. Other organisers can't see this list." actions={<><Button variant="secondary"><Download size={15} /> Export</Button><Button><Plus size={15} /> New segment</Button></>} />
-      <div className="mb-6 grid gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <Stat label="Customers" value="48,210" delta="+3,140" hint="this month" />
         <Stat label="Can receive marketing" value="71%" hint="gave consent" />
         <Stat label="Bought twice or more" value="34%" />

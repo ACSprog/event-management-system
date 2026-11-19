@@ -7,7 +7,7 @@ export default function Membership() {
   return (
     <>
       <PageHeader title="Membership and loyalty" actions={<Button><Plus size={15} /> New plan</Button>} />
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <Stat label="Active members" value="2,722" delta="+184" hint="this month" />
         <Stat label="Membership income, year" value={kwacha(1_097_400)} />
         <Stat label="Renewals due in 30 days" value="212" hint="reminders scheduled" />

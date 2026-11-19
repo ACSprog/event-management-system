@@ -56,7 +56,7 @@ export default function OrgDashboard() {
       />
 
       {/* 1. Key figures */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {money ? <Stat label="Ticket revenue, last 30 days" value={kwacha(4_212_800)} delta="+18%" hint="vs previous 30 days" /> : <Stat label="Checked in, last event" value="1,189" hint="Zed Live Sessions: October" />}
         {money ? <Stat label="Held for you" value={kwacha(held)} hint="Paid after each event by EMS finance" /> : <Stat label="Upcoming events" value={upcoming.length} />}
         <Stat label="Tickets sold, last 30 days" value="27,480" delta="+22%" hint="vs previous 30 days" />

@@ -27,7 +27,7 @@ export default function Refunds() {
   return (
     <>
       <PageHeader title="Refunds" sub="Refund requests from buyers, refunds you've made, and card chargebacks. Refunds come out of the money EMS is holding for your event." />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Waiting for you" value={waiting.length} hint={waiting.length ? `${kwacha(waiting.reduce((a, r) => a + r.amount, 0))} requested` : "All answered"} />
         <Stat label="Refunded this month" value={kwacha(rows.filter((r) => r.status === "Refunded" || r.status === "Approved").reduce((a, r) => a + r.amount, 0))} />
         <Stat label="Refund rate" value="1.4%" hint="of tickets sold this month" />

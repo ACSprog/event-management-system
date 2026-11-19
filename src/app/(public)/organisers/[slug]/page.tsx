@@ -14,11 +14,11 @@ export default async function OrganiserPage({ params }: { params: Promise<{ slug
   const evs = api.events.discover().filter((e) => e.orgId === o.id);
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <div className="flex flex-wrap items-start justify-between gap-6 rounded-2xl border border-line bg-surface p-8">
-        <div className="flex gap-5">
-          <span className="font-display flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-ink text-3xl font-bold text-marigold">{o.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>
-          <div>
-            <h1 className="flex items-center gap-2 text-3xl font-semibold">{o.name} {o.verified && <BadgeCheck className="text-kafue" aria-label="Verified organiser" />}</h1>
+      <div className="flex flex-wrap items-start justify-between gap-6 rounded-2xl border border-line bg-surface p-5 sm:p-8">
+        <div className="flex min-w-0 gap-4 sm:gap-5">
+          <span className="font-display flex h-14 w-14 shrink-0 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-ink text-3xl font-bold text-marigold">{o.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>
+          <div className="min-w-0">
+            <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold sm:text-3xl">{o.name} {o.verified && <BadgeCheck className="text-kafue" aria-label="Verified organiser" />}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-3">
               <span>{o.type}</span><span className="flex items-center gap-1"><MapPin size={13} />{o.city}</span>
               <span className="flex items-center gap-1"><Star size={13} className="fill-marigold text-marigold" /> 4.6 average from attendees</span>

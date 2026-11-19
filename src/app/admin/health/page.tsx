@@ -10,7 +10,7 @@ export default function Health() {
   return (
     <>
       <PageHeader title="System health" sub="Region: africa-south1 (Johannesburg)" />
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <Stat label="Uptime, 30 days" value="99.97%" />
         <Stat label="API p95" value="184 ms" />
         <Stat label="Error rate" value="0.08%" />

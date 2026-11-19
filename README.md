@@ -116,6 +116,27 @@ gate staff see nothing else. It opens full screen so it works well on a phone.
   tabs, forms, modals, toasts, charts.
 - Event posters are generated from the category until organisers upload images.
 
+## Screen sizes (mobile first)
+
+Most attendees, gate staff and many organisers use phones, so every screen is
+written for a phone first and then widened. Unprefixed Tailwind classes are the
+phone layout; `sm:`, `md:`, `lg:` and `xl:` add to it for larger screens.
+
+| Screen | Width | Navigation |
+| --- | --- | --- |
+| Phone | under 640px | Hamburger menu (`src/components/layout/drawer.tsx`); public site also has the bottom tab bar; modals open as bottom sheets; key figures two per row |
+| Large phone / small tablet | 640–767px | Same, with more spacing |
+| Tablet | 768–1023px | Hamburger menu; search box and My tickets in the header; key figures up to four per row |
+| Laptop and desktop | 1024px and up | Fixed sidebar in the account, organiser and super admin views; no hamburger |
+
+Rules:
+- No page scrolls sideways. Wide tables scroll inside their own box; grid
+  children may shrink (see `globals.css`).
+- Touch targets are at least 40px; phone inputs use 16px text so iOS does not zoom.
+- The attendee account sections are defined once (`src/components/layout/account-menu.tsx`)
+  and shown in the sidebar on laptops and in the menu on phones and tablets.
+- Check new screens at 360px, 768px, 1024px and 1440px before merging.
+
 ## Showcase only
 
 - The dark "Switch view" bar at the top switches between the three kinds of user: attendee site, event organiser and super admin.

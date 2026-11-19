@@ -66,10 +66,11 @@ export default function NewEvent() {
       <PageHeader title="Create an event" back={{ href: "/org/events/", label: "Events" }} actions={<Button variant="secondary" onClick={() => toast("Draft saved")}>Save draft</Button>} />
       <ol className="mb-6 flex gap-2">
         {steps.map((s, i) => (
-          <li key={s} className="flex-1">
+          <li key={s} className="min-w-0 flex-1">
             <button onClick={() => i < step && setStep(i)} className="w-full text-left">
               <div className={cx("h-1.5 rounded-full", i <= step ? "bg-kafue" : "bg-line")} />
-              <p className={cx("mt-2 text-xs font-medium", i === step ? "text-ink" : "text-ink-3")}>{s}</p>
+              {/* Phones show only the current step name under the bars; tablets and up show all. */}
+              <p className={cx("mt-2 truncate text-xs font-medium", i === step ? "text-ink" : "hidden text-ink-3 sm:block")}>{s}</p>
             </button>
           </li>
         ))}

@@ -40,7 +40,7 @@ export function RequestsPanel({ slug }: { slug: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Open requests" value={open.length} />
         <Stat label="Waiting over 2 minutes" value={open.filter((r) => r.status === "ESCALATED" || (r.status === "SUBMITTED" && r.waitingSec > 120)).length} hint="SMS sent to the event manager" />
         <Stat label="Average wait today" value="2 min 40 s" hint="from request to staff accepting" />

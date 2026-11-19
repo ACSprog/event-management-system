@@ -11,7 +11,7 @@ export default function Fundraising() {
   return (
     <>
       <PageHeader title="Fundraising and sponsors" actions={<Button><Plus size={15} /> New campaign</Button>} />
-      <div className="mb-6 grid gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <Stat label="Donations this year" value={kwacha(2_165_800)} />
         <Stat label="Sponsorship" value={kwacha(940_000)} hint="4 sponsors" />
         <Stat label="Open pledges" value={kwacha(90_000)} />

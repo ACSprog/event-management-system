@@ -1,36 +1,23 @@
 import Link from "next/link";
-import { Search, Ticket, Bell, UserRound } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { brand } from "@/lib/brand";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { PublicHeader } from "@/components/layout/public-header";
+
+/**
+ * Public site and attendee account. Mobile first: PublicHeader has the menu
+ * (hamburger below 1024px), BottomNav is the phone tab bar (below 768px), and
+ * the bottom padding keeps content clear of it. Footer columns stack on phones,
+ * two across on tablets, four on laptops.
+ */
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col pb-16 md:pb-0">
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
-          <Logo />
-          <form action="/events/" className="hidden flex-1 md:block">
-            <label className="relative block max-w-md">
-              <span className="sr-only">Search events</span>
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
-              <input name="q" placeholder="Search events, artists or venues" className="w-full rounded-full border border-line bg-canvas py-2 pl-9 pr-4 text-sm focus:border-kafue focus:outline-none" />
-            </label>
-          </form>
-          <nav className="ml-auto flex items-center gap-2 text-sm font-medium">
-            <Link href="/events/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 sm:block">Discover</Link>
-            <Link href="/fundraising/school-feeding-2027/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 lg:block">Give</Link>
-            <Link href="/for-organisers/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 lg:block">For organisers</Link>
-            <Link href="/login/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 sm:block">Sign in</Link>
-            <Link href="/account/notifications/" aria-label="Notifications" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-2"><Bell size={18} /></Link>
-            <Link href="/account/tickets/" className="hidden h-10 items-center gap-2 rounded-full bg-ink px-4 text-canvas hover:opacity-90 md:flex"><Ticket size={16} /> My tickets</Link>
-            <Link href="/account/" aria-label="My account" title="My account" className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface hover:border-ink-3"><UserRound size={18} /></Link>
-          </nav>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+      <PublicHeader />
       <main className="flex-1">{children}</main>
       <footer className="mt-16 border-t border-line bg-surface">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm sm:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-ink-3">{brand.tagline} Tickets for concerts, conferences, church conventions and more across {brand.country}.</p>

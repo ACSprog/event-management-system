@@ -22,7 +22,7 @@ export default function AllTransactions() {
   return (
     <>
       <PageHeader title="Transactions" sub="Every payment, refund and chargeback across all organisers. Organisers see only their own." actions={<Button variant="secondary"><Download size={15} /> Export CSV</Button>} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Payments, last 30 days" value={kwacha(all.filter((t) => t.amount > 0 && t.status === "Completed").reduce((a, t) => a + t.amount, 0))} hint={`${all.length} transactions`} />
         <Stat label="Refunds, last 30 days" value={kwacha(-all.filter((t) => t.amount < 0).reduce((a, t) => a + t.amount, 0))} />
         <Stat label="Refund requests waiting" value={api.refunds.requests().filter((r) => r.status === "Waiting").length} hint="Organisers answer these" />

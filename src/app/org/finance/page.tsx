@@ -18,7 +18,7 @@ export default function Finance() {
   return (
     <>
       <PageHeader title="Finance overview" sub="Year to date, 1 Jan to 16 Nov 2026" actions={<><Button variant="secondary"><Download size={15} /> Export to Excel</Button><Button variant="secondary">Download PDF</Button></>} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Income" value={kwacha(16_928_800)} delta="+42%" hint="vs 2025" />
         <Stat label="Costs" value={kwacha(8_933_100)} />
         <Stat label="Net profit" value={kwacha(net)} hint={`${Math.round((net / 16_928_800) * 100)}% margin`} />
