@@ -77,6 +77,7 @@ const pageNeeds: [string, Permission[]][] = [
   ["/org/events/new/", ["events.edit"]],
   ["/org/assistant/", ["events.edit"]],
   ["/org/checkin/", ["checkin.scan", "events.view"]],
+  ["/org/scan/requests/", ["requests.handle", "messages.send"]],
   ["/org/scan/", ["checkin.scan"]],
   ["/org/marketing/new/", ["campaigns.send"]],
   ["/org/classrooms/new/", ["classes.manage"]],
@@ -125,7 +126,8 @@ function OrgShell({ children }: { children: React.ReactNode }) {
 
   // The scanner is part of the organiser workspace but runs full screen, like an app on the gate phone.
   if (path.startsWith("/org/scan")) {
-    if (!can("checkin.scan")) {
+    const onRequests = path.startsWith("/org/scan/requests");
+    if (onRequests ? !(can("requests.handle") || can("messages.send")) : !can("checkin.scan")) {
       return (
         <div className="flex min-h-[calc(100vh-37px)] items-center justify-center p-4">
           <Card className="max-w-md text-center">

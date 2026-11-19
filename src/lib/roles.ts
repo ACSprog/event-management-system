@@ -27,6 +27,8 @@ export type Permission =
   | "events.publish"
   | "tickets.manage"
   | "checkin.scan"
+  | "requests.handle"
+  | "messages.send"
   | "refunds.issue"
   | "money.view"
   | "expenses.approve"
@@ -45,6 +47,8 @@ export const permissions: { key: Permission; label: string; group: string }[] = 
   { key: "events.publish", label: "Publish events", group: "Events" },
   { key: "tickets.manage", label: "Set ticket types and prices", group: "Events" },
   { key: "checkin.scan", label: "Scan tickets at the gate", group: "Events" },
+  { key: "requests.handle", label: "Handle attendee help requests while on duty", group: "Events" },
+  { key: "messages.send", label: "Send event messages to attendees and staff, and assign help requests", group: "Events" },
   { key: "classes.manage", label: "Run classes and courses", group: "Events" },
   { key: "audience.view", label: "See customers and reviews", group: "Audience" },
   { key: "reviews.reply", label: "Reply to reviews", group: "Audience" },
@@ -69,7 +73,7 @@ export const teamRoles: Record<BuiltInRole, { label: string; summary: string; pe
     label: "Event manager",
     summary: "Builds and runs events. Cannot see the organisation's money or settings.",
     person: "Chanda Mulenga",
-    perms: ["events.view", "events.edit", "tickets.manage", "checkin.scan", "classes.manage", "audience.view", "reviews.reply"],
+    perms: ["events.view", "events.edit", "tickets.manage", "checkin.scan", "requests.handle", "messages.send", "classes.manage", "audience.view", "reviews.reply"],
   },
   finance: {
     label: "Finance officer",
@@ -85,9 +89,9 @@ export const teamRoles: Record<BuiltInRole, { label: string; summary: string; pe
   },
   gate: {
     label: "Gate staff",
-    summary: "Only the gate scanner, for the events and gates they are assigned to.",
+    summary: "Only the gate scanner and help requests, for the events, gates and areas they are assigned to.",
     person: "Kelvin Sakala",
-    perms: ["checkin.scan"],
+    perms: ["checkin.scan", "requests.handle"],
   },
 };
 

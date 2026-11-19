@@ -135,9 +135,12 @@ export default function Scanner() {
           <p className="font-semibold">{gate}, Lusaka Summer Jam</p>
           <p className="text-white/50">{who[0]} {who[1]?.[0]}., scanner #4{role !== "gate" && <>. <Link href="/org/events/lusaka-summer-jam-2026/" className="underline">Back to the workspace</Link></>}</p>
         </div>
+        <div className="flex items-center gap-2">
+        <Link href="/org/scan/requests/" className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">Requests (2)</Link>
         <button onClick={() => { setOnline(!online); if (!online) setPending(0); }} className={cx("flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold", online ? "bg-[#1F9D55]/20 text-[#5fd394]" : "bg-[#F4A630]/20 text-marigold")}>
           {online ? <><Wifi size={13} /> Synced</> : <><CloudOff size={13} /> Offline, {pending} to sync</>}
         </button>
+        </div>
       </div>
 
       <div className="mx-auto w-full max-w-md flex-1 px-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarPlus, Copy, MessageCircle, Send } from "lucide-react";
+import { CalendarPlus, Copy, LifeBuoy, MessageCircle, Send } from "lucide-react";
 import { ActivityFeed, KeyList } from "@/components/dashboard";
 import { TicketCard } from "@/components/ticket-card";
 import { Badge, Button, Card, PageHeader, SectionTitle, Stat, useToast } from "@/components/ui";
@@ -70,6 +70,7 @@ export default function AccountOverview() {
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" variant="ghost" href="/account/tickets/"><Send size={14} /> Transfer or assign</Button>
+            <Button size="sm" variant="ghost" href={`/events/${nextEvent.slug}/help/`}><LifeBuoy size={14} /> Request help at the event</Button>
             <Button size="sm" variant="ghost" onClick={() => toast("Choose Google, Outlook or Apple calendar")}><CalendarPlus size={14} /> Add to calendar</Button>
           </div>
         </div>

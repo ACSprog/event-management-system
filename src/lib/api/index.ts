@@ -12,6 +12,10 @@ import * as programme from "@/lib/mock/programme";
 import * as ops from "@/lib/mock/operations";
 import * as dash from "@/lib/mock/dashboards";
 import * as places from "@/lib/mock/places";
+import * as assist from "@/lib/mock/assist";
+import { churchDuties as churchDutiesConst, defaultDuties as defaultDutiesConst } from "@/lib/assist";
+const churchDutiesList = () => churchDutiesConst;
+const defaultDutiesList = () => defaultDutiesConst;
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -239,6 +243,26 @@ export const api = {
     /** GET /v1/admin/licences */
     licences: () => commerce.eventLicences,
   },
+  assist: {
+    /** GET /v1/events/:id/assist/settings (assignment mode, on-site hotline, whether staff are on duty) */
+    settings: () => assist.assistSettings,
+    /** GET /v1/orgs/:orgId/duties (names the organisation uses: "Ushers", "Protocol"...) */
+    duties: (church = false) => (church ? churchDutiesList() : defaultDutiesList()),
+    /** GET /v1/events/:id/staff-on-duty */
+    staff: () => assist.eventStaff,
+    /** GET /v1/events/:id/requests (staff see only their own duty's sensitive requests) */
+    requests: () => assist.eventRequests,
+    /** Placeholder until the official numbers are confirmed. */
+    emergency: () => assist.emergencyNumbers,
+    /** GET /v1/events/:id/audience-cells (counts only, for the message audience builder) */
+    audience: () => assist.audienceCells,
+    ticketTypes: () => assist.ticketTypes,
+    areas: () => assist.areas,
+    /** GET /v1/events/:id/messages */
+    sent: () => assist.sentMessages,
+    /** GET /v1/me/events/:id/messages (what the attendee sees in the app) */
+    inbox: () => assist.inbox,
+  },
   location: {
     /**
      * POST /v1/locations/resolve-link. The server opens a short Google Maps link
@@ -315,4 +339,5 @@ export { programmeKinds } from "@/lib/mock/programme";
 export type { ProgrammeItem } from "@/lib/mock/programme";
 export type { RefundRequest } from "@/lib/mock/operations";
 export type { KnownPlace } from "@/lib/mock/places";
+export type { HelpRequest, StaffOnDuty, SentMessage, AudienceCell } from "@/lib/mock/assist";
 export type { Cashout, CashoutStatus, CashoutSettings } from "@/lib/mock/dashboards";
