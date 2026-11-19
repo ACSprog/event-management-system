@@ -25,13 +25,19 @@ export interface EventDaySetup {
   /** Slug of the giving page. */
   giving?: string;
   stations: Station[];
+  /** Let people back in after they leave (gate scans them out). */
+  reentry?: boolean;
+  /** Extras that people without them on their ticket can buy at the station, with the price. */
+  sellExtras?: Record<string, number>;
+  /** Day-before reminder for people who tapped "I'm coming". */
+  reminder?: { at: string; people: number; sms: number; sent?: boolean };
 }
 
 const gate = (label = "Gate A", sub = "All tickets"): Station => ({ key: `gate-${label}`, kind: "GATE", label, sub });
 
 export const setups: Record<string, EventDaySetup> = {
   e1: {
-    entry: "TICKETS", menu: true, salesTracking: "COMMISSION",
+    entry: "TICKETS", menu: true, salesTracking: "COMMISSION", reentry: true, sellExtras: { dinner: 250 },
     allowances: [
       { key: "dinner", label: "Dinner", window: "19:00 to 22:00", afterEntry: true },
       { key: "drinks", label: "Drinks", afterEntry: true },
@@ -53,14 +59,15 @@ export const setups: Record<string, EventDaySetup> = {
   },
   e31: {
     entry: "OPEN", rsvp: false, checkinQr: true, giving: "grace-chapel",
-    stations: [{ key: "count", kind: "HEADCOUNT", label: "Usher count", sub: "Add people without a smartphone" }],
+    stations: [{ key: "count", kind: "HEADCOUNT", label: "Usher count", sub: "Church: add people without a smartphone", eventId: "e31" }],
   },
   e32: {
     entry: "OPEN", rsvp: true, checkinQr: true, mealPass: true, giving: "mwansa-funeral",
+    reminder: { at: "Friday 20 November, 18:00", people: 146, sms: 38 },
     allowances: [{ key: "meal", label: "Meal", window: "After the burial, 14:00 to 17:00" }],
     stations: [
       { key: "count", kind: "HEADCOUNT", label: "Usher count", sub: "Add people without a smartphone" },
-      { key: "meal", kind: "ALLOWANCE", label: "Meal serving", sub: "Meal passes and usher count", allowance: "meal" },
+      { key: "meal", kind: "ALLOWANCE", label: "Meal serving", sub: "Funeral: meal passes, and people without a phone", allowance: "meal", eventId: "e32" },
     ],
   },
 };
@@ -138,20 +145,20 @@ export const recentGifts: Record<string, { at: string; name: string; fund: strin
 
 export const menus: Record<string, MenuItem[]> = {
   e1: [
-    { id: "f1", name: "Chicken and chips", kind: "Food", price: 120, point: "Food court A", opening: 1_200, restocked: 200, sold: 1_166, writtenOff: 14 },
-    { id: "f2", name: "Beef burger", kind: "Food", price: 100, point: "Food court A", opening: 900, restocked: 0, sold: 702, writtenOff: 6 },
-    { id: "f3", name: "Nshima with T-bone", kind: "Food", price: 150, point: "Food court B", opening: 600, restocked: 0, sold: 598, writtenOff: 2 },
-    { id: "d1", name: "Water 500 ml", kind: "Drinks", price: 15, point: "Bar", opening: 3_000, restocked: 600, sold: 2_890, writtenOff: 10 },
-    { id: "d2", name: "Soft drink", kind: "Drinks", price: 25, point: "Bar", opening: 2_400, restocked: 0, sold: 1_970, writtenOff: 12 },
-    { id: "d3", name: "Mosi lager", kind: "Drinks", price: 35, point: "Bar", opening: 4_000, restocked: 1_000, sold: 3_812, writtenOff: 40, note: "18+ only. ID checked at the bar" },
-    { id: "m1", name: "Summer Jam T-shirt (M)", kind: "Merchandise", price: 250, point: "Merchandise stand", opening: 120, restocked: 20, sold: 112, writtenOff: 3, counted: 23 },
-    { id: "m2", name: "Summer Jam T-shirt (L)", kind: "Merchandise", price: 250, point: "Merchandise stand", opening: 150, restocked: 0, sold: 131, writtenOff: 1, counted: 18 },
-    { id: "m3", name: "Summer Jam cap", kind: "Merchandise", price: 150, point: "Merchandise stand", opening: 200, restocked: 0, sold: 87, writtenOff: 0, counted: 113 },
+    { id: "f1", name: "Chicken and chips", kind: "Food", price: 120, point: "Food court A", opening: 1_200, restocked: 200, sold: 1_166, writtenOff: 14, art: { icon: "chicken", from: "#F4A630", to: "#C77C3A" } },
+    { id: "f2", name: "Beef burger", kind: "Food", price: 100, point: "Food court A", opening: 900, restocked: 0, sold: 702, writtenOff: 6, art: { icon: "burger", from: "#C77C3A", to: "#7A3E12" } },
+    { id: "f3", name: "Nshima with T-bone", kind: "Food", price: 150, point: "Food court B", opening: 600, restocked: 0, sold: 598, writtenOff: 2, art: { icon: "beef", from: "#8A5A00", to: "#3A2C14" } },
+    { id: "d1", name: "Water 500 ml", kind: "Drinks", price: 15, point: "Bar", opening: 3_000, restocked: 600, sold: 2_890, writtenOff: 10, art: { icon: "water", from: "#5BC0EB", to: "#0B7A75" } },
+    { id: "d2", name: "Soft drink", kind: "Drinks", price: 25, point: "Bar", opening: 2_400, restocked: 0, sold: 1_970, writtenOff: 12, art: { icon: "soda", from: "#D62F45", to: "#7A1020" } },
+    { id: "d3", name: "Mosi lager", kind: "Drinks", price: 35, point: "Bar", opening: 4_000, restocked: 1_000, sold: 3_812, writtenOff: 40, note: "18+ only. ID checked at the bar", art: { icon: "beer", from: "#F4C430", to: "#B07A00" } },
+    { id: "m1", name: "Summer Jam T-shirt (M)", kind: "Merchandise", price: 250, point: "Merchandise stand", opening: 120, restocked: 20, sold: 112, writtenOff: 3, counted: 23, art: { icon: "shirt", from: "#0B7A75", to: "#172033" } },
+    { id: "m2", name: "Summer Jam T-shirt (L)", kind: "Merchandise", price: 250, point: "Merchandise stand", opening: 150, restocked: 0, sold: 131, writtenOff: 1, counted: 18, art: { icon: "shirt", from: "#172033", to: "#0B7A75" } },
+    { id: "m3", name: "Summer Jam cap", kind: "Merchandise", price: 150, point: "Merchandise stand", opening: 200, restocked: 0, sold: 87, writtenOff: 0, counted: 113, art: { icon: "cap", from: "#5B2A86", to: "#172033" } },
   ],
   e30: [
-    { id: "x1", name: "Village chicken and nshima", kind: "Food", price: 90, point: "Food court", opening: 800, restocked: 0, sold: 512, writtenOff: 4 },
-    { id: "x2", name: "Samosas (3)", kind: "Food", price: 30, point: "Food court", opening: 1_500, restocked: 0, sold: 1_120, writtenOff: 10 },
-    { id: "x3", name: "Water 500 ml", kind: "Drinks", price: 15, point: "Food court", opening: 2_000, restocked: 0, sold: 1_640, writtenOff: 0 },
+    { id: "x1", name: "Village chicken and nshima", kind: "Food", price: 90, point: "Food court", opening: 800, restocked: 0, sold: 512, writtenOff: 4, art: { icon: "chicken", from: "#1F9D55", to: "#0B5A32" } },
+    { id: "x2", name: "Samosas (3)", kind: "Food", price: 30, point: "Food court", opening: 1_500, restocked: 0, sold: 1_120, writtenOff: 10, art: { icon: "snack", from: "#F4A630", to: "#8A5A00" } },
+    { id: "x3", name: "Water 500 ml", kind: "Drinks", price: 15, point: "Food court", opening: 2_000, restocked: 0, sold: 1_640, writtenOff: 0, art: { icon: "water", from: "#5BC0EB", to: "#0B7A75" } },
   ],
 };
 
@@ -160,6 +167,7 @@ export const orders: Record<string, Order[]> = {
     { number: "A-0231", at: "21:14", buyer: "Natasha P.", lines: [{ item: "f1", qty: 2 }, { item: "d2", qty: 2 }], method: "MOBILE_MONEY", status: "Waiting", point: "Food court A" },
     { number: "A-0230", at: "21:12", buyer: "Joseph Z.", lines: [{ item: "f2", qty: 1 }], method: "CASH", status: "Preparing", point: "Food court A" },
     { number: "A-0229", at: "21:10", buyer: "Grace T.", lines: [{ item: "f1", qty: 1 }, { item: "d1", qty: 1 }], method: "CARD", status: "Ready", point: "Food court A", table: "VIP table 6" },
+    { number: "A-0226", at: "20:58", buyer: "Mapalo N.", lines: [{ item: "f1", qty: 1, given: 1 }, { item: "d3", qty: 2, given: 1 }], method: "MOBILE_MONEY", status: "Part collected", point: "Food court A", attendant: "Joseph Banda", paidMethod: "MOBILE_MONEY", ref: "MP261218.2058.K11870" },
     { number: "A-0228", at: "21:06", buyer: "Brian M.", lines: [{ item: "f2", qty: 2 }, { item: "d3", qty: 2 }], method: "CASH", status: "Collected", point: "Food court A", attendant: "Joseph Banda", paidMethod: "CASH" },
     { number: "M-0088", at: "21:03", buyer: "Walk-up", lines: [{ item: "m1", qty: 1 }, { item: "m3", qty: 1 }], method: "MOBILE_MONEY", status: "Collected", point: "Merchandise stand", attendant: "Brian Chanda", paidMethod: "MOBILE_MONEY", ref: "MP261218.2103.K44120", quick: true },
     { number: "A-0227", at: "21:01", buyer: "Thandiwe L.", lines: [{ item: "f1", qty: 1 }], method: "CASH", status: "Collected", point: "Food court A", attendant: "Joseph Banda", paidMethod: "CARD", ref: "004417" },
@@ -172,6 +180,15 @@ export const attendants: Record<string, Attendant[]> = {
     { id: "s1", name: "Joseph Banda", point: "Food court A", orders: 1_402, cash: 98_400, card: 61_300, cardReceipts: 488, mobile: 50_420, mobileRefs: 391, handedIn: 98_200 },
     { id: "s9", name: "Mercy Zulu", point: "Food court B", orders: 301, cash: 31_200, card: 8_400, cardReceipts: 38, mobile: 50_100, mobileRefs: 211 },
     { id: "s2", name: "Ruth Mwale", point: "Bar", orders: 2_180, cash: 98_350, card: 41_200, cardReceipts: 402, mobile: 86_470, mobileRefs: 790, handedIn: 98_400 },
-    { id: "s3", name: "Brian Chanda", point: "Merchandise stand", orders: 196, cash: 32_750, card: 21_500, cardReceipts: 58, mobile: 19_550, mobileRefs: 52, handedIn: 32_750 },
+    { id: "s3", name: "Brian Chanda", point: "Merchandise stand", orders: 196, cash: 32_750, card: 21_500, cardReceipts: 58, mobile: 19_550, mobileRefs: 52, handedIn: 32_750,
+      issued: [{ item: "m1", issued: 60, sold: 52, returned: 6 }, { item: "m2", issued: 60, sold: 57, returned: 3 }, { item: "m3", issued: 40, sold: 31 }] },
   ],
 };
+
+/* The signed-in attendee's food and merchandise orders (account › Orders) --- */
+
+export const myFoodOrders: (import("@/lib/event-day").Order & { event: string; eventSlug: string })[] = [
+  { number: "A-0229", at: "Today 21:10", event: "Lusaka Summer Jam", eventSlug: "lusaka-summer-jam-2026", buyer: "Chanda M.", lines: [{ item: "f1", qty: 1 }, { item: "d1", qty: 1 }], method: "CARD", status: "Ready", point: "Food court A", table: "VIP table 6" },
+  { number: "M-0071", at: "Today 19:40", event: "Lusaka Summer Jam", eventSlug: "lusaka-summer-jam-2026", buyer: "Chanda M.", lines: [{ item: "m1", qty: 2 }], method: "CASH", status: "Collected", point: "Merchandise stand", attendant: "Brian Chanda", paidMethod: "CASH" },
+  { number: "A-0198", at: "Today 19:02", event: "Lusaka Summer Jam", eventSlug: "lusaka-summer-jam-2026", buyer: "Chanda M.", lines: [{ item: "f2", qty: 2, given: 2 }, { item: "d2", qty: 2, given: 1 }], method: "MOBILE_MONEY", status: "Part collected", point: "Food court A", attendant: "Joseph Banda", paidMethod: "MOBILE_MONEY", ref: "MP261218.1902.K09213" },
+];

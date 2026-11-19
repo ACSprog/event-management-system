@@ -50,7 +50,7 @@ export default function NewEvent() {
   const [feePayer, setFeePayer] = useState<FeePayer>("ORGANISER_ABSORBS");
   // Event-day choices (rules in src/lib/event-day.ts).
   const [entry, setEntry] = useState<EntryMode>("TICKETS");
-  const [day, setDay] = useState({ rsvp: true, checkinQr: true, mealPass: false, giving: false, menu: false });
+  const [day, setDay] = useState({ rsvp: true, checkinQr: true, mealPass: false, giving: false, menu: false, reentry: false, sellExtras: false });
   const [funds, setFunds] = useState("Tithe, Offering, Building fund");
   const [includes, setIncludes] = useState<Record<string, string[]>>({ VIP: ["Dinner", "Drinks ×2"] });
   const [tracking, setTracking] = useState<SalesTracking>("COMMISSION");
@@ -58,7 +58,7 @@ export default function NewEvent() {
     setProfile(k);
     const open = k === "Church gathering" || k === "Funeral or memorial";
     setEntry(open ? "OPEN" : k === "Wedding or private party" ? "REGISTRATION" : "TICKETS");
-    setDay({ rsvp: true, checkinQr: true, mealPass: k === "Funeral or memorial", giving: open, menu: k === "Concert or festival" });
+    setDay({ rsvp: true, checkinQr: true, mealPass: k === "Funeral or memorial", giving: open, menu: k === "Concert or festival", reentry: false, sellExtras: false });
     setFunds(k === "Funeral or memorial" ? "Funeral costs, Support for the family" : "Tithe, Offering, Building fund");
   };
   const plan = api.billing.subscription().plan;
@@ -206,7 +206,7 @@ export default function NewEvent() {
             {entry === "OPEN" ? (
               <div className="space-y-3 rounded-lg border border-line p-4">
                 <p className="text-sm font-medium">Counting people</p>
-                <Checkbox checked={day.rsvp} onChange={(v) => setDay({ ...day, rsvp: v })} label="“I’m coming” before the event, with how many people (helps plan seating and food)" />
+                <Checkbox checked={day.rsvp} onChange={(v) => setDay({ ...day, rsvp: v })} label="“I’m coming” before the event, with how many people (helps plan seating and food). A reminder goes out the day before" />
                 <Checkbox checked={day.checkinQr} onChange={(v) => setDay({ ...day, checkinQr: v })} label="Check-in QR code on the day. Ushers count people without smartphones" />
                 <Checkbox checked={day.mealPass} onChange={(v) => setDay({ ...day, mealPass: v })} label="There is food: check-in becomes a meal pass, each meal collected once" />
               </div>
@@ -257,6 +257,8 @@ export default function NewEvent() {
               <p className="text-sm font-medium">On the day</p>
               <Checkbox checked={day.giving} onChange={(v) => setDay({ ...day, giving: v })} label="Accept giving or contributions (link and QR code to share)" />
               {day.giving && <Field label="Funds people can give to" hint="Separate with commas"><Input value={funds} onChange={(e) => setFunds(e.target.value)} /></Field>}
+              {entry !== "OPEN" && <Checkbox checked={day.reentry} onChange={(v) => setDay({ ...day, reentry: v })} label="Allow re-entry (people scanned out at the gate can come back in)" />}
+              {entry !== "OPEN" && Object.values(includes).some((x) => x.length) && <Checkbox checked={day.sellExtras} onChange={(v) => setDay({ ...day, sellExtras: v })} label="People without a meal or drinks on their ticket can buy one at the station" />}
               <Checkbox checked={day.menu} onChange={(v) => setDay({ ...day, menu: v })} label="Sell food, drinks or merchandise (you take the payment; EMS tracks orders, stock and cash)" />
             </div>
             {err && <p className="text-sm text-hibiscus">{err}</p>}

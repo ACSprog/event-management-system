@@ -7,6 +7,7 @@ import { QrScanButton } from "@/components/qr-scan-button";
 import { TicketCard } from "@/components/ticket-card";
 import { Badge, Button, Card, PageHeader, SectionTitle, Stat, useToast } from "@/components/ui";
 import { api, fromPrice } from "@/lib/api";
+import { payShort } from "@/lib/event-day";
 import { isLive } from "@/lib/date-ranges";
 import { fmtDate, kwacha } from "@/lib/brand";
 
@@ -36,6 +37,7 @@ export default function AccountOverview() {
     ...pending.incomingTransfers.map((t) => ({ key: `tr-${t.event}`, title: "A ticket was sent to you", detail: `${t.from} sent you a ${t.type} ticket for ${t.event}. Accept ${t.expires}.`, action: "Accept", msg: "Ticket accepted. You have a fresh QR code; the sender's copy no longer works.", tone: "bg-marigold-soft" })),
     ...pending.postponements.map((p) => ({ key: `pp-${p.event}`, title: `${p.event} was postponed`, detail: `New date ${p.newDate}. Keep your ticket, ask for a refund, or transfer it by ${p.deadline}.`, action: "Choose", href: "/account/orders/", tone: "bg-hibiscus-soft" })),
     ...pending.waitlistOffers.map((w) => ({ key: `wl-${w.event}`, title: "Waitlist offer", detail: `${w.qty} ticket held for you for ${w.event}, ${w.window}.`, action: "Buy", href: "/events/", tone: "bg-marigold-soft" })),
+    ...api.eventDay.myOrders().filter((o) => o.status === "Ready" || o.status === "Part collected").map((o) => ({ key: `fo-${o.number}`, title: o.status === "Ready" ? `Order ${o.number} is ready` : `Order ${o.number}: items still to collect`, detail: `${o.event} · ${o.point}${o.status === "Ready" ? `. Pay ${payShort[o.method].toLowerCase()} when you collect.` : ". Show your order code again."}`, action: "Show code", href: "/account/orders/#food", tone: "bg-marigold-soft" })),
     ...api.cases.mine().filter((c) => c.unread).map((c) => ({ key: `cs-${c.number}`, title: `New reply: ${c.subject}`, detail: `${c.org} · case ${c.number}`, action: "Open", href: `/account/messages/?case=${c.number}`, tone: "bg-kafue-soft" })),
     ...past.map((p) => ({ key: `rv-${p.event}`, title: "How was it?", detail: `Review ${p.event}.`, action: "Review", href: "/account/reviews/", tone: "bg-surface-2" })),
   ];

@@ -14,6 +14,7 @@ const stations: Station[] = [
   { key: "gate", kind: "GATE", label: "Gate", sub: "Let ticket holders in" },
   ...api.eventDay.setup("e1").stations.filter((s) => s.kind !== "GATE"),
   ...api.eventDay.setup("e31").stations,
+  ...api.eventDay.setup("e32").stations.filter((s) => s.kind === "ALLOWANCE"),
 ];
 
 type Result = { kind: "valid" | "used" | "invalid" | "gate" | "cancelled"; name?: string; ticket?: string; detail: string; number?: string };
@@ -74,10 +75,16 @@ export default function Scanner() {
     setLog((l) => [{ ...r, time: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) }, ...l].slice(0, 30));
     if (r.kind === "valid") { setCount((c) => c + 1); if (!online) setPending((p) => p + 1); }
     try { navigator.vibrate?.(r.kind === "valid" ? 60 : [80, 60, 80]); } catch {}
-    setTimeout(() => setResult(null), r.kind === "valid" ? 1100 : 2600);
+    // Results the attendant can act on (sell the extra here) stay until tapped.
+    if (!(r.kind === "gate" && r.detail.startsWith("No "))) setTimeout(() => setResult(null), r.kind === "valid" ? 1100 : 2600);
   };
   // Same result screen as the gate; at a meal or drinks station the titles change (see the overlay below).
-  const pool = station.kind === "ALLOWANCE" ? allowanceSamples(station) : samples;
+  const ev = api.events.bySlug(station.eventId === "e32" ? "funeral-joseph-mwansa" : "lusaka-summer-jam-2026")!;
+  const rules = api.eventDay.setup(station.eventId ?? "e1");
+  // With re-entry on, a second gate scan of someone who was scanned out lets them back in.
+  const gateSamples: Result[] = rules.reentry ? [...samples.slice(0, 2), { kind: "valid", name: "Mutinta Hamoonga", ticket: "Standard", number: "TKT-000622-A", detail: "Re-entry: scanned out at 20:10. Welcome back." }, ...samples.slice(2)] : samples;
+  const sellPrice = station.allowance ? rules.sellExtras?.[station.allowance] : undefined;
+  const pool = station.kind === "ALLOWANCE" ? allowanceSamples(station) : gateSamples;
   const simulate = () => { show(pool[i.current % pool.length]); i.current++; };
 
   const startCamera = async () => {
@@ -130,11 +137,12 @@ export default function Scanner() {
                 <p className="mb-2 text-sm text-white/70">Your gate</p>
                 <div className="grid grid-cols-2 gap-2">{api.events.gates().map((g) => <button key={g.name} onClick={() => setGate(g.name)} className={cx("rounded-xl border-2 px-3 py-3 text-left", gate === g.name ? "border-marigold bg-marigold/10" : "border-white/15")}><span className="block font-semibold">{g.name}</span><span className="block text-xs text-white/50">{g.allowed}</span></button>)}</div>
               </div>}
+              <Link href="/org/scan/kitchen/" className="block text-center text-sm text-white/60 underline">Open the kitchen and bar screen</Link>
               <button onClick={() => setStage("loading")} className="w-full rounded-xl bg-marigold py-4 text-lg font-bold text-[#2a1a00]">Start shift</button>
             </div>
           ) : (
             <div className="mt-10">
-              <p className="font-semibold">Downloading ticket list for Lusaka Summer Jam</p>
+              <p className="font-semibold">Downloading the ticket list for {station.eventId === "e32" ? "the funeral" : station.eventId === "e31" ? "the church service" : "Lusaka Summer Jam"}</p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-marigold transition-all" style={{ width: `${progress}%` }} /></div>
               <p className="mt-2 text-sm text-white/60">{Math.round(31_160 * Math.min(progress, 100) / 100).toLocaleString()} of 31,160 tickets, plus signing keys</p>
             </div>
@@ -153,7 +161,7 @@ export default function Scanner() {
     <div className="relative flex min-h-[calc(100vh-37px)] flex-col bg-[#0f1522] text-white">
       <div className="flex items-center justify-between px-4 py-3 text-sm">
         <div>
-          <p className="font-semibold">{here}, Lusaka Summer Jam</p>
+          <p className="font-semibold">{here}, {ev.title}</p>
           <p className="text-white/50">{who[0]} {who[1]?.[0]}., scanner #4{role !== "gate" && <>. <Link href="/org/events/lusaka-summer-jam-2026/" className="underline">Back to the workspace</Link></>}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -185,7 +193,8 @@ export default function Scanner() {
           <div className="rounded-2xl bg-white/5 py-3"><p className="font-display text-2xl font-bold">{log.filter((l) => l.kind !== "valid").length}</p><p className="text-xs text-white/50">Rejected</p></div>
         </div>
 
-        <button onClick={simulate} className="mt-5 w-full rounded-2xl bg-marigold py-4 text-lg font-bold text-[#2a1a00]">Scan a test ticket</button>
+        <button onClick={simulate} className="mt-5 w-full rounded-2xl bg-marigold py-4 text-lg font-bold text-[#2a1a00]">{station.eventId === "e32" ? "Scan a test meal pass" : "Scan a test ticket"}</button>
+        {station.eventId === "e32" && <button onClick={() => { setCount((c) => c + 1); setFlash("1 meal served to someone without a phone"); setTimeout(() => setFlash(""), 2500); }} className="mt-3 w-full rounded-2xl bg-white/10 py-3 font-semibold">+1 served, no phone</button>}
         <p className="mt-2 text-center text-xs text-white/40">{station.kind === "GATE" ? "Cycles through valid, used, wrong gate, cancelled and fake tickets" : "Cycles through included, table count, already collected, not included, not entered yet and fake"}</p>
       </div>
 
@@ -248,6 +257,9 @@ export default function Scanner() {
           {result.ticket && <p className="text-lg opacity-90">{result.ticket}</p>}
           <p className="mt-3 max-w-xs text-lg opacity-90">{result.detail}</p>
           {result.number && <p className="mt-4 font-mono text-sm opacity-70">{result.number}</p>}
+          {sellPrice && result.kind === "gate" && result.detail.startsWith("No ") && (
+            <button onClick={(x) => { x.stopPropagation(); setResult(null); setCount((c) => c + 1); setFlash(`Sold one ${station.label.replace("VIP ", "").toLowerCase()} for K${sellPrice} (cash). Serve now.`); setTimeout(() => setFlash(""), 3000); }} className="mt-6 rounded-2xl bg-[#172033] px-6 py-4 text-lg font-bold text-white">Sell one here for K{sellPrice}</button>
+          )}
           {result.kind !== "valid" && <p className="mt-8 rounded-full bg-black/20 px-4 py-2 text-sm">Tap to dismiss. Call a supervisor if the guest disputes this.</p>}
         </div>
       )}

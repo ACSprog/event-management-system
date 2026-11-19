@@ -21,19 +21,27 @@ import { left, payShort, type MenuItem, type PayMethod, type Station } from "@/l
 export type AllowanceResult = { kind: "valid" | "used" | "gate" | "invalid" | "cancelled"; name?: string; ticket?: string; detail: string; number?: string };
 
 export function allowanceSamples(s: Station): AllowanceResult[] {
-  const label = api.eventDay.setup("e1").allowances?.find((a) => a.key === s.allowance)?.label ?? s.label;
+  const setup = api.eventDay.setup(s.eventId ?? "e1");
+  const label = setup.allowances?.find((a) => a.key === s.allowance)?.label ?? s.label;
+  // Funeral meal serving: meal passes from the check-in screen, counted per person.
+  if (s.eventId === "e32") return [
+    { kind: "valid", name: "Ruth Chanda", ticket: "Meal pass · 3 people", number: "MEAL-CM-0412", detail: "Meal 1 of 3. Serve now." },
+    { kind: "valid", name: "Moses Kabwe", ticket: "Meal pass · 1 person", number: "MEAL-MK-0388", detail: "Meal 1 of 1. Serve now." },
+    { kind: "used", name: "Grace Tembo", ticket: "Meal pass · 2 people", number: "MEAL-GT-0201", detail: "Both meals already collected at 14:22." },
+    { kind: "gate", name: "Peter Chileshe", ticket: "Not checked in", number: "—", detail: "This phone hasn't checked in yet. Ask them to scan the check-in code first, or count them as served without a phone." },
+  ];
   return [
     { kind: "valid", name: "Grace Tembo", ticket: "VIP", number: "TKT-002210-A", detail: `${label}: 1 of 1 left. Serve now.` },
     { kind: "valid", name: "Bwalya Kunda", ticket: "VVIP table of 8", number: "TKT-000031-T", detail: `${label}: 3 of 8 left after this one.` },
     { kind: "used", name: "Peter Chileshe", ticket: "VIP", number: "TKT-002118-A", detail: `${label} already collected at 19:42 (Ruth M., ${s.label}).` },
-    { kind: "gate", name: "Natasha Phiri", ticket: "Standard", number: "TKT-000512-A", detail: `No ${label.toLowerCase()} on a Standard ticket. They can order and pay from the menu.` },
+    { kind: "gate", name: "Natasha Phiri", ticket: "Standard", number: "TKT-000512-A", detail: `No ${label.toLowerCase()} on a Standard ticket.${s.allowance && setup.sellExtras?.[s.allowance] ? "" : " They can order and pay from the menu."}` },
     { kind: "gate", name: "Victor Siame", ticket: "VIP", number: "TKT-002301-A", detail: "This ticket hasn't entered at the gate yet. Send them to the VIP gate first." },
     { kind: "invalid", detail: "Signature check failed. This QR code was not issued by Eventra." },
   ];
 }
 
 const payIcon = { CASH: Banknote, CARD: CreditCard, MOBILE_MONEY: Smartphone };
-type Shown = { number: string; buyer: string; lines: { item: MenuItem; qty: number }[]; method: PayMethod; already?: string; table?: string };
+type Shown = { number: string; buyer: string; lines: { item: MenuItem; qty: number; given?: number }[]; method: PayMethod; already?: string; table?: string; paid?: PayMethod };
 
 export function OrderStation({ station, onClose }: { station: Station; onClose: () => void }) {
   const menu = api.eventDay.menu("e1").filter((m) => m.point === station.label || (station.label === "Food court A" && m.point === "Bar"));
@@ -42,8 +50,11 @@ export function OrderStation({ station, onClose }: { station: Station; onClose: 
     { number: "A-0229", buyer: "Grace T.", lines: [{ item: byId("f1"), qty: 1 }, { item: byId("d1"), qty: 1 }], method: "CARD", table: "VIP table 6" },
     { number: "A-0230", buyer: "Joseph Z.", lines: [{ item: byId("f2"), qty: 1 }], method: "CASH" },
     { number: "A-0231", buyer: "Natasha P.", lines: [{ item: byId("f1"), qty: 2 }, { item: byId("d2"), qty: 2 }], method: "MOBILE_MONEY" },
+    { number: "A-0226", buyer: "Mapalo N.", lines: [{ item: byId("f1"), qty: 1, given: 1 }, { item: byId("d3"), qty: 2, given: 1 }], method: "MOBILE_MONEY", paid: "MOBILE_MONEY" },
     { number: "A-0228", buyer: "Brian M.", lines: [{ item: byId("f2"), qty: 2 }], method: "CASH", already: "Already collected and paid (cash) at 21:06 by Joseph B." },
   ];
+  // How many of each line to hand over now (orders can be collected in parts).
+  const [giveNow, setGiveNow] = useState<number[]>([]);
   const [i, setI] = useState(0);
   const [shown, setShown] = useState<Shown | null>(null);
   const [paid, setPaid] = useState<PayMethod>("CASH");
@@ -56,13 +67,22 @@ export function OrderStation({ station, onClose }: { station: Station; onClose: 
   const [writeOff, setWriteOff] = useState(false);
   const total = (lines: { item: MenuItem; qty: number }[]) => lines.reduce((a, l) => a + l.item.price * l.qty, 0);
 
-  const scan = () => { const s = samples[i % samples.length]; setI(i + 1); setShown(s); setPaid(s.method); setRef(""); setErr(""); };
+  const scan = () => { const s = samples[i % samples.length]; setI(i + 1); setShown(s); setPaid(s.method); setRef(""); setErr(""); setGiveNow(s.lines.map((l) => l.qty - (l.given ?? 0))); };
   const confirm = (lines: { item: MenuItem; qty: number }[], number: string) => {
     if (paid !== "CASH" && ref.trim().length < 4) return setErr(paid === "CARD" ? "Enter the receipt number from the card machine." : "Enter the mobile money transaction reference.");
     const amt = total(lines);
     setTotals((t) => ({ ...t, orders: t.orders + 1, [paid]: t[paid] + amt }));
     setShown(null); setQuick(false); setCart({}); setErr("");
     setFlash(`${number}: collected, ${kwacha(amt)} ${payShort[paid].toLowerCase()}`); setTimeout(() => setFlash(""), 3000);
+  };
+  const handOver = (o: Shown) => {
+    if (!o.paid && paid !== "CASH" && ref.trim().length < 4) return setErr(paid === "CARD" ? "Enter the receipt number from the card machine." : "Enter the mobile money transaction reference.");
+    const amt = total(o.lines);
+    if (!o.paid) setTotals((t) => ({ ...t, orders: t.orders + 1, [paid]: t[paid] + amt }));
+    const left = o.lines.reduce((a, l, n) => a + l.qty - (l.given ?? 0) - (giveNow[n] ?? 0), 0);
+    setShown(null); setErr("");
+    setFlash(left ? `${o.number}: part collected, ${left} item${left > 1 ? "s" : ""} still to give${o.paid ? "" : `. Paid ${kwacha(amt)} ${payShort[paid].toLowerCase()}`}` : `${o.number}: collected${o.paid ? "" : `, ${kwacha(amt)} ${payShort[paid].toLowerCase()}`}`);
+    setTimeout(() => setFlash(""), 3500);
   };
   const quickLines = Object.entries(cart).filter(([, q]) => q > 0).map(([id, qty]) => ({ item: byId(id), qty }));
 
@@ -109,12 +129,31 @@ export function OrderStation({ station, onClose }: { station: Station; onClose: 
               <p className="font-display text-4xl font-bold">{shown.number}</p>
               <p className="text-white/60">{shown.buyer}{shown.table ? ` · deliver to ${shown.table}` : ""}</p>
               <ul className="mt-4 divide-y divide-white/10 rounded-xl bg-white/5 px-4">
-                {shown.lines.map((l) => <li key={l.item.id} className="flex justify-between py-3 text-lg"><span>{l.qty} × {l.item.name}</span><span className="tabular-nums">{kwacha(l.qty * l.item.price)}</span></li>)}
+                {shown.lines.map((l, n) => {
+                  const rest = l.qty - (l.given ?? 0);
+                  return (
+                    <li key={l.item.id} className="flex items-center justify-between gap-2 py-3">
+                      <span className="min-w-0"><span className="block text-lg">{l.qty} × {l.item.name}</span>{(l.given ?? 0) > 0 && <span className="text-xs text-white/50">{l.given} already given</span>}</span>
+                      {rest > 0 ? (
+                        <span className="flex shrink-0 items-center gap-2">
+                          <button aria-label="Give one fewer now" onClick={() => setGiveNow(giveNow.map((g, k) => (k === n ? Math.max(0, g - 1) : g)))} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10"><Minus size={14} /></button>
+                          <span className="w-12 text-center text-sm"><b className="text-lg">{giveNow[n] ?? 0}</b>/{rest}</span>
+                          <button aria-label="Give one more now" onClick={() => setGiveNow(giveNow.map((g, k) => (k === n ? Math.min(rest, g + 1) : g)))} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10">+</button>
+                        </span>
+                      ) : <span className="text-sm text-[#5fd394]">Given</span>}
+                    </li>
+                  );
+                })}
               </ul>
-              <p className="mt-4 text-center text-2xl font-bold">Collect {kwacha(total(shown.lines))}</p>
-              <p className="mb-3 text-center text-sm text-white/60">Buyer said: {payShort[shown.method].toLowerCase()}. Change it if they pay differently.</p>
-              {payChoice()}
-              <button onClick={() => confirm(shown.lines, shown.number)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1F9D55] py-4 text-lg font-bold"><CheckCircle2 size={20} /> Handed over and paid</button>
+              <p className="mt-1 text-xs text-white/50">Out of something? Give what you have now; the rest stays on the order code.</p>
+              {shown.paid ? (
+                <p className="mt-4 rounded-xl bg-[#1F9D55]/20 py-2 text-center font-semibold text-[#5fd394]">Already paid · {payShort[shown.paid]}</p>
+              ) : (<>
+                <p className="mt-4 text-center text-2xl font-bold">Collect {kwacha(total(shown.lines))}</p>
+                <p className="mb-3 text-center text-sm text-white/60">Buyer said: {payShort[shown.method].toLowerCase()}. Change it if they pay differently.</p>
+                {payChoice()}
+              </>)}
+              <button onClick={() => handOver(shown)} disabled={giveNow.every((g) => !g)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1F9D55] py-4 text-lg font-bold disabled:opacity-40"><CheckCircle2 size={20} /> {shown.paid ? "Hand over" : "Handed over and paid"}</button>
             </div>
           )}
         </div>

@@ -35,7 +35,7 @@ export function EventDayCards({ e }: { e: EventItem }) {
             coming ? (
               <div className="mt-4 rounded-xl bg-leaf-soft p-3 text-sm">
                 <p className="flex items-center gap-1.5 font-semibold text-leaf"><Check size={16} /> You&rsquo;re coming, {people} {people === 1 ? "person" : "people"}</p>
-                <p className="mt-1 text-ink-2">We&rsquo;ll remind you the day before. <button className="font-semibold text-kafue" onClick={() => setComing(false)}>Change</button></p>
+                <p className="mt-1 text-ink-2">We&rsquo;ll remind you {setup.reminder ? `on ${setup.reminder.at}` : "the day before"} by notification, or SMS if you don&rsquo;t have the app. <button className="font-semibold text-kafue" onClick={() => setComing(false)}>Change</button></p>
               </div>
             ) : (
               <div className="mt-4">
