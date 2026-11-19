@@ -6,8 +6,9 @@ import { ActivityFeed, AttentionQueue, DashRow, LivePanel, StatusStrip } from "@
 import { Badge, Card, PageHeader, SectionTitle, Stat, Table } from "@/components/ui";
 import { AreaTrend, Bars } from "@/components/ui/charts";
 import { SettlementBadge, Countdown } from "@/components/settlement";
-import { api, heldAmount, payable, statusTone, type Settlement } from "@/lib/api";
-import { kwacha } from "@/lib/brand";
+import { api, heldAmount, payable, sold, statusTone, type EventItem, type Settlement } from "@/lib/api";
+import { fmtDate, kwacha } from "@/lib/brand";
+import { isLive } from "@/lib/date-ranges";
 import { adminQueue } from "@/lib/queues";
 
 /**
@@ -26,6 +27,7 @@ export default function AdminHome() {
   const cashouts = api.contributions.cashouts();
   const finance = can("settlements.review") || can("settlements.approve");
   const seesMoney = can("platform.view");
+  const live = api.events.discover().filter((e) => isLive(e));
 
   return (
     <>
@@ -54,6 +56,23 @@ export default function AdminHome() {
       <DashRow>
         <AttentionQueue items={adminQueue()} can={can} />
         <LivePanel live rows={api.dashboards.platformNow()} />
+      </DashRow>
+
+      {/* Events happening now across the platform */}
+      <DashRow wide>
+        <Card pad={false}>
+          <div className="p-5 pb-2"><SectionTitle title="Happening now" sub={`${live.length} events on across Zambia right now (sample)`} action={<Link href="/events/?when=now" className="text-sm font-semibold text-kafue">See on the public site</Link>} /></div>
+          <Table<EventItem & Record<string, unknown>>
+            rows={live as (EventItem & Record<string, unknown>)[]}
+            empty="No events are on right now."
+            columns={[
+              { key: "title", label: "Event", render: (e) => <><p className="flex items-center gap-2 font-semibold"><span className="h-2 w-2 rounded-full bg-hibiscus motion-safe:animate-pulse" />{e.title}</p><p className="text-xs text-ink-3">{api.orgs.list().find((o) => o.id === e.orgId)?.name} · {e.category}</p></> },
+              { key: "where", label: "Where", render: (e) => <span className="text-sm">{e.format === "Virtual" ? "Online" : `${api.venues.get(e.venueId).name}, ${e.city}`}</span> },
+              { key: "until", label: "Ends", render: (e) => <span className="text-sm">{fmtDate(e.end, { weekday: "short", hour: "2-digit", minute: "2-digit" })}</span> },
+              { key: "in", label: "Checked in", align: "right", render: (e) => <span className="tabular-nums">{Math.round(sold(e) * 0.81).toLocaleString()} of {sold(e).toLocaleString()}</span> },
+            ]}
+          />
+        </Card>
       </DashRow>
 
       {/* 4. Money and status */}
