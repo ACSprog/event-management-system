@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, GraduationCap, LayoutDashboard, LifeBuoy, UserRound, Receipt, Settings, Star, Ticket, Trophy } from "lucide-react";
+import { Bell, GraduationCap, LayoutDashboard, LifeBuoy, MessageCircle, UserRound, Receipt, Settings, Star, Ticket, Trophy } from "lucide-react";
 import { Avatar, cx } from "@/components/ui";
 
 const items = [
   { href: "/account/", label: "Overview", icon: LayoutDashboard },
+  { href: "/account/messages/", label: "Messages", icon: MessageCircle },
   { href: "/account/profile/", label: "Profile and privacy", icon: UserRound },
   { href: "/account/tickets/", label: "My tickets", icon: Ticket },
   { href: "/account/help/", label: "Help at events", icon: LifeBuoy },

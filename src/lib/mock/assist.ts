@@ -40,12 +40,12 @@ export interface HelpRequest {
 }
 
 export const eventRequests: HelpRequest[] = [
-  { id: "RQ-1031", duty: "first_aid", from: "Natasha P.", ticket: "Standard", where: "General area, near the sound desk", note: "My friend fainted, she's sitting down now.", at: "20:14", waitingSec: 40, status: "ACCEPTED", assignee: "s6", log: [{ at: "20:14", what: "Sent" }, { at: "20:14", what: "Automatically sent to first aid" }, { at: "20:14", what: "Nurse Agnes Lungu: on the way" }] },
-  { id: "RQ-1032", duty: "usher", from: "Bwalya K.", ticket: "VIP", where: "VIP terrace, table 6", note: "Someone is sitting at our reserved table.", at: "20:16", waitingSec: 150, status: "ESCALATED", log: [{ at: "20:16", what: "Sent" }, { at: "20:18", what: "Not accepted in 2 minutes: SMS sent to the event manager" }] },
-  { id: "RQ-1033", duty: "security", from: "Anonymous", ticket: "Standard", where: "Gate B queue", note: "Pushing in the queue, people getting angry.", at: "20:17", waitingSec: 95, status: "ASSIGNED", assignee: "s4", log: [{ at: "20:17", what: "Sent" }, { at: "20:17", what: "Assigned to Moses Phiri by Chanda Mulenga" }] },
-  { id: "RQ-1034", duty: "lost_found", from: "Grace T.", ticket: "Early bird", where: "General area", note: "Lost a black phone with a red cover.", at: "20:19", waitingSec: 20, status: "SUBMITTED", log: [{ at: "20:19", what: "Sent" }] },
-  { id: "RQ-1029", duty: "access", from: "Kunda S.", ticket: "Standard", where: "Gate A", note: "Ticket shows already used.", at: "19:52", waitingSec: 0, status: "COMPLETED", assignee: "s7", log: [{ at: "19:52", what: "Sent" }, { at: "19:53", what: "Kelvin Sakala: on the way" }, { at: "19:58", what: "Done: ticket was transferred; new QR scanned" }] },
-  { id: "RQ-1027", duty: "cleaning", from: "Mutinta H.", ticket: "VIP", where: "VIP toilets", note: "No water in the ladies' toilets.", at: "19:40", waitingSec: 0, status: "COMPLETED", assignee: "s3", log: [{ at: "19:40", what: "Sent" }, { at: "19:44", what: "Brian Chanda: on the way" }, { at: "19:55", what: "Done" }] },
+  { id: "CS-2611-0431", duty: "first_aid", from: "Natasha P.", ticket: "Standard", where: "General area, near the sound desk", note: "My friend fainted, she's sitting down now.", at: "20:14", waitingSec: 40, status: "ACCEPTED", assignee: "s6", log: [{ at: "20:14", what: "Sent" }, { at: "20:14", what: "Automatically sent to first aid" }, { at: "20:14", what: "Nurse Agnes Lungu: on the way" }] },
+  { id: "CS-2611-0432", duty: "usher", from: "Bwalya K.", ticket: "VIP", where: "VIP terrace, table 6", note: "Someone is sitting at our reserved table.", at: "20:16", waitingSec: 150, status: "ESCALATED", log: [{ at: "20:16", what: "Sent" }, { at: "20:18", what: "Not accepted in 2 minutes: SMS sent to the event manager" }] },
+  { id: "CS-2611-0433", duty: "security", from: "Anonymous", ticket: "Standard", where: "Gate B queue", note: "Pushing in the queue, people getting angry.", at: "20:17", waitingSec: 95, status: "ASSIGNED", assignee: "s4", log: [{ at: "20:17", what: "Sent" }, { at: "20:17", what: "Assigned to Moses Phiri by Chanda Mulenga" }] },
+  { id: "CS-2611-0434", duty: "lost_found", from: "Grace T.", ticket: "Early bird", where: "General area", note: "Lost a black phone with a red cover.", at: "20:19", waitingSec: 20, status: "SUBMITTED", log: [{ at: "20:19", what: "Sent" }] },
+  { id: "CS-2611-0429", duty: "access", from: "Kunda S.", ticket: "Standard", where: "Gate A", note: "Ticket shows already used.", at: "19:52", waitingSec: 0, status: "COMPLETED", assignee: "s7", log: [{ at: "19:52", what: "Sent" }, { at: "19:53", what: "Kelvin Sakala: on the way" }, { at: "19:58", what: "Done: ticket was transferred; new QR scanned" }] },
+  { id: "CS-2611-0427", duty: "cleaning", from: "Mutinta H.", ticket: "VIP", where: "VIP toilets", note: "No water in the ladies' toilets.", at: "19:40", waitingSec: 0, status: "COMPLETED", assignee: "s3", log: [{ at: "19:40", what: "Sent" }, { at: "19:44", what: "Brian Chanda: on the way" }, { at: "19:55", what: "Done" }] },
 ];
 
 export const assistSettings: { mode: AssignMode; hotline: string; staffed: boolean } = { mode: "AUTOMATIC", hotline: "+260 97 7000 123", staffed: true };
@@ -101,6 +101,6 @@ export const inbox = [
 
 /** The signed-in attendee's own requests (Chanda Mulenga). */
 export const myRequests = [
-  { id: "RQ-1029", event: "Lusaka Summer Jam", eventSlug: "lusaka-summer-jam-2026", what: "Ticket or entry problem", where: "Gate A", at: "Today 19:52", status: "COMPLETED" as const, by: "Kelvin (gate team)" },
-  { id: "RQ-0874", event: "Zed Live Sessions: October", eventSlug: "lusaka-summer-jam-2026", what: "Lost and found", where: "General area", at: "18 Oct, 21:40", status: "COMPLETED" as const, by: "Chileshe (lost and found)" },
+  { id: "CS-2611-0429", event: "Lusaka Summer Jam", eventSlug: "lusaka-summer-jam-2026", what: "Ticket or entry problem", where: "Gate A", at: "Today 19:52", status: "COMPLETED" as const, by: "Kelvin (gate team)" },
+  { id: "CS-2610-0371", event: "Zed Live Sessions: October", eventSlug: "lusaka-summer-jam-2026", what: "Lost and found", where: "General area", at: "18 Oct, 21:40", status: "COMPLETED" as const, by: "Chileshe (lost and found)" },
 ];

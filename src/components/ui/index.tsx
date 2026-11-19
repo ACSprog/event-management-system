@@ -158,7 +158,9 @@ export function EmptyState({ title, body, action }: { title: string; body?: stri
 /* Tabs ------------------------------------------------------------------- */
 export function Tabs({ tabs, value, onChange }: { tabs: string[]; value: string; onChange: (t: string) => void }) {
   return (
-    <div className="mb-5 flex gap-1 overflow-x-auto border-b border-line" role="tablist">
+    // The line under the tabs is drawn with an inset shadow (not a border plus a negative margin), so the row never
+    // overflows vertically and Windows doesn't show scroll arrows. Tab text lines up with the page heading.
+    <div className="mb-5 flex gap-6 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-line)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
       {tabs.map((t) => (
         <button
           key={t}
@@ -166,7 +168,7 @@ export function Tabs({ tabs, value, onChange }: { tabs: string[]; value: string;
           aria-selected={value === t}
           onClick={() => onChange(t)}
           className={cx(
-            "-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium",
+            "whitespace-nowrap border-b-2 px-0 py-2.5 text-sm font-medium",
             value === t ? "border-kafue text-ink" : "border-transparent text-ink-3 hover:text-ink",
           )}
         >
