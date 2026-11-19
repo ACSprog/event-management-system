@@ -14,13 +14,24 @@ import { compact, fmtDate, fmtTime, kwacha } from "@/lib/brand";
 import { pct, showCount } from "@/lib/gender";
 import { MessagesPanel } from "./messages-panel";
 import { RequestsPanel } from "./requests-panel";
+import { AllowancesCard, AttendancePanel, GivingPanel, SalesPanel } from "./event-day-panels";
 
 
 export function EventManage({ slug }: { slug: string }) {
   const toast = useToast();
   const { can } = useOrgRole();
   const [status, setStatus] = useState(api.events.bySlug(slug)!.status);
-  const tabsList = ["Overview", "Programme", "Tickets", "Attendees", ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), "Check-in and gates", ...(can("messages.send") ? ["Help requests", "Event messages"] : []), "Tasks and logistics", ...(can("money.view") ? ["Budget", "Money and settlement"] : []), ...(can("events.edit") ? ["Staff and shifts"] : [])];
+  const setup = api.eventDay.setup(api.events.bySlug(slug)!.id);
+  const openEntry = setup.entry === "OPEN";
+  // Open-entry events (church services, funerals) have no tickets: Attendance
+  // replaces Overview, Tickets, Attendees and Check-in. Giving and Food and
+  // merchandise appear when switched on for the event (src/lib/event-day.ts).
+  const tabsList = [
+    ...(openEntry ? ["Attendance"] : ["Overview"]), "Programme", ...(openEntry ? [] : ["Tickets", "Attendees"]),
+    ...(api.events.bySlug(slug)!.format !== "Physical" ? ["Online attendees"] : []), ...(openEntry ? [] : ["Check-in and gates"]),
+    ...(setup.giving && can("money.view") ? ["Giving"] : []), ...(setup.menu ? ["Food and merchandise"] : []),
+    ...(can("messages.send") ? ["Help requests", "Event messages"] : []), "Tasks and logistics", ...(can("money.view") ? ["Budget", "Money and settlement"] : []), ...(can("events.edit") ? ["Staff and shifts"] : []),
+  ];
   const next: Record<string, { label: string; to: typeof status; need: "events.publish" | "events.edit"; msg: string } | undefined> = {
     "Pending approval": { label: "Approve", to: "Approved", need: "events.publish", msg: "Event approved. Publish it when you're ready." },
     Approved: { label: "Publish now", to: "Registration open", need: "events.publish", msg: "Published. Tickets are on sale." },
@@ -31,7 +42,7 @@ export function EventManage({ slug }: { slug: string }) {
   };
   const step = next[status];
   const e = api.events.bySlug(slug)!;
-  const [tab, setTab] = useState("Overview");
+  const [tab, setTab] = useState(openEntry ? "Attendance" : "Overview");
   const [q, setQ] = useState("");
   const [refund, setRefund] = useState<string | null>(null);
   const [problem, setProblem] = useState(false);
@@ -124,6 +135,7 @@ export function EventManage({ slug }: { slug: string }) {
               { key: "salesEnd", label: "On sale", render: (t) => `${fmtDate((t.salesStart as string) ?? t.salesEnd, { day: "numeric", month: "short" })} to ${fmtDate(t.salesEnd as string, { day: "numeric", month: "short" })}` },
               { key: "refund", label: "Refunds", render: (t) => <><p>{String(t.refund ?? "Event policy")}</p><p className="text-xs text-ink-3">{String(t.tax ?? "")}</p></> },
               { key: "who", label: "Who can buy" },
+              { key: "inc", label: "Includes", render: (t) => { const inc = setup.includes?.[String(t.name)]; return inc ? Object.entries(inc).map(([k, n]) => `${setup.allowances?.find((x) => x.key === k)?.label ?? k} ×${n}`).join(", ") : <span className="text-ink-3">Entry only</span>; } },
               { key: "st", label: "", render: (t) => <Badge tone={t.sold === t.capacity ? "red" : "green"}>{t.sold === t.capacity ? "Sold out" : "On sale"}</Badge> },
             ]}
           />
@@ -162,11 +174,15 @@ export function EventManage({ slug }: { slug: string }) {
             <Stat label="Scanners offline" value="1" hint="Gate B #6, last sync 2 min ago" />
           </div>
           <Card className="mt-6"><SectionTitle title="Arrivals by gate" sub="Every 30 minutes" /><Bars data={api.events.checkinSeries()} x="time" keys={["gateA", "gateB", "vip"]} labels={["Gate A", "Gate B", "VIP gate"]} stacked /></Card>
+          <AllowancesCard e={e} />
           <WhoCame />
           <div className="mt-6"><Table rows={api.events.gates()} columns={[{ key: "name", label: "Gate", render: (g) => <span className="font-semibold">{g.name}</span> }, { key: "allowed", label: "Accepts" }, { key: "scanners", label: "Scanners", align: "right" }, { key: "staff", label: "Staff", align: "right" }, { key: "scanned", label: "Scanned", align: "right", render: (g) => g.scanned.toLocaleString() }, { key: "rate", label: "Per minute", align: "right" }]} /></div>
         </>
       )}
 
+      {tab === "Attendance" && <AttendancePanel e={e} />}
+      {tab === "Giving" && <GivingPanel e={e} />}
+      {tab === "Food and merchandise" && <SalesPanel e={e} />}
       {tab === "Help requests" && <RequestsPanel slug={e.slug} />}
       {tab === "Event messages" && <MessagesPanel />}
 

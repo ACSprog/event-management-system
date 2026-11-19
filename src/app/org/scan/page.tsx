@@ -6,6 +6,15 @@ import Link from "next/link";
 import { cx } from "@/components/ui";
 import { useOrgRole } from "@/components/layout/org-role";
 import { api } from "@/lib/api";
+import type { Station } from "@/lib/event-day";
+import { allowanceSamples, HeadcountStation, OrderStation } from "./stations";
+
+/** Stations a scanner can be set to (Summer Jam, plus the church usher counter as an example). */
+const stations: Station[] = [
+  { key: "gate", kind: "GATE", label: "Gate", sub: "Let ticket holders in" },
+  ...api.eventDay.setup("e1").stations.filter((s) => s.kind !== "GATE"),
+  ...api.eventDay.setup("e31").stations,
+];
 
 type Result = { kind: "valid" | "used" | "invalid" | "gate" | "cancelled"; name?: string; ticket?: string; detail: string; number?: string };
 
@@ -36,6 +45,8 @@ export default function Scanner() {
   const [stage, setStage] = useState<"setup" | "loading" | "scan">("setup");
   const [code, setCode] = useState("JAM-4417-GATE");
   const [gate, setGate] = useState("Gate A");
+  // What this phone checks: the gate, a ticket extra (meal, drinks), food orders or a usher count.
+  const [station, setStation] = useState<Station>(stations[0]);
   const [progress, setProgress] = useState(0);
   const [online, setOnline] = useState(true);
   const [pending, setPending] = useState(0);
@@ -65,7 +76,9 @@ export default function Scanner() {
     try { navigator.vibrate?.(r.kind === "valid" ? 60 : [80, 60, 80]); } catch {}
     setTimeout(() => setResult(null), r.kind === "valid" ? 1100 : 2600);
   };
-  const simulate = () => { show(samples[i.current % samples.length]); i.current++; };
+  // Same result screen as the gate; at a meal or drinks station the titles change (see the overlay below).
+  const pool = station.kind === "ALLOWANCE" ? allowanceSamples(station) : samples;
+  const simulate = () => { show(pool[i.current % pool.length]); i.current++; };
 
   const startCamera = async () => {
     if (!navigator.mediaDevices?.getUserMedia) return setCam("unsupported");
@@ -109,9 +122,14 @@ export default function Scanner() {
                 <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-mono text-lg tracking-wider focus:border-marigold focus:outline-none" />
               </label>
               <div>
+                <p className="mb-2 text-sm text-white/70">What are you scanning?</p>
+                <div className="grid grid-cols-2 gap-2">{stations.map((s) => <button key={s.key} onClick={() => setStation(s)} aria-pressed={station.key === s.key} className={cx("rounded-xl border-2 px-3 py-3 text-left", station.key === s.key ? "border-marigold bg-marigold/10" : "border-white/15")}><span className="block font-semibold">{s.label}</span><span className="block text-xs text-white/50">{s.sub}</span></button>)}</div>
+                <p className="mt-2 text-xs text-white/50">The same ticket QR code is checked separately at the gate and at each meal or drinks station.</p>
+              </div>
+              {station.kind === "GATE" && <div>
                 <p className="mb-2 text-sm text-white/70">Your gate</p>
                 <div className="grid grid-cols-2 gap-2">{api.events.gates().map((g) => <button key={g.name} onClick={() => setGate(g.name)} className={cx("rounded-xl border-2 px-3 py-3 text-left", gate === g.name ? "border-marigold bg-marigold/10" : "border-white/15")}><span className="block font-semibold">{g.name}</span><span className="block text-xs text-white/50">{g.allowed}</span></button>)}</div>
-              </div>
+              </div>}
               <button onClick={() => setStage("loading")} className="w-full rounded-xl bg-marigold py-4 text-lg font-bold text-[#2a1a00]">Start shift</button>
             </div>
           ) : (
@@ -125,6 +143,9 @@ export default function Scanner() {
       </div>
     );
 
+  if (station.kind === "ORDERS") return <OrderStation station={station} onClose={() => setStage("setup")} />;
+  if (station.kind === "HEADCOUNT") return <HeadcountStation onClose={() => setStage("setup")} />;
+  const here = station.kind === "GATE" ? gate : station.label;
   const S = result ? style[result.kind] : null;
   const lookup = api.events.attendees().filter((a) => q.length > 1 && (a.name.toLowerCase().includes(q.toLowerCase()) || a.ref.toLowerCase().includes(q.toLowerCase())));
 
@@ -132,7 +153,7 @@ export default function Scanner() {
     <div className="relative flex min-h-[calc(100vh-37px)] flex-col bg-[#0f1522] text-white">
       <div className="flex items-center justify-between px-4 py-3 text-sm">
         <div>
-          <p className="font-semibold">{gate}, Lusaka Summer Jam</p>
+          <p className="font-semibold">{here}, Lusaka Summer Jam</p>
           <p className="text-white/50">{who[0]} {who[1]?.[0]}., scanner #4{role !== "gate" && <>. <Link href="/org/events/lusaka-summer-jam-2026/" className="underline">Back to the workspace</Link></>}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -159,13 +180,13 @@ export default function Scanner() {
         </div>
 
         <div className="mt-5 grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-2xl bg-white/5 py-3"><p className="font-display text-2xl font-bold tabular-nums">{count.toLocaleString()}</p><p className="text-xs text-white/50">Admitted here</p></div>
+          <div className="rounded-2xl bg-white/5 py-3"><p className="font-display text-2xl font-bold tabular-nums">{count.toLocaleString()}</p><p className="text-xs text-white/50">{station.kind === "GATE" ? "Admitted here" : "Served here"}</p></div>
           <div className="rounded-2xl bg-white/5 py-3"><p className="font-display text-2xl font-bold">0.4s</p><p className="text-xs text-white/50">Avg check</p></div>
           <div className="rounded-2xl bg-white/5 py-3"><p className="font-display text-2xl font-bold">{log.filter((l) => l.kind !== "valid").length}</p><p className="text-xs text-white/50">Rejected</p></div>
         </div>
 
         <button onClick={simulate} className="mt-5 w-full rounded-2xl bg-marigold py-4 text-lg font-bold text-[#2a1a00]">Scan a test ticket</button>
-        <p className="mt-2 text-center text-xs text-white/40">Cycles through valid, used, wrong gate, cancelled and fake tickets</p>
+        <p className="mt-2 text-center text-xs text-white/40">{station.kind === "GATE" ? "Cycles through valid, used, wrong gate, cancelled and fake tickets" : "Cycles through included, table count, already collected, not included, not entered yet and fake"}</p>
       </div>
 
       {flash && <p className="mx-auto mt-4 max-w-md rounded-xl bg-[#1F9D55]/20 px-4 py-2 text-center text-sm text-[#5fd394]" role="status">{flash}</p>}
@@ -222,7 +243,7 @@ export default function Scanner() {
       {result && S && (
         <div className={cx("absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center text-white", S.bg)} role="alert" onClick={() => setResult(null)}>
           <S.icon size={96} strokeWidth={1.5} />
-          <p className="font-display mt-4 text-4xl font-bold">{S.title}</p>
+          <p className="font-display mt-4 text-4xl font-bold">{station.kind === "ALLOWANCE" ? ({ valid: "Included. Serve", used: "Already collected", gate: "Can't serve this", invalid: "Fake or unknown ticket", cancelled: "Cancelled ticket" } as const)[result.kind] : S.title}</p>
           {result.name && <p className="mt-4 text-2xl font-semibold">{result.name}</p>}
           {result.ticket && <p className="text-lg opacity-90">{result.ticket}</p>}
           <p className="mt-3 max-w-xs text-lg opacity-90">{result.detail}</p>

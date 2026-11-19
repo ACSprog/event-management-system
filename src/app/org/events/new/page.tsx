@@ -13,12 +13,14 @@ import { PhoneInput } from "@/components/phone-input";
 import { countryOf, formatPhone, parsePhone } from "@/lib/phone";
 import { LocationPicker } from "@/components/location-picker";
 import type { EventLocation } from "@/lib/location";
+import { entryModes, salesTrackingOptions, type EntryMode, type SalesTracking } from "@/lib/event-day";
 
 const profiles: Record<string, { cat: string; modules: string[] }> = {
   "Concert or festival": { cat: "Music", modules: ["Performers and line-up", "Stages", "Gates and zones", "VIP areas"] },
   "Conference or seminar": { cat: "Conference", modules: ["Speakers", "Sessions and tracks", "Delegate badges", "Exhibitor booths"] },
   "Wedding or private party": { cat: "Wedding", modules: ["Invitations and RSVP", "Guest categories", "Table plan", "Meal choices"] },
   "Church gathering": { cat: "Church", modules: ["Programme", "Free registration", "Meal packs", "Livestream"] },
+  "Funeral or memorial": { cat: "Church", modules: ["Programme", "I'm coming", "Contributions", "Meal pass"] },
   "Sports match or tournament": { cat: "Sports", modules: ["Teams and fixtures", "Stands and seating", "Home and away sections"] },
   "Workshop or course": { cat: "Workshop", modules: ["Sessions", "Materials", "Attendance", "Certificates"] },
   "Exhibition or trade fair": { cat: "Exhibition", modules: ["Exhibitors", "Booths and floor plan", "Visitor registration"] },
@@ -27,7 +29,7 @@ const profiles: Record<string, { cat: string; modules: string[] }> = {
 };
 const allModules = [...new Set(Object.values(profiles).flatMap((p) => p.modules))].sort();
 const listUnder = ["Music", "Conference", "Wedding", "Sports", "Church", "Workshop", "Exhibition", "Charity", "Comedy", "Education"];
-const steps = ["Basics", "Date and place", "Programme", "Tickets", "Fees and payouts", "Policies", "Review"];
+const steps = ["Basics", "Date and place", "Programme", "Entry and extras", "Fees and payouts", "Policies", "Review"];
 
 export default function NewEvent() {
   const toast = useToast();
@@ -46,8 +48,21 @@ export default function NewEvent() {
   const [other, setOther] = useState({ name: "", listUnder: "Conference", modules: ["Programme", "Sessions"] as string[] });
   const [programme, setProgramme] = useState<ProgrammeItem[]>([]);
   const [feePayer, setFeePayer] = useState<FeePayer>("ORGANISER_ABSORBS");
+  // Event-day choices (rules in src/lib/event-day.ts).
+  const [entry, setEntry] = useState<EntryMode>("TICKETS");
+  const [day, setDay] = useState({ rsvp: true, checkinQr: true, mealPass: false, giving: false, menu: false });
+  const [funds, setFunds] = useState("Tithe, Offering, Building fund");
+  const [includes, setIncludes] = useState<Record<string, string[]>>({ VIP: ["Dinner", "Drinks ×2"] });
+  const [tracking, setTracking] = useState<SalesTracking>("COMMISSION");
+  const pickProfile = (k: string) => {
+    setProfile(k);
+    const open = k === "Church gathering" || k === "Funeral or memorial";
+    setEntry(open ? "OPEN" : k === "Wedding or private party" ? "REGISTRATION" : "TICKETS");
+    setDay({ rsvp: true, checkinQr: true, mealPass: k === "Funeral or memorial", giving: open, menu: k === "Concert or festival" });
+    setFunds(k === "Funeral or memorial" ? "Funeral costs, Support for the family" : "Tithe, Offering, Building fund");
+  };
   const plan = api.billing.subscription().plan;
-  const paid = tickets.filter((t) => t.price > 0);
+  const paid = entry === "TICKETS" ? tickets.filter((t) => t.price > 0) : [];
   const sample = paid[0];
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const p = profiles[profile];
@@ -57,7 +72,7 @@ export default function NewEvent() {
     if (step === 1 && f.end <= f.start) return setErr("The end time must be after the start time.");
     if (step === 1 && f.format !== "Virtual" && !location) return setErr("Confirm where the event is: choose \"Yes, use this place\" under the map.");
     if (step === 2 && programmeIssues(programme).length) return setErr("Fix the programme items marked above, or remove them. You can also leave the programme empty and add it later.");
-    if (step === 3 && tickets.some((t) => !t.name || t.qty < 1)) return setErr("Every ticket type needs a name and a quantity.");
+    if (step === 3 && entry !== "OPEN" && tickets.some((t) => !t.name || t.qty < 1)) return setErr("Every ticket type needs a name and a quantity.");
     setErr("");
     setStep(step + 1);
   };
@@ -81,7 +96,7 @@ export default function NewEvent() {
             <Field label="What kind of event is it?" hint="This switches on the right tools. You can add more later.">
               <div className="grid gap-2 sm:grid-cols-2">
                 {Object.keys(profiles).map((k) => (
-                  <button key={k} onClick={() => setProfile(k)} className={cx("rounded-lg border-2 px-3 py-2.5 text-left text-sm font-medium", profile === k ? "border-kafue bg-kafue-soft" : "border-line hover:border-ink-3")}>{k}</button>
+                  <button key={k} onClick={() => pickProfile(k)} className={cx("rounded-lg border-2 px-3 py-2.5 text-left text-sm font-medium", profile === k ? "border-kafue bg-kafue-soft" : "border-line hover:border-ink-3")}>{k}</button>
                 ))}
               </div>
             </Field>
@@ -176,7 +191,28 @@ export default function NewEvent() {
             {err && <p className="text-sm text-hibiscus">{err}</p>}
           </>)}
           {step === 3 && (<>
+            <div>
+              <p className="text-sm font-medium">How do people get in?</p>
+              <div className="mt-2 grid gap-2 md:grid-cols-3">
+                {entryModes.map((m) => (
+                  <button key={m.key} type="button" onClick={() => setEntry(m.key)} aria-pressed={entry === m.key} className={cx("rounded-lg border-2 p-3 text-left text-sm", entry === m.key ? "border-kafue bg-kafue-soft" : "border-line hover:border-ink-3")}>
+                    <p className="font-semibold">{m.label}</p>
+                    <p className="mt-1 text-ink-2">{m.sub}</p>
+                    <p className="mt-1 text-xs text-ink-3">{m.examples}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+            {entry === "OPEN" ? (
+              <div className="space-y-3 rounded-lg border border-line p-4">
+                <p className="text-sm font-medium">Counting people</p>
+                <Checkbox checked={day.rsvp} onChange={(v) => setDay({ ...day, rsvp: v })} label="“I’m coming” before the event, with how many people (helps plan seating and food)" />
+                <Checkbox checked={day.checkinQr} onChange={(v) => setDay({ ...day, checkinQr: v })} label="Check-in QR code on the day. Ushers count people without smartphones" />
+                <Checkbox checked={day.mealPass} onChange={(v) => setDay({ ...day, mealPass: v })} label="There is food: check-in becomes a meal pass, each meal collected once" />
+              </div>
+            ) : (<>
             <div className="space-y-3">
+              {entry === "REGISTRATION" && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-2">Free registration: set how many places there are. Each person gets a free pass with a QR code. You can add paid options later.</p>}
               {tickets.map((t, i) => (
                 <div key={i} className="grid items-end gap-3 rounded-lg border border-line p-3 sm:grid-cols-[1.5fr_1fr_1fr_auto]">
                   <Field label="Ticket name"><Input value={t.name} onChange={(e) => setTickets(tickets.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} /></Field>
@@ -198,6 +234,14 @@ export default function NewEvent() {
                       <Field label="Currency"><Select options={["ZMW (K)", "USD ($)"]} /></Field>
                     </div>
                   )}
+                  <div className="flex flex-wrap items-center gap-1.5 sm:col-span-4">
+                    <span className="text-xs text-ink-3">Includes:</span>
+                    {["Dinner", "Lunch", "Drinks ×2", "Meal pack", "T-shirt"].map((x) => {
+                      const on = includes[t.name]?.includes(x);
+                      return <button key={x} type="button" aria-pressed={!!on} onClick={() => setIncludes({ ...includes, [t.name]: on ? includes[t.name].filter((y) => y !== x) : [...(includes[t.name] ?? []), x] })} className={cx("rounded-full border px-2.5 py-1 text-xs", on ? "border-kafue bg-kafue-soft font-semibold text-kafue-ink" : "border-line")}>{x}</button>;
+                    })}
+                    <span className="text-xs text-ink-3">{includes[t.name]?.length ? "Scanned at its own station with the same QR code" : "Entry only"}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -207,6 +251,13 @@ export default function NewEvent() {
             <div className="grid gap-4 sm:grid-cols-2">
               <SelectOther label="Seating" options={["General admission", "Reserved seats", "Tables"]} other="Mixed or other layout" prompt="Describe the layout" placeholder="e.g. Standing at the front, tables at the back" />
               <Field label="Max per order"><Input defaultValue="6" /></Field>
+            </div>
+            </>)}
+            <div className="space-y-3 rounded-lg border border-line p-4">
+              <p className="text-sm font-medium">On the day</p>
+              <Checkbox checked={day.giving} onChange={(v) => setDay({ ...day, giving: v })} label="Accept giving or contributions (link and QR code to share)" />
+              {day.giving && <Field label="Funds people can give to" hint="Separate with commas"><Input value={funds} onChange={(e) => setFunds(e.target.value)} /></Field>}
+              <Checkbox checked={day.menu} onChange={(v) => setDay({ ...day, menu: v })} label="Sell food, drinks or merchandise (you take the payment; EMS tracks orders, stock and cash)" />
             </div>
             {err && <p className="text-sm text-hibiscus">{err}</p>}
           </>)}
@@ -254,6 +305,22 @@ export default function NewEvent() {
                 <p className="mt-2 text-xs text-ink-3">Buyers always see the full price, including any booking fee, before they pay. Payment provider charges are passed on at cost and shown on your statement.</p>
               </div>
             )}
+            {day.menu && (
+              <div>
+                <p className="text-sm font-medium">Food and merchandise sales tracking</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {salesTrackingOptions.map((o) => (
+                    <button key={o.key} type="button" onClick={() => setTracking(o.key)} aria-pressed={tracking === o.key} className={cx("rounded-lg border-2 p-3 text-left text-sm", tracking === o.key ? "border-kafue bg-kafue-soft" : "border-line hover:border-ink-3")}>
+                      <p className="font-semibold">{o.label}</p>
+                      <p className="font-medium text-ink">{o.price}</p>
+                      <p className="mt-1 text-ink-2">{o.sub}</p>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-ink-3">Buyers pay your attendants directly, so this money never passes through EMS and isn&rsquo;t part of the payout.</p>
+              </div>
+            )}
+            {day.giving && <p className="rounded-lg bg-surface-2 p-3 text-sm">Giving and contributions are collected by EMS. EMS&rsquo;s fee is taken when each gift is paid, and you can cash out cleared money at any time.</p>}
             <NoEarlyPayouts className="rounded-lg bg-surface-2 p-3" />
             <p className="text-xs text-ink-3">These terms are fixed when you publish. Later price changes don&rsquo;t affect this event.</p>
           </>)}
@@ -277,10 +344,10 @@ export default function NewEvent() {
           {step === 6 && (
             <div className="space-y-4 text-sm">
               <dl className="grid gap-3 sm:grid-cols-2">
-                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Programme", programme.length ? `${programme.length} items over ${new Set(programme.map((x) => x.day)).size} day${new Set(programme.map((x) => x.day)).size > 1 ? "s" : ""}` : "None yet, add it later"], ["Contact", `${contact.name}, ${formatPhone(parsePhone(contact.phone))}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : location ? `${location.name}, ${location.area}${location.privateHome ? " (private home: exact pin for guests only)" : ""}` : "Not set"], ...(f.format !== "Virtual" && location?.directions ? [["Directions", location.directions]] : []), ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
+                {[["Type", profile === "Something else" ? `${other.name || "Other"} (listed under ${other.listUnder})` : profile], ...(profile === "Something else" ? [["Tools", other.modules.join(", ") || "Ticketing and check-in only"]] : []), ["Name", f.title], ["Format", f.format], ["Extra sessions", sessions.length ? sessions.map((x) => x.title).join(", ") : "None"], ["Programme", programme.length ? `${programme.length} items over ${new Set(programme.map((x) => x.day)).size} day${new Set(programme.map((x) => x.day)).size > 1 ? "s" : ""}` : "None yet, add it later"], ["Contact", `${contact.name}, ${formatPhone(parsePhone(contact.phone))}`], ["Gallery", `${gallery.length} photo${gallery.length === 1 ? "" : "s"}`], ["When", `${f.start.replace("T", " ")} to ${f.end.replace("T", " ")}`], ["Venue", f.format === "Virtual" ? f.stream : location ? `${location.name}, ${location.area}${location.privateHome ? " (private home: exact pin for guests only)" : ""}` : "Not set"], ...(f.format !== "Virtual" && location?.directions ? [["Directions", location.directions]] : []), ["Visibility", f.visibility], ["Refunds", f.refund], ["EMS fee", paid.length ? `Covered by ${plan} plan, 3% + K2 per paid ticket` : "None, free event"], ["Fee paid by", paid.length ? feePayerLabel[feePayer] : "—"], ["Ticket money", "Collected by EMS, paid out once after the event"], ["Approval", f.approval ? "Manager approves before publishing" : "Publish immediately"], ["Entry", entryModes.find((m) => m.key === entry)!.label + (entry === "OPEN" ? ` (${[day.rsvp && "I'm coming", day.checkinQr && "check-in QR", day.mealPass && "meal pass"].filter(Boolean).join(", ")})` : "")], ["Giving", day.giving ? funds : "Off"], ["Food and merchandise", day.menu ? salesTrackingOptions.find((o) => o.key === tracking)!.label : "Off"]].map(([k, v]) => <div key={k}><dt className="text-ink-3">{k}</dt><dd className="font-semibold">{v}</dd></div>)}
               </dl>
-              <ul className="divide-y divide-line rounded-lg border border-line">{tickets.map((t) => <li key={t.name} className="flex justify-between px-4 py-2"><span>{t.name}, {t.qty}</span><span className="font-semibold">{t.price ? kwacha(t.price) : "Free"}</span></li>)}</ul>
-              <p className="text-ink-3">Potential gross if all tickets sell: <strong className="text-ink">{kwacha(tickets.reduce((a, t) => a + t.price * t.qty, 0))}</strong></p>
+              {entry !== "OPEN" && <><ul className="divide-y divide-line rounded-lg border border-line">{tickets.map((t) => <li key={t.name} className="flex justify-between px-4 py-2"><span>{t.name}, {t.qty}</span><span className="font-semibold">{t.price ? kwacha(t.price) : "Free"}</span></li>)}</ul>
+              <p className="text-ink-3">Potential gross if all tickets sell: <strong className="text-ink">{kwacha(tickets.reduce((a, t) => a + t.price * t.qty, 0))}</strong></p></>}
             </div>
           )}
           {err && step !== 1 && step !== 2 && step !== 3 && !(step === 0 && profile === "Something else" && !other.name.trim()) && <p className="text-sm text-hibiscus">{err}</p>}
@@ -296,7 +363,7 @@ export default function NewEvent() {
             <div className="p-4 text-sm">
               <p className="font-semibold">{f.title}</p>
               <p className="text-ink-3">{f.format === "Virtual" ? "Online" : f.venue}</p>
-              <p className="mt-2 font-semibold">From {kwacha(Math.min(...tickets.map((t) => t.price)))}</p>
+              <p className="mt-2 font-semibold">{entry === "OPEN" ? "Free, no ticket needed" : entry === "REGISTRATION" ? "Free registration" : `From ${kwacha(Math.min(...tickets.map((t) => t.price)))}`}</p>
             </div>
           </div>
           <Badge tone="grey">Draft, not visible to the public</Badge>
