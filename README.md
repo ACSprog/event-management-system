@@ -107,6 +107,13 @@ gate staff see nothing else. It opens full screen so it works well on a phone.
   (Firebase App Hosting or Cloud Run), so server rendering and authentication
   middleware can be used.
 
+## Database and security
+
+- **Database:** PostgreSQL 16 + PostGIS schema, migrations, sample data and tests in [`db/`](db/README.md).
+- **Security (DevSecOps):** secret scanning, dependency and code scanning, database access
+  rules, security headers and the settings to keep on are in [docs/devsecops.md](docs/devsecops.md).
+  Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+
 ## Design system
 
 - Tokens in `src/app/globals.css`: Kafue teal (primary), marigold (tickets),
