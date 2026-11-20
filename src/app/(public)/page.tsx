@@ -21,33 +21,35 @@ export default function Home() {
   return (
     <>
       {/*
-        Hero: dark, with a glow, so the public site feels like a night out rather
-        than a dashboard. Fixed colours (not theme tokens) so it looks the same in
-        light and dark mode. The next big event is presented as a ticket.
+        Hero with a glow, so the public site feels like a night out rather than a
+        dashboard. It follows the theme switch: warm cream in light mode, deep
+        navy in dark mode. The next big event is presented as a ticket (dark in
+        both modes).
       */}
-      <section className="relative overflow-hidden bg-[#0f1522] text-white">
-        <div aria-hidden className="pointer-events-none absolute -left-32 -top-40 h-[28rem] w-[28rem] rounded-full bg-[#F4A630]/25 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-48 right-0 h-[30rem] w-[30rem] rounded-full bg-[#C026D3]/20 blur-3xl" />
+      <section className="relative overflow-hidden bg-[#FFF4E2] text-ink dark:bg-[#0f1522] dark:text-white">
+        <div aria-hidden className="pointer-events-none absolute -left-32 -top-40 h-[28rem] w-[28rem] rounded-full bg-[#F4A630]/35 blur-3xl dark:bg-[#F4A630]/25" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-48 right-0 h-[30rem] w-[30rem] rounded-full bg-[#C026D3]/15 blur-3xl dark:bg-[#C026D3]/20" />
         <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_1.15fr] lg:gap-10 lg:py-16">
           <div className="flex flex-col justify-center">
-            <p className="flex items-center gap-1.5 text-sm font-medium text-white/80">
-              <Navigation size={14} className="text-[#F4A630]" /> Lusaka, within 25 km
-              <Link href="/account/preferences/" className="ml-1 text-[#F4A630] underline-offset-2 hover:underline">Change</Link>
+            <p className="flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-white/80">
+              <Navigation size={14} className="text-[#B45309] dark:text-[#F4A630]" /> Lusaka, within 25 km
+              <Link href="/account/preferences/" className="ml-1 font-semibold text-[#B45309] underline-offset-2 hover:underline dark:text-[#F4A630]">Change</Link>
             </p>
             <h1 className="font-display mt-3 text-[40px] font-bold leading-[0.98] tracking-tight sm:text-6xl">
-              What&rsquo;s on near you, and the <span className="text-[#F4A630]">fastest way in.</span>
+              What&rsquo;s on near you, and the <span className="text-[#D97706] dark:text-[#F4A630]">fastest way in.</span>
             </h1>
-            <p className="mt-5 max-w-md text-base text-white/75 sm:text-lg">Buy with mobile money in under a minute. Your QR ticket arrives by SMS, WhatsApp and email.</p>
+            <p className="mt-5 max-w-md text-base text-ink-2 sm:text-lg dark:text-white/75">Buy with mobile money in under a minute. Your QR ticket arrives by SMS, WhatsApp and email.</p>
             <div className="mt-6 flex flex-wrap gap-2">
               {categories.slice(0, 6).map((c) => (
-                <Link key={c} href={`/events/?category=${c}`} className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium hover:border-white/60">
+                <Link key={c} href={`/events/?category=${c}`} className="flex items-center gap-2 rounded-full border border-ink/15 bg-white/70 px-4 py-2 text-sm font-medium hover:border-ink/40 dark:border-white/20 dark:bg-white/5 dark:hover:border-white/60">
                   <span className="h-2 w-2 rounded-full" style={{ background: catColor(c).palette[0] }} />{c}
                 </Link>
               ))}
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button href="/events/" variant="ticket" size="lg">Find events</Button>
-              <Button href="/events/?when=today" size="lg" className="border border-white/25 bg-transparent text-white hover:bg-white/10">What&rsquo;s on today</Button>
+              {/* Outline button with its own colours: the shared Button variants set a dark-mode text colour that would hide it on the hero. */}
+              <Link href="/events/?when=today" className="inline-flex h-12 items-center justify-center rounded-lg border-2 border-ink/80 px-6 text-base font-semibold text-ink hover:bg-ink hover:text-white dark:border-white/70 dark:text-white dark:hover:bg-white dark:hover:text-[#0f1522]">What&rsquo;s on today</Link>
             </div>
           </div>
 
