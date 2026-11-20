@@ -1,0 +1,23 @@
+# Automatic dependency updates. Security fixes come as soon as they're published;
+# routine updates are grouped weekly so they're easy to review.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Africa/Lusaka }
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch: { update-types: [minor, patch] }
+  - package-ecosystem: npm
+    directory: /db
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Africa/Lusaka }
+    groups:
+      minor-and-patch: { update-types: [minor, patch] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Africa/Lusaka }
+    groups:
+      actions: { patterns: ["*"] }
+  - package-ecosystem: docker
+    directory: /db
+    schedule: { interval: monthly }

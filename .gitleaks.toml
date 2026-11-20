@@ -1,0 +1,14 @@
+# gitleaks configuration: the default rules, plus documented exceptions.
+title = "EMS secret scanning"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Values that are public by design"
+# The Firebase *web* API key for the test project is not a secret: it ships in the website's
+# JavaScript to every visitor. It is protected by API and HTTP-referrer restrictions in
+# Google Cloud (see docs/devsecops.md). Real secrets (service accounts) live in GitHub secrets.
+regexTarget = "line"
+regexes = ['''NEXT_PUBLIC_FIREBASE_API_KEY:\s*AIza[0-9A-Za-z_\-]{35}''']
+paths = ['''db/package-lock\.json''', '''package-lock\.json''']
