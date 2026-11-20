@@ -287,11 +287,11 @@ export const statusTone: Record<string, "teal" | "gold" | "red" | "green" | "gre
 };
 
 export const orgEventsExtra: EventItem[] = [
-  { ...events[0], id: "e11", slug: "copperbelt-nights-kitwe", title: "Copperbelt Nights: Kitwe", status: "Draft", start: "2027-02-27T18:00:00+02:00", city: "Kitwe", tickets: events[0].tickets.map((x) => ({ ...x, sold: 0 })), rating: undefined, reviews: undefined },
+  { ...events[0], id: "e11", slug: "copperbelt-nights-kitwe", title: "Copperbelt Nights: Kitwe", status: "Draft", start: "2027-02-27T18:00:00+02:00", end: "2027-02-28T01:00:00+02:00", city: "Kitwe", tickets: events[0].tickets.map((x) => ({ ...x, sold: 0 })), rating: undefined, reviews: undefined },
   { ...events[0], id: "e12", slug: "zed-live-sessions-oct", title: "Zed Live Sessions: October", status: "Completed", start: "2026-10-24T19:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, capacity: 1200, sold: 1189 })), rating: 4.4, reviews: 233 },
-  { ...events[0], id: "e14", slug: "zed-live-sessions-december", title: "Zed Live Sessions: December", status: "Approved", start: "2026-12-19T19:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, capacity: 1200, sold: 0 })), rating: undefined, reviews: undefined },
+  { ...events[0], id: "e14", slug: "zed-live-sessions-december", title: "Zed Live Sessions: December", status: "Approved", start: "2026-12-19T19:00:00+02:00", end: "2026-12-20T01:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, capacity: 1200, sold: 0 })), rating: undefined, reviews: undefined },
   { ...events[0], id: "e15", slug: "lusaka-july-fest-2025", title: "Lusaka July Fest 2025", status: "Archived", start: "2025-07-19T14:00:00+02:00", tickets: events[0].tickets.map((x) => ({ ...x, sold: Math.round(x.capacity * 0.9) })), rating: 4.1, reviews: 1011 },
-  { ...events[0], id: "e13", slug: "new-year-countdown", title: "New Year's Eve Countdown", status: "Pending approval", start: "2026-12-31T20:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, sold: 0 })), rating: undefined, reviews: undefined },
+  { ...events[0], id: "e13", slug: "new-year-countdown", title: "New Year's Eve Countdown", status: "Pending approval", start: "2026-12-31T20:00:00+02:00", end: "2027-01-01T02:00:00+02:00", venueId: "v3", tickets: events[0].tickets.slice(1, 3).map((x) => ({ ...x, sold: 0 })), rating: undefined, reviews: undefined },
 ];
 
 export function orgEvents(orgId = "org1") {
