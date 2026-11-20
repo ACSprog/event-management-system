@@ -1,0 +1,21 @@
+# Local PostgreSQL 16 + PostGIS for development. Same major versions as Cloud SQL.
+# The port is bound to this computer only (127.0.0.1), never the network.
+# Password comes from db/.env (copy .env.example; .env is git-ignored).
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ems_dev
+      POSTGRES_USER: ems
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in db/.env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ems_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ems -d ems_dev"]
+      interval: 5s
+      retries: 10
+volumes:
+  ems_pgdata:

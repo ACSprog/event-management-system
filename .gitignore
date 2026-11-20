@@ -48,3 +48,7 @@ firebase-debug.log*
 
 # copied from country-flag-icons at build time
 /public/flags/
+
+# Database tooling
+db/node_modules/
+db/.env

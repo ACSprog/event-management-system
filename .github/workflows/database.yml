@@ -1,0 +1,49 @@
+# Rebuilds the database from scratch on every change to db/ (or the sample data it seeds),
+# checks migrations are idempotent and unchanged, seeds it and runs the database tests.
+name: Database
+
+on:
+  pull_request:
+    paths: ["db/**", "src/lib/mock/**", "src/lib/roles.ts", "src/lib/event-day.ts", ".github/workflows/database.yml"]
+  push:
+    branches: [master]
+    paths: ["db/**", "src/lib/mock/**", "src/lib/roles.ts", "src/lib/event-day.ts", ".github/workflows/database.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: ems_ci
+          POSTGRES_USER: ems
+          POSTGRES_PASSWORD: ci-only-password   # throwaway container, not a real secret
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ems -d ems_ci" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://ems:ci-only-password@localhost:5432/ems_ci
+    defaults:
+      run:
+        working-directory: db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: db/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Apply all migrations
+        run: npm run migrate
+      - name: Running again changes nothing
+        run: node scripts/migrate.mjs --check
+      - name: Load sample data
+        run: npm run seed
+      - name: Database tests
+        run: npm test

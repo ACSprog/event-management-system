@@ -1,0 +1,21 @@
+{
+  "name": "ems-database",
+  "private": true,
+  "type": "module",
+  "description": "PostgreSQL schema, migrations, seed and tests for the Event Management System",
+  "scripts": {
+    "migrate": "node scripts/migrate.mjs",
+    "seed": "tsx scripts/seed.ts",
+    "test": "node scripts/test.mjs",
+    "reset": "node scripts/migrate.mjs --reset && tsx scripts/seed.ts && node scripts/test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "8.13.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}
