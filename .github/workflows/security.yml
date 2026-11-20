@@ -51,6 +51,9 @@ jobs:
     name: Dependency review
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    # Needs "Dependency graph" switched on in Settings › Code security. Advisory until it is;
+    # remove this line afterwards so it blocks merges (npm audit above already blocks).
+    continue-on-error: true
     permissions:
       contents: read
       pull-requests: write
