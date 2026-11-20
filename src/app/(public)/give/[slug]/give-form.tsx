@@ -85,7 +85,7 @@ export function GiveForm({ slug }: { slug: string }) {
               {methods.map((m) => <button key={m} type="button" onClick={() => setMethod(m)} aria-pressed={method === m} className={cx("rounded-lg border px-3 py-2.5 text-left text-sm", method === m ? "border-kafue bg-kafue-soft font-semibold" : "border-line")}>{m}</button>)}
             </div>
           </Field>
-          <Button className="h-12 w-full text-base" onClick={give}>Give {value ? kwacha(value) : ""}</Button>
+          <Button variant="ticket" className="h-12 w-full text-base" onClick={give}>Give {value ? kwacha(value) : ""}</Button>
           <p className="flex items-start gap-1.5 text-xs text-ink-3"><Lock size={13} className="mt-0.5 shrink-0" /> Paid securely through EMS&rsquo;s licensed payment partner. Contributions are non-refundable, except where a system error occurs.</p>
         </Card>
       )}

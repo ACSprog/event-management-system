@@ -154,7 +154,7 @@ export function MenuOrder({ slug }: { slug: string }) {
             </div>
             <div className="flex gap-2 border-t border-line px-5 py-3">
               <Button variant="ghost" onClick={() => setCheckout(false)}>Back</Button>
-              <Button className="flex-1" disabled={open >= MAX_OPEN_UNPAID} onClick={place}>{open >= MAX_OPEN_UNPAID ? "Collect your open orders first" : "Place order and get my code"}</Button>
+              <Button variant="ticket" className="flex-1" disabled={open >= MAX_OPEN_UNPAID} onClick={place}>{open >= MAX_OPEN_UNPAID ? "Collect your open orders first" : "Place order and get my code"}</Button>
             </div>
           </div>
         </div>

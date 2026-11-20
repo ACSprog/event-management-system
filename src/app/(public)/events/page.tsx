@@ -7,6 +7,7 @@ import { EventCard } from "@/components/event-card";
 import { Button, cx, EmptyState } from "@/components/ui";
 import { api, fromPrice, sold, type EventItem } from "@/lib/api";
 import { kwacha } from "@/lib/brand";
+import { catColor } from "@/lib/category-colors";
 import { dateRangeLabels, overlaps, rangeFor, type DateRangeKey } from "@/lib/date-ranges";
 
 const cats = ["All", "Music", "Nightlife", "Comedy", "Arts and theatre", "Film", "Food and drink", "Family and kids", "Church", "Sports", "Fitness", "Conference", "Business", "Technology", "Education", "Workshop", "Exhibition", "Charity"];
@@ -195,7 +196,10 @@ export default function Discover() {
           <span className={cx("h-2 w-2 rounded-full motion-safe:animate-pulse", f.when === "now" ? "bg-white" : "bg-hibiscus")} /> Happening now <span className="tabular-nums opacity-80">{counts.now}</span>
         </button>
         {cats.map((c) => (
-          <button key={c} onClick={() => set("cat", c)} className={cx("shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium", f.cat === c ? "border-ink bg-ink text-canvas" : "border-line bg-surface hover:border-ink-3")}>{c}</button>
+          <button key={c} onClick={() => set("cat", c)} className={cx("flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium", f.cat === c ? "border-ink bg-ink text-canvas" : "border-line bg-surface hover:border-ink-3")}>
+            {/* Category colour dot (see src/lib/category-colors.ts) */}
+            {c !== "All" && <span className="h-2 w-2 rounded-full" style={{ background: catColor(c).fg }} />}{c}
+          </button>
         ))}
       </div>
 
