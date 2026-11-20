@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui";
 import { api, capacity, fromPrice, sold, type EventItem } from "@/lib/api";
 import { fmtDate, fmtTime, kwacha } from "@/lib/brand";
 import { isLive } from "@/lib/date-ranges";
+import { catColor } from "@/lib/category-colors";
 
 export function EventCard({ e, showDistance = true }: { e: EventItem; showDistance?: boolean }) {
   const venue = api.venues.get(e.venueId);
@@ -25,16 +26,19 @@ export function EventCard({ e, showDistance = true }: { e: EventItem; showDistan
         </div>
       </div>
       <div className="mt-3">
-        <p className="text-[13px] font-semibold text-kafue">
-          {fmtDate(e.start)}, {fmtTime(e.start)}
+        {/* Category in its own colour, so a page of events looks varied at a glance. */}
+        <p className="flex items-center gap-1.5 text-[13px] font-semibold">
+          <span className="uppercase tracking-wide" style={{ color: catColor(e.category).fg }}>{e.category}</span>
+          <span className="text-ink-3">·</span>
+          <span className="text-ink-2">{fmtDate(e.start)}, {fmtTime(e.start)}</span>
         </p>
-        <h3 className="mt-0.5 line-clamp-2 text-[17px] font-semibold leading-snug group-hover:underline">{e.title}</h3>
+        <h3 className="font-display mt-0.5 line-clamp-2 text-[18px] font-bold leading-snug group-hover:underline">{e.title}</h3>
         <p className="mt-1 flex items-center gap-1 text-sm text-ink-3">
           <MapPin size={13} className="shrink-0" /> <span className="truncate">{e.format === "Virtual" ? "Online on Zoom" : venue.name}</span>
           {showDistance && e.distanceKm > 0 && e.distanceKm < 50 && <span className="shrink-0">, {e.distanceKm} km</span>}
         </p>
         <div className="mt-2 flex items-center justify-between text-sm">
-          <span className="font-semibold">{price === 0 ? "Free" : `From ${kwacha(price)}`}</span>
+          <span className="font-bold">{price === 0 ? "Free" : `From ${kwacha(price)}`}</span>
           {e.rating ? (
             <span className="flex items-center gap-1 text-ink-3">
               <Star size={13} className="fill-marigold text-marigold" /> {e.rating} ({e.reviews})
