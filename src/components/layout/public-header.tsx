@@ -18,7 +18,8 @@ const publicLinks = [
 
 /**
  * Header for the public site and the attendee account. Mobile first:
- * - Phones (under 768px): hamburger, logo, notifications, account. The menu
+ * - Phones (under 768px): hamburger, logo, notifications (Account is in the
+ *   bottom bar). The menu
  *   holds search plus the header options (Discover, Give, For organisers,
  *   Sign in, Notifications, My tickets, My account). Inside the attendee
  *   account it shows the account sections first, then the public links.
@@ -56,7 +57,8 @@ export function PublicHeader() {
           <Link href="/login/" className="hidden rounded-md px-3 py-2 hover:bg-surface-2 lg:block">Sign in</Link>
           <Link href="/account/notifications/" aria-label="Notifications" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-2"><Bell size={18} /></Link>
           <Link href="/account/tickets/" className="hidden h-10 items-center gap-2 rounded-full bg-ink px-4 text-canvas hover:opacity-90 md:flex"><Ticket size={16} /> My tickets</Link>
-          <Link href="/account/" aria-label="My account" title="My account" className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface hover:border-ink-3"><UserRound size={18} /></Link>
+          {/* Phones: Account is in the bottom bar (BottomNav), so the header icon shows from tablets up. */}
+          <Link href="/account/" aria-label="My account" title="My account" className="hidden h-10 w-10 items-center justify-center rounded-full border border-line bg-surface hover:border-ink-3 md:flex"><UserRound size={18} /></Link>
         </nav>
       </div>
 
