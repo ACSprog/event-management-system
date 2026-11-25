@@ -5,7 +5,8 @@
 #
 # Keyless: GitHub proves its identity to Google (Workload Identity Federation), which only
 # accepts this repository's master branch. Passwords are read from Secret Manager at run
-# time and masked in the logs.
+# time and masked in the logs. Third-party actions are pinned to a commit (Dependabot
+# updates the pins), so a moved tag can't change what runs with deploy rights.
 name: Deploy test backend
 
 on:
@@ -37,11 +38,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - uses: google-github-actions/auth@v2
+      - uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
         with:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_DEPLOY_SA }}
-      - uses: google-github-actions/setup-gcloud@v2
+      - uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
 
       - name: Connect to Cloud SQL (Auth Proxy)
         run: |
@@ -89,7 +90,7 @@ jobs:
 
       - name: Identity token for the smoke test
         id: idtoken
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
         with:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_DEPLOY_SA }}
