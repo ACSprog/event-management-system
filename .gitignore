@@ -52,3 +52,7 @@ firebase-debug.log*
 # Database tooling
 db/node_modules/
 db/.env
+
+# Backend
+api/node_modules/
+api/dist/

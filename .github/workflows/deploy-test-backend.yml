@@ -1,0 +1,107 @@
+# Deploys the backend to the TEST environment (Google Cloud project event-management-system-test).
+# Runs on merge to master when the API or database changes, or by hand (Run workflow).
+# Does nothing until the test environment is set up (infra/test/bootstrap.sh) and the
+# GitHub variables it prints are added.
+#
+# Keyless: GitHub proves its identity to Google (Workload Identity Federation), which only
+# accepts this repository's master branch. Passwords are read from Secret Manager at run
+# time and masked in the logs.
+name: Deploy test backend
+
+on:
+  push:
+    branches: [master]
+    paths: ["api/**", "db/**", ".github/workflows/deploy-test-backend.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-test-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.GCP_WIF_PROVIDER != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: test
+    env:
+      PROJECT: ${{ vars.GCP_PROJECT }}
+      REGION: ${{ vars.GCP_REGION }}
+      INSTANCE: ${{ vars.CLOUDSQL_INSTANCE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Connect to Cloud SQL (Auth Proxy)
+        run: |
+          curl -fsSLo cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy "$INSTANCE" --port 5432 --quiet &
+          for i in $(seq 1 30); do nc -z 127.0.0.1 5432 && exit 0; sleep 1; done
+          echo "Cloud SQL proxy did not start"; exit 1
+
+      - name: Migrate, API login, sample data, database tests
+        working-directory: db
+        run: |
+          npm ci --no-audit --no-fund
+          OWNER_PW="$(gcloud secrets versions access latest --secret=db-owner-password --project "$PROJECT")"
+          API_PW="$(gcloud secrets versions access latest --secret=db-api-password --project "$PROJECT")"
+          echo "::add-mask::$OWNER_PW"; echo "::add-mask::$API_PW"
+          export DATABASE_URL="postgres://ems_owner:${OWNER_PW}@127.0.0.1:5432/ems"
+          npm run migrate
+          API_DB_PASSWORD="$API_PW" node scripts/ensure-login.mjs
+          npm run seed      # test environment only; the seed refuses production
+          npm test
+
+      - name: Build and push the API image
+        run: |
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT/ems/api:$GITHUB_SHA"
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          docker build -t "$IMAGE" api
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloud Run (private: only the website and this pipeline may call it)
+        run: |
+          gcloud run deploy ems-api --image "$IMAGE" --region "$REGION" --project "$PROJECT" \
+            --service-account "ems-api@$PROJECT.iam.gserviceaccount.com" \
+            --add-cloudsql-instances "$INSTANCE" \
+            --set-env-vars "APP_ENV=test,DB_HOST=/cloudsql/$INSTANCE,DB_NAME=ems,DB_USER=ems_api_login" \
+            --set-secrets "DB_PASSWORD=db-api-password:latest,SESSION_SECRET=api-session-secret:latest,QR_KEY=ticket-qr-key:latest" \
+            --no-allow-unauthenticated --min-instances 0 --max-instances 3 --cpu 1 --memory 512Mi \
+            --concurrency 40 --timeout 60 --quiet
+          for sa in ems-web ems-deployer; do
+            gcloud run services add-iam-policy-binding ems-api --region "$REGION" --project "$PROJECT" \
+              --member "serviceAccount:$sa@$PROJECT.iam.gserviceaccount.com" --role roles/run.invoker --quiet >/dev/null
+          done
+          echo "API_URL=$(gcloud run services describe ems-api --region "$REGION" --project "$PROJECT" --format 'value(status.url)')" >> "$GITHUB_ENV"
+
+      - name: Identity token for the smoke test
+        id: idtoken
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+          token_format: id_token
+          id_token_audience: ${{ env.API_URL }}
+          id_token_include_email: true
+
+      - name: Smoke test
+        env:
+          TOKEN: ${{ steps.idtoken.outputs.id_token }}
+        run: |
+          curl -fsS -H "Authorization: Bearer $TOKEN" "$API_URL/health"
+          echo
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$API_URL/health")" = "403" && echo "Without a token: refused (good)"
+          curl -fsS -H "Authorization: Bearer $TOKEN" "$API_URL/v1/events?limit=3" | head -c 400
