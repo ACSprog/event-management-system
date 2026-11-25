@@ -1,6 +1,6 @@
 # EMS backend container. Two stages: build with dev tools, then a small runtime image
 # with production dependencies only, running as the unprivileged "node" user.
-FROM node:22-slim AS build
+FROM node:25-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
@@ -8,7 +8,7 @@ COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 RUN npm run build && npm prune --omit=dev
 
-FROM node:22-slim
+FROM node:25-slim
 ENV NODE_ENV=production PORT=8080
 WORKDIR /app
 COPY --from=build --chown=node:node /app/package.json ./
