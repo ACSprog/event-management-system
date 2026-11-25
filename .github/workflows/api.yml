@@ -1,0 +1,53 @@
+# Backend checks on every pull request that touches the API or the database:
+# type check, build, run the API tests against a freshly built database (connecting as the
+# restricted API login, so row-level security is exercised), and build the container image.
+name: API
+
+on:
+  pull_request:
+    paths: ["api/**", "db/**", ".github/workflows/api.yml"]
+  push:
+    branches: [master]
+    paths: ["api/**", "db/**", ".github/workflows/api.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: ems_ci
+          POSTGRES_USER: ems
+          POSTGRES_PASSWORD: ci-only-password   # throwaway container, not a real secret
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ems -d ems_ci" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://ems:ci-only-password@localhost:5432/ems_ci
+      API_DATABASE_URL: postgres://ems_api_login:ci-only-api-password-0000@localhost:5432/ems_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Database
+        working-directory: db
+        run: |
+          npm ci --no-audit --no-fund
+          npm run migrate
+          npm run seed
+          API_DB_PASSWORD=ci-only-api-password-0000 node scripts/ensure-login.mjs
+      - name: Type check, build, test
+        working-directory: api
+        run: |
+          npm ci --no-audit --no-fund
+          npm run typecheck
+          npm run build
+          npm test
+      - name: Container image builds
+        run: docker build -t ems-api:ci api

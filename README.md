@@ -110,6 +110,8 @@ gate staff see nothing else. It opens full screen so it works well on a phone.
 ## Database and security
 
 - **Database:** PostgreSQL 16 + PostGIS schema, migrations, sample data and tests in [`db/`](db/README.md).
+- **Backend:** NestJS API in [`api/`](api/), running on Cloud Run; it connects to the database as a restricted login so row-level security always applies.
+- **Test environment:** setup, architecture, costs and build phases in [docs/test-environment.md](docs/test-environment.md).
 - **Security (DevSecOps):** secret scanning, dependency and code scanning, database access
   rules, security headers and the settings to keep on are in [docs/devsecops.md](docs/devsecops.md).
   Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).

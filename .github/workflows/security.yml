@@ -46,6 +46,9 @@ jobs:
       - name: Database tooling
         working-directory: db
         run: npm audit --omit=dev --audit-level=high
+      - name: Backend
+        working-directory: api
+        run: npm audit --omit=dev --audit-level=high
 
   dependency-review:
     name: Dependency review
