@@ -24,7 +24,8 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.enableShutdownHooks();
   await app.listen(config.PORT, "0.0.0.0");
-  console.log(JSON.stringify({ level: "info", msg: "api started", env: config.APP_ENV, port: config.PORT }));
+  // Nothing from the environment is logged: it also holds secrets.
+  console.log(JSON.stringify({ level: "info", msg: "api started" }));
 }
 
 bootstrap().catch((e) => {
